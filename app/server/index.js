@@ -124,8 +124,9 @@ function requireAnyPermission(permissions = []) {
 function canViewSensitive(user, personId) {
   if (!user) return false;
   if (user.is_super_admin) return true;
-  if (hasPermission(user, 'sensitive.view')) return true;
-  return user.personId && personId && user.personId === Number(personId);
+  if (user.personId && personId && user.personId === Number(personId)) return true;
+  if (hasPermission(user, 'sensitive.view') && user.sensitive_unmasked) return true;
+  return false;
 }
 
 function maskPhone(phone) {
@@ -784,13 +785,21 @@ app.post('/api/users', authenticate, requirePermission('users.manage'), (req, re
   }
 });
 
-app.put('/api/users/:id', authenticate, requirePermission('users.manage'), (req, res) => {
+app.put('/api/users/:id', authenticate, requireAnyPermission(['users.manage', 'permissions.manage']), (req, res) => {
   const userId = Number(req.params.id);
   const target = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   if (!target) {
     return res.status(404).json({ message: '账号不存在' });
   }
-  const { name, email, role, personId, password, permissions, isSuperAdmin, sensitiveUnmasked } = req.body;
+  let { name, email, role, personId, password, permissions, isSuperAdmin, sensitiveUnmasked } = req.body;
+  const canManageUsers = req.user.is_super_admin || hasPermission(req.user, 'users.manage');
+  if (!canManageUsers) {
+    name = null;
+    email = null;
+    role = null;
+    personId = null;
+    password = null;
+  }
   if (role && !['user', 'admin', 'display'].includes(role)) {
     return res.status(400).json({ message: '角色无效' });
   }
@@ -980,7 +989,11 @@ app.delete('/api/evaluations/:id', authenticate, requirePermission('evaluations.
   res.json({ success: true });
 });
 
-app.get('/api/growth', authenticate, requirePermission('growth.view.all'), (req, res) => {
+app.get(
+  '/api/growth',
+  authenticate,
+  requireAnyPermission(['growth.view.all', 'growth.edit.self']),
+  (req, res) => {
   const personId = req.query.personId ? Number(req.query.personId) : null;
   const resolvedPersonId =
     personId || (req.user.role === 'user' ? req.user.personId : null);
