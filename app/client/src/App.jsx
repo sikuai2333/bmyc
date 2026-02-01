@@ -1166,11 +1166,10 @@ function TalentPage({
   const canViewSensitive =
     user &&
     selectedPerson &&
-    (user.isSuperAdmin || hasSensitivePermission || user.personId === selectedPerson.id);
-  const shouldMaskSensitive =
-    selectedPerson &&
-    (!canViewSensitive ||
-      (hasSensitivePermission && !sensitiveUnmasked && user?.personId !== selectedPerson.id));
+    (user.isSuperAdmin ||
+      user.personId === selectedPerson.id ||
+      (hasSensitivePermission && sensitiveUnmasked));
+  const shouldMaskSensitive = selectedPerson && !canViewSensitive;
 
   const maskPhoneLocal = (phone) => {
     if (!phone) return '—';
@@ -1180,6 +1179,20 @@ function TalentPage({
   const maskBirthDateLocal = (date) => {
     if (!date) return '—';
     return '****-**-**';
+  };
+  const getAge = (date) => {
+    if (!date) return '—';
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return '—';
+    const now = new Date();
+    let age = now.getFullYear() - parsed.getFullYear();
+    const hasBirthdayPassed =
+      now.getMonth() > parsed.getMonth() ||
+      (now.getMonth() === parsed.getMonth() && now.getDate() >= parsed.getDate());
+    if (!hasBirthdayPassed) {
+      age -= 1;
+    }
+    return age >= 0 ? `${age} 岁` : '—';
   };
 
   return (
@@ -1277,6 +1290,12 @@ function TalentPage({
                     {shouldMaskSensitive
                       ? maskBirthDateLocal(selectedPerson.birth_date)
                       : selectedPerson.birth_date || '—'}
+                  </strong>
+                </div>
+                <div>
+                  <span>年龄</span>
+                  <strong>
+                    {shouldMaskSensitive ? '—' : getAge(selectedPerson.birth_date)}
                   </strong>
                 </div>
                 <div>
@@ -1979,7 +1998,8 @@ function AdminPage({
     role: 'user',
     birth_date: '',
     gender: '',
-    phone: ''
+    phone: '',
+    sensitiveUnmasked: false
   });
   const [lastCredential, setLastCredential] = useState(null);
   const [meetingForm, setMeetingForm] = useState({
@@ -2055,7 +2075,8 @@ function AdminPage({
       role: 'user',
       birth_date: '',
       gender: '',
-      phone: ''
+      phone: '',
+      sensitiveUnmasked: false
     });
   };
 
@@ -2084,7 +2105,9 @@ function AdminPage({
         email: personAccountForm.email.trim(),
         password,
         role: personAccountForm.role,
-        personId: createdPerson.id
+        personId: createdPerson.id,
+        sensitiveUnmasked:
+          personAccountForm.role === 'admin' ? personAccountForm.sensitiveUnmasked : false
       };
       const { data: createdUser } = await axios.post(`${apiBase}/users`, userPayload, authHeaders);
       setPeople((prev) => [createdPerson, ...prev]);
@@ -2326,17 +2349,32 @@ function AdminPage({
                       value={personAccountForm.bio}
                       onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, bio: event.target.value }))}
                     />
-                    <label>
-                      权限角色
-                      <select
-                        value={personAccountForm.role}
-                        onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, role: event.target.value }))}
-                      >
-                        <option value="user">用户</option>
-                        <option value="admin">管理员</option>
-                        <option value="display">展示专用</option>
-                      </select>
+                  <label>
+                    权限角色
+                    <select
+                      value={personAccountForm.role}
+                      onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, role: event.target.value }))}
+                    >
+                      <option value="user">用户</option>
+                      <option value="admin">管理员</option>
+                      <option value="display">展示专用</option>
+                    </select>
+                  </label>
+                  {personAccountForm.role === 'admin' && (
+                    <label className="inline-toggle">
+                      <input
+                        type="checkbox"
+                        checked={personAccountForm.sensitiveUnmasked}
+                        onChange={(event) =>
+                          setPersonAccountForm((prev) => ({
+                            ...prev,
+                            sensitiveUnmasked: event.target.checked
+                          }))
+                        }
+                      />
+                      <span>管理员默认不脱敏（HR 勾选）</span>
                     </label>
+                  )}
                     <div className="form-actions">
                       <button className="primary-button" type="submit">
                         创建人才与账号
