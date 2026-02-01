@@ -51,6 +51,7 @@ const STORAGE_USER_KEY = 'talent_dashboard_user';
 const MEETING_CATEGORY_TAGS = ['政治学习', '工会活动', '项目研讨', '产业调研', '团建活动', '培训提升'];
 const ADMIN_SECTIONS = [
   { id: 'talent', label: '人才与账号' },
+  { id: 'permissions', label: '权限配置' },
   { id: 'meetings', label: '会议活动' },
   { id: 'ops', label: '系统概览' }
 ];
@@ -137,6 +138,7 @@ function AppShell() {
   const hasPerm = (permission) => Boolean(user && (user.isSuperAdmin || user.permissions?.includes(permission)));
   const isAdmin = hasPerm('people.edit.all') || hasPerm('users.manage') || hasPerm('permissions.manage');
   const canManageUsers = hasPerm('users.manage') || hasPerm('permissions.manage');
+  const canManagePermissions = hasPerm('permissions.manage');
   const roleLabel = user
     ? user.isSuperAdmin
       ? '超级管理员'
@@ -618,7 +620,7 @@ function AppShell() {
             <Route
               path="/profile"
               element={
-                user?.role === 'admin' ? (
+                isAdmin ? (
                   <AdminPage
                     people={people}
                     setPeople={setPeople}
@@ -639,6 +641,7 @@ function AppShell() {
                     saveDimensions={saveDimensions}
                     canEditSelected={canEditSelected}
                     canManageUsers={canManageUsers}
+                    canManagePermissions={canManagePermissions}
                     setToast={setToast}
                     authHeaders={authHeaders}
                     apiBase={API_BASE}
@@ -1958,6 +1961,7 @@ function AdminPage({
   saveDimensions,
   canEditSelected,
   canManageUsers,
+  canManagePermissions,
   setToast,
   authHeaders,
   apiBase,
@@ -1987,12 +1991,46 @@ function AdminPage({
     attendeeIds: []
   });
   const [meetingFilter, setMeetingFilter] = useState('全部');
+  const [permissionCatalog, setPermissionCatalog] = useState([]);
+  const [permissionTargetId, setPermissionTargetId] = useState(null);
+  const [permissionDraft, setPermissionDraft] = useState([]);
+  const [sensitiveDraft, setSensitiveDraft] = useState(false);
 
   useEffect(() => {
     if (!selectedPerson && people.length) {
       setSelectedPersonId(people[0].id);
     }
   }, [people, selectedPerson, setSelectedPersonId]);
+
+  useEffect(() => {
+    if (!canManagePermissions || activePanel !== 'permissions') {
+      return;
+    }
+    const fetchPermissions = async () => {
+      try {
+        const { data } = await axios.get(`${apiBase}/permissions`, authHeaders);
+        setPermissionCatalog(data || []);
+      } catch (error) {
+        setToast(error.response?.data?.message || '加载权限清单失败');
+      }
+    };
+    fetchPermissions();
+  }, [canManagePermissions, activePanel, apiBase, authHeaders, setToast]);
+
+  useEffect(() => {
+    if (!permissionTargetId && users.length) {
+      setPermissionTargetId(users[0].id);
+    }
+  }, [permissionTargetId, users]);
+
+  useEffect(() => {
+    if (!permissionTargetId) return;
+    const target = users.find((item) => item.id === permissionTargetId);
+    if (target) {
+      setPermissionDraft(target.permissions || []);
+      setSensitiveDraft(Boolean(target.sensitiveUnmasked));
+    }
+  }, [permissionTargetId, users]);
 
   const filteredMeetings = useMemo(() => {
     if (meetingFilter === '全部') {
@@ -2101,6 +2139,32 @@ function AdminPage({
     }
   };
 
+  const togglePermission = (permissionKey) => {
+    setPermissionDraft((prev) =>
+      prev.includes(permissionKey)
+        ? prev.filter((item) => item !== permissionKey)
+        : [...prev, permissionKey]
+    );
+  };
+
+  const savePermissions = async () => {
+    if (!permissionTargetId) {
+      setToast('请选择账号');
+      return;
+    }
+    try {
+      const payload = {
+        permissions: permissionDraft,
+        sensitiveUnmasked: sensitiveDraft
+      };
+      const { data } = await axios.put(`${apiBase}/users/${permissionTargetId}`, payload, authHeaders);
+      setUsers((prev) => prev.map((item) => (item.id === data.id ? data : item)));
+      setToast('权限配置已更新');
+    } catch (error) {
+      setToast(error.response?.data?.message || '权限更新失败');
+    }
+  };
+
   const toggleAttendee = (personId) => {
     setMeetingForm((prev) => {
       const exists = prev.attendeeIds.includes(personId);
@@ -2175,7 +2239,9 @@ function AdminPage({
         <p className="eyebrow">Global Admin</p>
         <h2>金岩高新 · 全局管理</h2>
         <nav className="admin-nav">
-          {ADMIN_SECTIONS.map((section) => (
+          {ADMIN_SECTIONS.filter(
+            (section) => section.id !== 'permissions' || canManagePermissions
+          ).map((section) => (
             <button
               key={section.id}
               className={activePanel === section.id ? 'active' : ''}
@@ -2483,6 +2549,84 @@ function AdminPage({
               </div>
             ) : (
               <p className="muted">请选择左侧人员后再进行信息维护。</p>
+            )}
+          </>
+        )}
+
+        {activePanel === 'permissions' && (
+          <>
+            {canManagePermissions ? (
+              <div className="panel admin-section">
+                <div className="panel-head">
+                  <p className="panel-subtitle">Authority</p>
+                  <h3>权限配置中心</h3>
+                </div>
+                <div className="permission-grid">
+                  <div className="permission-users">
+                    <h4>选择账号</h4>
+                    <div className="admin-list scrollable">
+                      {users.map((account) => (
+                        <button
+                          key={account.id}
+                          className={`admin-list-item ${
+                            permissionTargetId === account.id ? 'active' : ''
+                          }`}
+                          onClick={() => setPermissionTargetId(account.id)}
+                        >
+                          <div>
+                            <strong>{account.name}</strong>
+                            <p>
+                              {account.email} ·{' '}
+                              {account.isSuperAdmin
+                                ? '超级管理员'
+                                : account.role === 'admin'
+                                ? '管理员'
+                                : account.role === 'display'
+                                ? '展示专用'
+                                : '用户'}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="permission-config">
+                    <div className="permission-header">
+                      <div>
+                        <h4>权限清单</h4>
+                        <p className="panel-subtitle">勾选后保存即可生效</p>
+                      </div>
+                      <div className="permission-actions">
+                        <label className="inline-toggle">
+                          <input
+                            type="checkbox"
+                            checked={sensitiveDraft}
+                            onChange={(event) => setSensitiveDraft(event.target.checked)}
+                          />
+                          <span>默认不脱敏显示</span>
+                        </label>
+                        <button className="primary-button subtle" onClick={savePermissions}>
+                          保存权限
+                        </button>
+                      </div>
+                    </div>
+                    <div className="permission-list">
+                      {permissionCatalog.map((item) => (
+                        <label key={item.key} className="permission-item">
+                          <input
+                            type="checkbox"
+                            checked={permissionDraft.includes(item.key)}
+                            onChange={() => togglePermission(item.key)}
+                          />
+                          <span>{item.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="muted">当前账号无权限管理权限。</p>
             )}
           </>
         )}

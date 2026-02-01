@@ -1493,4 +1493,81 @@ button:disabled {
   flex-direction: column;
   gap: 8px;
 }
+
+.permission-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) 1fr;
+  gap: 16px;
+}
+
+.permission-users h4 {
+  margin: 0 0 10px;
+}
+
+.permission-config {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.permission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.permission-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.permission-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.permission-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  font-size: 13px;
+}
+
+.inline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.admin-list-item.active {
+  border-color: rgba(75, 141, 255, 0.5);
+  background: rgba(75, 141, 255, 0.08);
+}
+
+@media (max-width: 960px) {
+  .module-page,
+  .permission-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-card,
+  .certificate-card {
+    grid-template-columns: 1fr;
+  }
+
+  .permission-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
  
