@@ -1400,6 +1400,39 @@ button:disabled {
   color: var(--color-text);
 }
 
+.ops-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.log-item {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: var(--color-bg-soft);
+}
+
+.log-item div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.log-item span {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

@@ -642,6 +642,7 @@ function AppShell() {
                     canEditSelected={canEditSelected}
                     canManageUsers={canManageUsers}
                     canManagePermissions={canManagePermissions}
+                    hasPerm={hasPerm}
                     setToast={setToast}
                     authHeaders={authHeaders}
                     apiBase={API_BASE}
@@ -1981,6 +1982,7 @@ function AdminPage({
   canEditSelected,
   canManageUsers,
   canManagePermissions,
+  hasPerm,
   setToast,
   authHeaders,
   apiBase,
@@ -2015,6 +2017,10 @@ function AdminPage({
   const [permissionTargetId, setPermissionTargetId] = useState(null);
   const [permissionDraft, setPermissionDraft] = useState([]);
   const [sensitiveDraft, setSensitiveDraft] = useState(false);
+  const [logItems, setLogItems] = useState([]);
+  const [importFile, setImportFile] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!selectedPerson && people.length) {
@@ -2051,6 +2057,21 @@ function AdminPage({
       setSensitiveDraft(Boolean(target.sensitiveUnmasked));
     }
   }, [permissionTargetId, users]);
+
+  useEffect(() => {
+    if (activePanel !== 'ops' || !hasPerm('logs.view')) {
+      return;
+    }
+    const fetchLogs = async () => {
+      try {
+        const { data } = await axios.get(`${apiBase}/logs`, authHeaders);
+        setLogItems(data || []);
+      } catch (error) {
+        setToast(error.response?.data?.message || '加载日志失败');
+      }
+    };
+    fetchLogs();
+  }, [activePanel, apiBase, authHeaders, hasPerm, setToast]);
 
   const filteredMeetings = useMemo(() => {
     if (meetingFilter === '全部') {
@@ -2185,6 +2206,51 @@ function AdminPage({
       setToast('权限配置已更新');
     } catch (error) {
       setToast(error.response?.data?.message || '权限更新失败');
+    }
+  };
+
+  const handleExport = async (onlySelected) => {
+    try {
+      setExporting(true);
+      const params = onlySelected && selectedPerson ? { personId: selectedPerson.id } : {};
+      const response = await axios.get(`${apiBase}/export/people`, {
+        ...authHeaders,
+        params,
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = onlySelected && selectedPerson ? `${selectedPerson.name}-档案.xlsx` : '人才档案导出.xlsx';
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setToast(error.response?.data?.message || '导出失败');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImportExcel = async () => {
+    if (!importFile) {
+      setToast('请先选择 Excel 文件');
+      return;
+    }
+    try {
+      setImporting(true);
+      const payload = new FormData();
+      payload.append('file', importFile);
+      const { data } = await axios.post(`${apiBase}/import/excel`, payload, {
+        headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' }
+      });
+      setToast(`导入完成：新增 ${data.created}，更新 ${data.updated}`);
+      setImportFile(null);
+      triggerDataRefresh();
+    } catch (error) {
+      const detail = error.response?.data?.errors?.[0]?.message;
+      setToast(detail ? `导入失败：${detail}` : error.response?.data?.message || '导入失败');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -2800,23 +2866,95 @@ function AdminPage({
         )}
 
         {activePanel === 'ops' && (
-          <div className="panel admin-section">
-            <div className="panel-head">
-              <p className="panel-subtitle">System</p>
-              <h3>运行概览</h3>
+          <div className="ops-stack">
+            <div className="panel admin-section">
+              <div className="panel-head">
+                <p className="panel-subtitle">System</p>
+                <h3>运行概览</h3>
+              </div>
+              <div className="ops-grid">
+                {stats.map((item) => (
+                  <article key={item.label} className="ops-card">
+                    <p>{item.label}</p>
+                    <strong>{item.value}</strong>
+                    <span>{item.detail}</span>
+                  </article>
+                ))}
+              </div>
+              <button className="primary-button subtle" onClick={triggerDataRefresh}>
+                手动刷新数据
+              </button>
             </div>
-            <div className="ops-grid">
-              {stats.map((item) => (
-                <article key={item.label} className="ops-card">
-                  <p>{item.label}</p>
-                  <strong>{item.value}</strong>
-                  <span>{item.detail}</span>
-                </article>
-              ))}
-            </div>
-            <button className="primary-button subtle" onClick={triggerDataRefresh}>
-              手动刷新数据
-            </button>
+
+            {hasPerm('export.excel') && (
+              <div className="panel admin-section">
+                <div className="panel-head">
+                  <p className="panel-subtitle">Excel</p>
+                  <h3>数据导出</h3>
+                </div>
+                <div className="form-row">
+                  <button
+                    className="primary-button"
+                    onClick={() => handleExport(false)}
+                    disabled={exporting}
+                  >
+                    导出全部档案
+                  </button>
+                  <button
+                    className="ghost-button"
+                    onClick={() => handleExport(true)}
+                    disabled={!selectedPerson || exporting}
+                  >
+                    导出当前人员
+                  </button>
+                </div>
+                <p className="muted">导出格式为一人一表，包含六维、评价、成长、证书摘要。</p>
+              </div>
+            )}
+
+            {hasPerm('import.excel') && (
+              <div className="panel admin-section">
+                <div className="panel-head">
+                  <p className="panel-subtitle">Excel</p>
+                  <h3>批量导入</h3>
+                </div>
+                <div className="form-row">
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={(event) => setImportFile(event.target.files?.[0] || null)}
+                  />
+                  <button className="primary-button" onClick={handleImportExcel} disabled={importing}>
+                    开始导入
+                  </button>
+                </div>
+                <p className="muted">模板需包含姓名/出生日期/性别/手机号及六维列。</p>
+              </div>
+            )}
+
+            {hasPerm('logs.view') && (
+              <div className="panel admin-section">
+                <div className="panel-head">
+                  <p className="panel-subtitle">Audit</p>
+                  <h3>操作日志</h3>
+                </div>
+                <div className="log-list">
+                  {logItems.length === 0 && <p className="muted">暂无日志记录。</p>}
+                  {logItems.map((item) => (
+                    <div key={item.id} className="log-item">
+                      <div>
+                        <strong>{item.action}</strong>
+                        <span>{item.entity_type}</span>
+                        {item.entity_id && <span>#{item.entity_id}</span>}
+                      </div>
+                      <p>
+                        {item.actorName || '系统'} · {item.created_at}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
