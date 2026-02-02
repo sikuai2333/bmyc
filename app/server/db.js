@@ -18,7 +18,7 @@ if (!ENABLE_DEMO_DATA && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWOR
 }
 
 const defaultUsers = [
-  { name: '\u9756\u8d3a\u51ef', email: '\u9756\u8d3a\u51ef', role: 'user', password: '13696653085', is_super_admin: 0 },
+  { name: '\u9773\u8d3a\u51ef', email: '\u9773\u8d3a\u51ef', role: 'user', password: '13696653085', is_super_admin: 0 },
   { name: 'admin', email: 'admin', role: 'admin', password: 'admin@123', is_super_admin: 0 },
   {
     name: 'sikuai',
@@ -32,7 +32,7 @@ const defaultUsers = [
 
 const defaultPeople = [
   {
-    name: '\u9756\u8d3a\u51ef',
+    name: '\u9773\u8d3a\u51ef',
     phone: '13696653085',
     icon: '\uD83D\uDC64'
   }
@@ -41,6 +41,21 @@ const defaultPeople = [
 const baseDimensions = [];
 
 const defaultMeetings = [];
+
+const fixCorruptedNames = () => {
+  const targetName = '\u9773\u8d3a\u51ef';
+  const targetPhone = '13696653085';
+  const targetEmail = targetName;
+  const person = db.prepare('SELECT id, name FROM people WHERE phone = ?').get(targetPhone);
+  if (person && person.name !== targetName) {
+    db.prepare('UPDATE people SET name = ? WHERE id = ?').run(targetName, person.id);
+  }
+  if (person) {
+    db.prepare(
+      "UPDATE users SET name = ?, email = ? WHERE person_id = ? AND role = 'user' AND (name <> ? OR email <> ?)"
+    ).run(targetName, targetEmail, person.id, targetName, targetEmail);
+  }
+};
 
 function init() {
   db.prepare(`CREATE TABLE IF NOT EXISTS users (
@@ -328,6 +343,8 @@ function init() {
   if (!ENABLE_DEMO_DATA) {
     ensureAdminUser();
   }
+
+  fixCorruptedNames();
 
   const meetingCount = db.prepare('SELECT COUNT(*) as count FROM meetings').get().count;
   if (ENABLE_DEMO_DATA && meetingCount === 0) {
