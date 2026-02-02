@@ -235,10 +235,14 @@ const shuffleWithSeed = (list, rand) => {
 };
 
 const buildRandomMonths = (seed, min = 2, max = 5) => {
+  const recent = buildRecentMonths(6);
   const rand = createSeededRandom(seed);
-  const months = shuffleWithSeed(buildRecentMonths(6), rand);
-  const count = Math.max(min, Math.min(max, min + Math.floor(rand() * (max - min + 1))));
-  return months.slice(0, count);
+  const baseCount = min + Math.floor(rand() * (max - min + 1));
+  const count = Math.max(1, Math.min(max, baseCount));
+  const currentMonth = recent[0];
+  const others = shuffleWithSeed(recent.slice(1), rand);
+  const picked = [currentMonth, ...others.slice(0, Math.max(0, count - 1))];
+  return picked;
 };
 
 const buildDemoDimensionsForSeed = (seed, monthIndex) =>
@@ -249,9 +253,7 @@ const buildDemoDimensionsForSeed = (seed, monthIndex) =>
     const items = DEMO_DIMENSION_DETAILS[category] || [];
     const indexOffset = items.length ? seed % items.length : 0;
     const detail = items.length ? items[(monthIndex + indexOffset) % items.length] : '\u65e0';
-    const rand = createSeededRandom(seed + (monthIndex + 1) * 97 + category.length);
-    const filled = rand() > 0.25;
-    return { category, detail: filled ? detail : '\u65e0' };
+    return { category, detail: detail || '\u65e0' };
   });
 
 const defaultMeetings = [];
