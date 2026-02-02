@@ -38,7 +38,78 @@ const defaultPeople = [
   }
 ];
 
-const baseDimensions = [];
+const DIMENSION_CATEGORIES = [
+  '\u601d\u60f3\u653f\u6cbb',
+  '\u4e1a\u52a1\u6c34\u5e73',
+  '\u4e1a\u7ee9\u6210\u679c',
+  '\u516b\u5c0f\u65f6\u5916\u4e1a\u4f59\u751f\u6d3b',
+  '\u9605\u8bfb\u5b66\u4e60\u60c5\u51b5',
+  '\u5a5a\u604b\u60c5\u51b5'
+];
+
+const DEMO_DIMENSION_DETAILS = {
+  '\u601d\u60f3\u653f\u6cbb': [
+    '\u53c2\u52a0\u4e3b\u9898\u515a\u8bfe\u4e0e\u4f01\u4e1a\u6587\u5316\u5b66\u4e60',
+    '\u5b8c\u6210\u653f\u7b56\u5b66\u4e60\u7b14\u8bb0\u4e0e\u5fc3\u5f97\u5206\u4eab',
+    '\u7ec4\u7ec7\u90e8\u95e8\u653f\u6cbb\u5b66\u4e60\u4e0e\u65b9\u6848\u8bba\u8bc1',
+    '\u4e3b\u52a8\u53c2\u4e0e\u96c6\u4f53\u6d3b\u52a8\uff0c\u5f3a\u5316\u4ef7\u503c\u5bfc\u5411',
+    '\u5b66\u4e60\u4f01\u4e1a\u5408\u89c4\u8981\u70b9\uff0c\u5b8c\u5584\u5de5\u4f5c\u89c4\u8303',
+    '\u5206\u4eab\u653f\u6cbb\u5b66\u4e60\u8981\u70b9\u4e0e\u4e1a\u52a1\u7ed3\u5408\u5206\u6790'
+  ],
+  '\u4e1a\u52a1\u6c34\u5e73': [
+    '\u5b8c\u6210\u4e1a\u52a1\u6d41\u7a0b\u89c4\u8303\u57f9\u8bad\u4e0e\u6d4b\u8bc4',
+    '\u638c\u63e1\u7cfb\u7edf\u64cd\u4f5c\u8981\u70b9\uff0c\u80fd\u72ec\u7acb\u5904\u7406\u6863\u6848',
+    '\u5b8c\u6210\u4e13\u9898\u9879\u76ee\u8c03\u7814\u8bb0\u5f55\u4e0e\u6574\u7406',
+    '\u5b66\u4e60\u6570\u636e\u5206\u6790\u65b9\u6cd5\uff0c\u8f93\u51fa\u6a21\u5757\u65b9\u6848',
+    '\u5173\u6ce8\u884c\u4e1a\u52a8\u6001\uff0c\u6574\u7406\u4e13\u9898\u4e1a\u52a1\u8d44\u6599',
+    '\u8fde\u7eed\u63d0\u5347\u6587\u6863\u7f16\u5199\u4e0e\u5408\u89c4\u610f\u8bc6'
+  ],
+  '\u4e1a\u7ee9\u6210\u679c': [
+    '\u53c2\u4e0e\u4e13\u9898\u6570\u636e\u76d8\u70b9\uff0c\u8f93\u51fa\u521d\u7248\u5206\u6790\u62a5\u544a',
+    '\u5b8c\u6210\u6a21\u5757\u8bd5\u7528\uff0c\u6574\u7406\u95ee\u9898\u53ca\u6539\u8fdb\u5efa\u8bae',
+    '\u8f93\u51fa\u9879\u76ee\u5468\u62a5\uff0c\u8bb0\u5f55\u76ee\u6807\u8fbe\u6210\u60c5\u51b5',
+    '\u534f\u52a9\u5b8c\u6210\u5904\u7406\u624b\u518c\uff0c\u63d0\u5347\u534f\u4f5c\u6548\u7387',
+    '\u62f7\u8d1d\u5de5\u4f5c\u7ecf\u9a8c\uff0c\u6d41\u7a0b\u6307\u5357\u66f4\u65b0',
+    '\u5b8c\u6210\u6570\u636e\u68c0\u67e5\uff0c\u63d0\u4f9b\u4f18\u5316\u5efa\u8bae'
+  ],
+  '\u516b\u5c0f\u65f6\u5916\u4e1a\u4f59\u751f\u6d3b': [
+    '\u53c2\u4e0e\u90e8\u95e8\u8fd0\u52a8\u6d3b\u52a8\uff0c\u4fdd\u6301\u826f\u597d\u72b6\u6001',
+    '\u62a5\u540d\u5fd7\u613f\u6d3b\u52a8\uff0c\u4e92\u52a9\u4f18\u5148\u5b66\u4e60',
+    '\u5b8c\u6210\u9a91\u884c\u4e0e\u8dd1\u6b65\u6253\u5361\uff0c\u5f3a\u5316\u4f53\u80fd',
+    '\u53c2\u4e0e\u56e2\u961f\u62d3\u5c55\uff0c\u589e\u5f3a\u5360\u6d3b\u80fd\u91cf',
+    '\u4fdd\u6301\u4f5c\u606f\u89c4\u5f8b\uff0c\u505a\u597d\u65f6\u95f4\u7ba1\u7406',
+    '\u7efc\u5408\u5174\u8da3\u5b66\u4e60\uff0c\u7f6e\u987a\u5de5\u4f5c\u548c\u751f\u6d3b'
+  ],
+  '\u9605\u8bfb\u5b66\u4e60\u60c5\u51b5': [
+    '\u9605\u8bfb\u300a\u4f01\u4e1a\u7ba1\u7406\u8981\u4e49\u300b\u5e76\u7b14\u8bb0',
+    '\u5b8c\u6210\u4e13\u4e1a\u4e66\u7c4d\u4e0e\u4e1a\u52a1\u6587\u6863\u5b66\u4e60',
+    '\u5b66\u4e60\u6570\u636e\u7edf\u8ba1\u57fa\u7840\uff0c\u5f62\u6210\u7b14\u8bb0',
+    '\u5b8c\u6210\u4e1a\u52a1\u6848\u4f8b\u5206\u4eab\uff0c\u66f4\u65b0\u7b14\u8bb0',
+    '\u7cbe\u8bfb\u884c\u4e1a\u62a5\u544a\uff0c\u63d0\u70bc\u4e3b\u8981\u7ed3\u8bba',
+    '\u5b8c\u6210\u516c\u53f8\u5236\u5ea6\u5b66\u4e60\u4e0e\u6d4b\u9a8c'
+  ],
+  '\u5a5a\u604b\u60c5\u51b5': ['\u65e0', '\u65e0', '\u65e0', '\u65e0', '\u65e0', '\u65e0']
+};
+
+const buildRecentMonths = (count) => {
+  const months = [];
+  const cursor = new Date();
+  cursor.setDate(1);
+  for (let i = 0; i < count; i += 1) {
+    const year = cursor.getFullYear();
+    const month = String(cursor.getMonth() + 1).padStart(2, '0');
+    months.push(`${year}-${month}`);
+    cursor.setMonth(cursor.getMonth() - 1);
+  }
+  return months;
+};
+
+const buildDemoDimensions = (monthIndex) =>
+  DIMENSION_CATEGORIES.map((category) => ({
+    category,
+    detail:
+      DEMO_DIMENSION_DETAILS[category]?.[monthIndex % DEMO_DIMENSION_DETAILS[category].length] || '\u65e0'
+  }));
 
 const defaultMeetings = [];
 
@@ -244,8 +315,7 @@ function init() {
     const insertPerson = db.prepare(
       'INSERT INTO people (name,title,department,focus,bio,icon,phone) VALUES (?,?,?,?,?,?,?)'
     );
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const recentMonths = buildRecentMonths(6);
     const insertDimension = db.prepare(
       'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
     );
@@ -261,8 +331,30 @@ function init() {
           person.phone
         );
         const personId = result.lastInsertRowid;
-        baseDimensions.forEach((dimension) => {
-          insertDimension.run(personId, dimension.category, currentMonth, dimension.detail);
+        recentMonths.forEach((monthKey, monthIndex) => {
+          const dimensions = buildDemoDimensions(monthIndex);
+          dimensions.forEach((dimension) => {
+            insertDimension.run(personId, dimension.category, monthKey, dimension.detail);
+          });
+        });
+      });
+    });
+    transaction();
+  }
+  const dimensionMonthlyTotal = db.prepare('SELECT COUNT(*) as count FROM dimensions_monthly').get().count;
+  if (ENABLE_DEMO_DATA && dimensionMonthlyTotal === 0 && peopleCount > 0) {
+    const people = db.prepare('SELECT id FROM people').all();
+    const insertDimension = db.prepare(
+      'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
+    );
+    const recentMonths = buildRecentMonths(6);
+    const transaction = db.transaction(() => {
+      people.forEach((person) => {
+        recentMonths.forEach((monthKey, monthIndex) => {
+          const dimensions = buildDemoDimensions(monthIndex);
+          dimensions.forEach((dimension) => {
+            insertDimension.run(person.id, dimension.category, monthKey, dimension.detail);
+          });
         });
       });
     });
