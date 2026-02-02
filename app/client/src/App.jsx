@@ -19,6 +19,7 @@ const GrowthPage = lazy(() => import('./pages/GrowthPage'));
 const CertificatesPage = lazy(() => import('./pages/CertificatesPage'));
 const MeetingsPage = lazy(() => import('./pages/MeetingsPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const DocsPage = lazy(() => import('./pages/DocsPage'));
 
 const API_BASE =
   import.meta.env.VITE_API_BASE ||
@@ -41,6 +42,7 @@ const NAV_ITEMS = [
   { label: '成长轨迹', path: '/growth' },
   { label: '证书管理', path: '/certificates' },
   { label: '会议联动', path: '/meetings' },
+  { label: '系统文档', path: '/docs' },
   { label: '管理后台', path: '/profile', restricted: true }
 ];
 
@@ -594,6 +596,7 @@ function AppShell() {
                 />
               }
             />
+            <Route path="/docs" element={<DocsPage user={user} roleLabel={roleLabel} />} />
             <Route
               path="/profile"
               element={

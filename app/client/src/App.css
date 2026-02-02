@@ -1587,6 +1587,140 @@ button:disabled {
   background: rgba(75, 141, 255, 0.08);
 }
 
+.docs-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.docs-hero {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.docs-lead {
+  color: var(--color-muted);
+  max-width: 560px;
+  line-height: 1.7;
+}
+
+.docs-meta {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+}
+
+.docs-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.docs-meta strong {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.docs-card h3 {
+  margin: 0 0 8px;
+}
+
+.docs-role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.docs-role-grid article {
+  background: var(--color-bg-soft);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+}
+
+.docs-role-grid h4 {
+  margin: 0 0 6px;
+}
+
+.role-tag {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 141, 255, 0.15);
+  color: #2a4fa4;
+  font-size: 12px;
+}
+
+.docs-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.docs-table {
+  display: grid;
+  gap: 12px;
+}
+
+.docs-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+}
+
+.docs-row span {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.docs-row strong {
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.docs-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--color-muted);
+  line-height: 1.7;
+}
+
+.docs-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.docs-flow article {
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #f6f8ff, #ffffff);
+  border: 1px solid var(--color-border);
+}
+
+.docs-flow h4 {
+  margin: 0 0 8px;
+}
+
 @media (max-width: 960px) {
   .module-page,
   .permission-grid {
@@ -1601,6 +1735,14 @@ button:disabled {
   .permission-actions {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .docs-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-row {
+    grid-template-columns: 1fr;
   }
 }
  
