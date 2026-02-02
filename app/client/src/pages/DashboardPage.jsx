@@ -414,7 +414,7 @@ function DashboardPage({
 
 
 
-                <span className="value">{person.dimensionMonthCount || 0} 月</span>
+                <span className="value">已填写 {person.dimensionMonthCount || 0} 个月</span>
 
 
               </button>
@@ -882,7 +882,7 @@ function DashboardPage({
 
 
 
-                <span className="value">{person.dimensionMonthCount || 0} 月</span>
+                <span className="value">已填写 {person.dimensionMonthCount || 0} 个月</span>
 
 
               </button>
