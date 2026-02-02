@@ -793,10 +793,7 @@ function DashboardPage({
 
 
             <h3>人才关注度排行</h3>
-
-
-
-                <p>{item.label}</p>
+            <p>按维度数量排序</p>
 
 
 
