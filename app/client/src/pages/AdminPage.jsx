@@ -41,6 +41,7 @@ function AdminPage({
   canManageUsers,
   canManagePermissions,
   hasPerm,
+  isSuperAdmin,
   setToast,
   authHeaders,
   apiBase,
@@ -96,6 +97,7 @@ function AdminPage({
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [accountFilter, setAccountFilter] = useState('all');
+  const [resettingDemo, setResettingDemo] = useState(false);
 
   useEffect(() => {
     if (!selectedPerson && people.length) {
@@ -238,6 +240,22 @@ function AdminPage({
   const openPermissionPanel = (accountId) => {
     setPermissionTargetId(accountId);
     setActivePanel('permissions');
+  };
+
+  const handleResetDemoDimensions = async () => {
+    if (resettingDemo) return;
+    const confirm = window.confirm('将清空所有人员的月度六维数据并写入近 6 个月示例数据，是否继续？');
+    if (!confirm) return;
+    try {
+      setResettingDemo(true);
+      await axios.post(`${apiBase}/admin/reset-demo-dimensions`, {}, authHeaders);
+      setToast('示例六维数据已重置');
+      triggerDataRefresh();
+    } catch (error) {
+      setToast(error.response?.data?.message || '重置失败');
+    } finally {
+      setResettingDemo(false);
+    }
   };
 
   const handleCreateTalentAccount = async (event) => {
@@ -935,9 +953,21 @@ function AdminPage({
                   </article>
                 ))}
               </div>
-              <button className="primary-button subtle" onClick={triggerDataRefresh}>
-                手动刷新数据
-              </button>
+              <div className="form-actions">
+                <button className="primary-button subtle" onClick={triggerDataRefresh}>
+                  手动刷新数据
+                </button>
+                {isSuperAdmin && (
+                  <button
+                    className="danger-button slim"
+                    onClick={handleResetDemoDimensions}
+                    disabled={resettingDemo}
+                  >
+                    {resettingDemo ? '重置中...' : '重置示例六维'}
+                  </button>
+                )}
+              </div>
+              {isSuperAdmin && <p className="muted">将覆盖所有人员的月度六维，写入近 6 个月示例数据。</p>}
             </div>
 
             {hasPerm('logs.view') && (

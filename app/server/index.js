@@ -19,7 +19,7 @@ const multer = require('multer');
 const ExcelJS = require('exceljs');
 const archiver = require('archiver');
 
-const { db, init } = require('./db');
+const { db, init, resetDemoDimensions } = require('./db');
 
 const { PERMISSIONS, getDefaultPermissions, normalizePermissions, hasPermission } = require('./permissions');
 
@@ -482,6 +482,13 @@ function applyHeaderStyle(cell) {
     bottom: { style: 'thin', color: { argb: 'FFDEE3F3' } },
     right: { style: 'thin', color: { argb: 'FFDEE3F3' } }
   };
+}
+
+function requireSuperAdmin(req, res, next) {
+  if (!req.user?.is_super_admin) {
+    return res.status(403).json({ message: '\u65e0\u64cd\u4f5c\u6743\u9650' });
+  }
+  next();
 }
 
 function applyValueBorder(cell) {
@@ -2063,6 +2070,23 @@ app.get('/api/logs', authenticate, requirePermission('logs.view'), (req, res) =>
 });
 
 
+
+app.post('/api/admin/reset-demo-dimensions', authenticate, requireSuperAdmin, (req, res) => {
+  const result = resetDemoDimensions();
+  if (result.disabled) {
+    return res.status(400).json({ message: '\u793a\u4f8b\u6570\u636e\u529f\u80fd\u672a\u5f00\u542f' });
+  }
+  if (result.empty) {
+    return res.status(400).json({ message: '\u5f53\u524d\u65e0\u4eba\u5458\u6570\u636e' });
+  }
+  logAction({
+    actorId: req.user.id,
+    action: 'reset',
+    entityType: 'dimensions-demo',
+    detail: { peopleCount: result.peopleCount, months: result.months }
+  });
+  res.json(result);
+});
 
 app.get('/api/evaluations', authenticate, requirePermission('evaluations.view'), (req, res) => {
 

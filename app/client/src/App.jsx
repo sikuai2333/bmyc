@@ -1342,6 +1342,7 @@ function AppShell() {
                     canManagePermissions={canManagePermissions}
 
                     hasPerm={hasPerm}
+                    isSuperAdmin={isSuperAdmin}
 
                     setToast={setToast}
 

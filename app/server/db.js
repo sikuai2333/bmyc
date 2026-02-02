@@ -466,8 +466,37 @@ function init() {
   }
 }
 
+function resetDemoDimensions() {
+  if (!ENABLE_DEMO_DATA) {
+    return { ok: false, disabled: true };
+  }
+  const people = db.prepare('SELECT id FROM people').all();
+  if (people.length === 0) {
+    return { ok: false, empty: true };
+  }
+  const recentMonths = buildRecentMonths(6);
+  const deleteMonthly = db.prepare('DELETE FROM dimensions_monthly');
+  const insertDimension = db.prepare(
+    'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
+  );
+  const transaction = db.transaction(() => {
+    deleteMonthly.run();
+    people.forEach((person) => {
+      recentMonths.forEach((monthKey, monthIndex) => {
+        const dimensions = buildDemoDimensions(monthIndex);
+        dimensions.forEach((dimension) => {
+          insertDimension.run(person.id, dimension.category, monthKey, dimension.detail);
+        });
+      });
+    });
+  });
+  transaction();
+  return { ok: true, peopleCount: people.length, months: recentMonths };
+}
+
 module.exports = {
   db,
   init,
+  resetDemoDimensions,
   close: () => db.close()
 };
