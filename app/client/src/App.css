@@ -52,10 +52,10 @@ p {
 }
 
 .global-header {
-  display: flex;
+  display: grid;
   align-items: center;
-  flex-wrap: nowrap;
-  justify-content: flex-start;
+  grid-template-columns: auto 1fr auto;
+  justify-content: stretch;
   gap: 12px;
   padding: 8px 12px;
   border-radius: var(--radius-card);
@@ -69,6 +69,7 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-self: start;
 }
 
 .brand h1 {
@@ -102,8 +103,10 @@ p {
   min-width: 0;
   gap: 8px;
   align-items: center;
+  justify-content: center;
   flex-wrap: nowrap;
   overflow-x: auto;
+  justify-self: center;
 }
 
 .nav-link {
@@ -128,15 +131,16 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
+  justify-self: end;
 }
 
 @media (max-width: 1200px) {
   .global-header {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr;
   }
 
   .global-nav {
+    justify-content: flex-start;
     flex-wrap: wrap;
     overflow-x: visible;
   }
