@@ -61,7 +61,11 @@ function App() {
 function AppShell() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [loginForm, setLoginForm] = useState({
+    role: 'user',
+    email: 'user@talent.local',
+    password: 'User#123'
+  });
   const [people, setPeople] = useState([]);
   const [selectedPersonId, setSelectedPersonId] = useState(null);
   const [meetings, setMeetings] = useState([]);
@@ -299,7 +303,11 @@ function AppShell() {
   const handleLogout = () => {
     setToken('');
     setUser(null);
-    setLoginForm({ email: '', password: '' });
+    setLoginForm({
+      role: 'user',
+      email: 'user@talent.local',
+      password: 'User#123'
+    });
     setSensitiveUnmasked(false);
     localStorage.removeItem(STORAGE_TOKEN_KEY);
     localStorage.removeItem(STORAGE_USER_KEY);

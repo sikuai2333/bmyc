@@ -20,7 +20,15 @@ if (!ENABLE_DEMO_DATA && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWOR
 const defaultUsers = [
   { name: '\u738b\u6668', email: 'admin@talent.local', role: 'admin', password: 'Admin#123', is_super_admin: 0 },
   { name: '\u674e\u8398', email: 'user@talent.local', role: 'user', password: 'User#123', is_super_admin: 0 },
-  { name: '\u5c55\u793a\u8d26\u53f7', email: 'display@talent.local', role: 'display', password: 'Display#123', is_super_admin: 0 }
+  { name: '\u5c55\u793a\u8d26\u53f7', email: 'display@talent.local', role: 'display', password: 'Display#123', is_super_admin: 0 },
+  {
+    name: '\u8d85\u7ea7\u7ba1\u7406\u5458',
+    email: 'super@talent.local',
+    role: 'admin',
+    password: 'Super#123',
+    is_super_admin: 1,
+    sensitive_unmasked: 1
+  }
 ];
 
 const defaultPeople = [
@@ -323,6 +331,18 @@ function init() {
         updatePermissions.run(JSON.stringify(defaults), user.is_super_admin ?? 0, user.sensitive_unmasked ?? 0, user.id);
       }
     });
+  }
+
+  if (ENABLE_DEMO_DATA) {
+    const superEmail = 'super@talent.local';
+    const existingSuper = db.prepare('SELECT id FROM users WHERE email = ?').get(superEmail);
+    if (!existingSuper) {
+      const hash = bcrypt.hashSync('Super#123', 10);
+      const permissions = JSON.stringify(getDefaultPermissions('admin', true));
+      db.prepare(
+        'INSERT INTO users (name,email,role,password_hash,person_id,permissions,is_super_admin,sensitive_unmasked) VALUES (?,?,?,?,?,?,?,?)'
+      ).run('\u8d85\u7ea7\u7ba1\u7406\u5458', superEmail, 'admin', hash, null, permissions, 1, 1);
+    }
   }
 
   if (ENABLE_DEMO_DATA) {
