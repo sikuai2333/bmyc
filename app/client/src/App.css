@@ -1528,6 +1528,27 @@ button:disabled {
   background: #fff;
 }
 
+.profile-form select,
+.admin-form select {
+  border: 1px solid #d8e1f7;
+  border-radius: 14px;
+  padding: 10px 36px 10px 12px;
+  font-family: inherit;
+  color: #0f1d46;
+  background-color: #fff;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6f7f9e 50%),
+    linear-gradient(135deg, #6f7f9e 50%, transparent 50%),
+    linear-gradient(to right, #e6ecff, #e6ecff);
+  background-position:
+    calc(100% - 18px) calc(1em + 2px),
+    calc(100% - 13px) calc(1em + 2px),
+    calc(100% - 36px) 50%;
+  background-size: 6px 6px, 6px 6px, 1px 60%;
+  background-repeat: no-repeat;
+}
+
 .profile-form textarea {
   min-height: 90px;
 }
@@ -1762,8 +1783,7 @@ button:disabled {
 }
 
 .admin-form input,
-.admin-form textarea,
-.admin-form select {
+.admin-form textarea {
   border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 10px 12px;
