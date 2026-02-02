@@ -513,18 +513,9 @@ function AppShell() {
                   setSelectedPersonId={setSelectedPersonId}
                   setSelectedMeetingId={setSelectedMeetingId}
                   canEditSelected={canEditSelected}
-                  canEditDimensions={canEditDimensions}
                   navigate={navigate}
                   loadError={loadError}
                   onRetry={triggerDataRefresh}
-                  draftProfile={draftProfile}
-                  setDraftProfile={setDraftProfile}
-                  dimensionDrafts={dimensionDrafts}
-                  updateDimensionDraft={updateDimensionDraft}
-                  addDimensionDraft={addDimensionDraft}
-                  removeDimensionDraft={removeDimensionDraft}
-                  saveProfile={saveProfile}
-                  saveDimensions={saveDimensions}
                 />
               }
             />
