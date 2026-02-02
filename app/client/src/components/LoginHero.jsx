@@ -48,7 +48,11 @@ function LoginHero({
       <div className="login-card">
         <aside className="login-brand">
           <div className="brand-header">
-            <div className="brand-logo">JY</div>
+            <img
+              className="brand-logo-image"
+              src="https://www.grkaolin.com/static/upload/image/20220105/1641388610665472.png"
+              alt="金岩高新"
+            />
             <div>
               <p className="brand-name">金岩高新</p>
               <h2>金岩高新人才成长APP</h2>
@@ -186,7 +190,9 @@ function LoginHero({
 
       <footer className="login-footer">
         <span>© 2026 金岩高新人才成长APP</span>
-        <a className="footer-link" href="#">企业官网</a>
+        <a className="footer-link" href="https://www.grkaolin.com/" target="_blank" rel="noreferrer">
+          企业官网
+        </a>
       </footer>
     </section>
   );

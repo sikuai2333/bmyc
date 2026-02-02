@@ -385,20 +385,15 @@ button:disabled {
 
 .brand-header {
   display: flex;
-  gap: 14px;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.brand-logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+.brand-logo-image {
+  width: min(260px, 100%);
+  height: auto;
+  display: block;
 }
 
 .brand-name {
