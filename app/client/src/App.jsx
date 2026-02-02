@@ -146,7 +146,6 @@ function AppShell() {
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
 
   const [insights, setInsights] = useState([]);
-        setCompletionInsights(completionRes.data || []);
   const [completionInsights, setCompletionInsights] = useState([]);
   const [draftProfile, setDraftProfile] = useState({
     focus: '',
@@ -159,7 +158,6 @@ function AppShell() {
   });
   const [dimensionMonth, setDimensionMonth] = useState(getCurrentMonth());
   const [dimensionMonthlyRows, setDimensionMonthlyRows] = useState([]);
-        setPersonDimensionStats(personDimensionRes.data || []);
   const [dimensionDrafts, setDimensionDrafts] = useState(createEmptyDimensions());
   const [evaluations, setEvaluations] = useState([]);
 
