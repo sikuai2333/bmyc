@@ -16,10 +16,11 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const TalentPage = lazy(() => import('./pages/TalentPage'));
 const EvaluationPage = lazy(() => import('./pages/EvaluationPage'));
 const GrowthPage = lazy(() => import('./pages/GrowthPage'));
-const CertificatesPage = lazy(() => import('./pages/CertificatesPage'));
-const MeetingsPage = lazy(() => import('./pages/MeetingsPage'));
-const AdminPage = lazy(() => import('./pages/AdminPage'));
-const DocsPage = lazy(() => import('./pages/DocsPage'));
+const CertificatesPage = lazy(() => import('./pages/CertificatesPage'));
+const MeetingsPage = lazy(() => import('./pages/MeetingsPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const DocsPage = lazy(() => import('./pages/DocsPage'));
+const PersonalCenterPage = lazy(() => import('./pages/PersonalCenterPage'));
 
 const API_BASE =
   import.meta.env.VITE_API_BASE ||
@@ -500,18 +501,31 @@ function AppShell() {
             ))}
           </nav>
         )}
-        <div className="user-section">
-          {user ? (
-            <>
-              <div className="user-meta" style={{ borderColor: ROLE_COLORS[user.role] }}>
-                <p>{user.name}</p>
-                <span>{roleLabel}</span>
-              </div>
-              {hasPerm('sensitive.view') && (
-                <button className="ghost-button slim" onClick={toggleSensitiveView}>
-                  {sensitiveUnmasked ? '脱敏显示' : '显示明文'}
-                </button>
-              )}
+        <div className="user-section">
+          {user ? (
+            <>
+              <div className="user-meta" style={{ borderColor: ROLE_COLORS[user.role] }}>
+                <p>{user.name}</p>
+                <span>{roleLabel}</span>
+              </div>
+              <button
+                className="ghost-button slim"
+                onClick={() => {
+                  if (user.personId) {
+                    setSelectedPersonId(user.personId);
+                    navigate('/me');
+                  } else {
+                    setToast('当前账号未绑定档案');
+                  }
+                }}
+              >
+                个人中心
+              </button>
+              {hasPerm('sensitive.view') && (
+                <button className="ghost-button slim" onClick={toggleSensitiveView}>
+                  {sensitiveUnmasked ? '脱敏显示' : '显示明文'}
+                </button>
+              )}
               <button className="ghost-button" onClick={handleLogout}>
                 退出
               </button>
@@ -632,11 +646,34 @@ function AppShell() {
                 />
               }
             />
-            <Route path="/docs" element={<DocsPage user={user} roleLabel={roleLabel} />} />
-            <Route
-              path="/profile"
-              element={
-                isAdmin ? (
+            <Route path="/docs" element={<DocsPage user={user} roleLabel={roleLabel} />} />
+            <Route
+              path="/me"
+              element={
+                user ? (
+                  <PersonalCenterPage
+                    user={user}
+                    selectedPerson={selectedPerson}
+                    setSelectedPersonId={setSelectedPersonId}
+                    draftProfile={draftProfile}
+                    setDraftProfile={setDraftProfile}
+                    dimensionMonth={dimensionMonth}
+                    setDimensionMonth={setDimensionMonth}
+                    dimensionDrafts={dimensionDrafts}
+                    updateDimensionDraft={updateDimensionDraft}
+                    saveProfile={saveProfile}
+                    saveDimensions={saveDimensions}
+                    canEditSelected={canEditSelected}
+                  />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                isAdmin ? (
                   <AdminPage
                     people={people}
                     setPeople={setPeople}
