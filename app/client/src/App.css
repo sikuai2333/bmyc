@@ -1648,6 +1648,79 @@ button:disabled {
   gap: 20px;
 }
 
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-search,
+.admin-select {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: var(--color-bg-soft);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.admin-select {
+  min-width: 140px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 20, 45, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 80;
+}
+
+.modal-card {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 25px 50px rgba(15, 35, 95, 0.18);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-card.wide {
+  width: min(980px, 100%);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-close {
+  border: none;
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.admin-actions select {
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  padding: 6px 8px;
+  background: #fff;
+  font-size: 13px;
+}
+
 .admin-panel-grid {
   display: grid;
   gap: 18px;
@@ -1782,6 +1855,14 @@ button:disabled {
 
   .admin-table-row span:last-child {
     justify-content: flex-start;
+  }
+
+  .modal-card {
+    padding: 18px;
+  }
+
+  .modal-card.wide .profile-grid {
+    grid-template-columns: 1fr;
   }
 }
 

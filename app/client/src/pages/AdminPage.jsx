@@ -1,3 +1,4 @@
+﻿
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -5,11 +6,18 @@ import { DEFAULT_ICON, MEETING_CATEGORY_TAGS } from '../constants';
 import { generateNumericPassword } from '../utils';
 
 const ADMIN_SECTIONS = [
-  { id: 'talent', label: '人才与账号' },
+  { id: 'people', label: '档案清单' },
+  { id: 'accounts', label: '账号管理' },
   { id: 'permissions', label: '权限配置' },
   { id: 'meetings', label: '会议活动' },
   { id: 'ops', label: '系统概览' }
 ];
+
+const ROLE_LABELS = {
+  admin: '管理员',
+  user: '用户',
+  display: '展示专用'
+};
 
 function AdminPage({
   people,
@@ -39,7 +47,7 @@ function AdminPage({
   triggerDataRefresh
 }) {
   const navigate = useNavigate();
-  const [activePanel, setActivePanel] = useState('talent');
+  const [activePanel, setActivePanel] = useState('people');
   const [personAccountForm, setPersonAccountForm] = useState({
     name: '',
     title: '',
@@ -49,16 +57,18 @@ function AdminPage({
     email: '',
     birth_date: '',
     gender: '',
-    phone: ''
-  });
-  const [systemAccountForm, setSystemAccountForm] = useState({
-    name: '',
-    email: '',
-    role: 'admin',
-    sensitiveUnmasked: false
+    phone: '',
+    password: ''
   });
   const [lastCredential, setLastCredential] = useState(null);
-  const [systemCredential, setSystemCredential] = useState(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetTarget, setResetTarget] = useState(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetCredential, setResetCredential] = useState(null);
+  const [peopleSearch, setPeopleSearch] = useState('');
+  const [accountSearch, setAccountSearch] = useState('');
   const [meetingForm, setMeetingForm] = useState({
     topic: '',
     meetingDate: '',
@@ -129,6 +139,15 @@ function AdminPage({
     fetchLogs();
   }, [activePanel, apiBase, authHeaders, hasPerm, setToast]);
 
+  const filteredPeople = useMemo(() => {
+    if (!peopleSearch.trim()) return people;
+    return people.filter((person) =>
+      person.name.includes(peopleSearch) ||
+      (person.department && person.department.includes(peopleSearch)) ||
+      (person.title && person.title.includes(peopleSearch))
+    );
+  }, [people, peopleSearch]);
+
   const filteredMeetings = useMemo(() => {
     if (meetingFilter === '全部') {
       return meetings;
@@ -140,6 +159,7 @@ function AdminPage({
     () => people.filter((person) => meetingForm.attendeeIds.includes(person.id)),
     [people, meetingForm.attendeeIds]
   );
+
   const visibleUsers = useMemo(() => {
     if (accountFilter === 'linked') {
       return users.filter((account) => account.personId);
@@ -149,6 +169,13 @@ function AdminPage({
     }
     return users;
   }, [accountFilter, users]);
+
+  const filteredUsers = useMemo(() => {
+    if (!accountSearch.trim()) return visibleUsers;
+    return visibleUsers.filter((account) =>
+      account.name.includes(accountSearch) || account.email.includes(accountSearch)
+    );
+  }, [visibleUsers, accountSearch]);
 
   const resetPersonAccountForm = () => {
     setPersonAccountForm({
@@ -160,22 +187,33 @@ function AdminPage({
       email: '',
       birth_date: '',
       gender: '',
-      phone: ''
+      phone: '',
+      password: ''
     });
   };
-  const resetSystemAccountForm = () => {
-    setSystemAccountForm({
-      name: '',
-      email: '',
-      role: 'admin',
-      sensitiveUnmasked: false
-    });
+
+  const openCreateModal = () => {
+    setCreateModalOpen(true);
+    setLastCredential(null);
+    resetPersonAccountForm();
+  };
+
+  const openEditModal = (personId) => {
+    setSelectedPersonId(personId);
+    setEditModalOpen(true);
+  };
+
+  const openResetModal = (account) => {
+    setResetTarget(account);
+    setResetPassword('');
+    setResetCredential(null);
+    setResetModalOpen(true);
   };
 
   const handleCreateTalentAccount = async (event) => {
     event.preventDefault();
     if (!personAccountForm.name.trim() || !personAccountForm.email.trim()) {
-      setToast('请输入姓名与账号邮箱');
+      setToast('请输入姓名与账号');
       return;
     }
     try {
@@ -191,7 +229,7 @@ function AdminPage({
         phone: personAccountForm.phone || ''
       };
       const { data: createdPerson } = await axios.post(`${apiBase}/personnel`, personPayload, authHeaders);
-      const password = generateNumericPassword();
+      const password = personAccountForm.password.trim() || generateNumericPassword();
       const userPayload = {
         name: personAccountForm.name.trim(),
         email: personAccountForm.email.trim(),
@@ -205,42 +243,14 @@ function AdminPage({
       setUsers((prev) => [...prev, createdUser]);
       setSelectedPersonId(createdPerson.id);
       setLastCredential({ email: createdUser.email, password, name: createdUser.name });
-      resetPersonAccountForm();
       triggerDataRefresh();
       setToast(`已创建 ${createdPerson.name} 的账号`);
     } catch (error) {
       setToast(error.response?.data?.message || '新增人才与账号失败');
     }
   };
-  const handleCreateSystemAccount = async (event) => {
-    event.preventDefault();
-    if (!systemAccountForm.name.trim() || !systemAccountForm.email.trim()) {
-      setToast('请输入账号名称与邮箱');
-      return;
-    }
-    try {
-      const password = generateNumericPassword();
-      const userPayload = {
-        name: systemAccountForm.name.trim(),
-        email: systemAccountForm.email.trim(),
-        password,
-        role: systemAccountForm.role,
-        personId: null,
-        sensitiveUnmasked: systemAccountForm.role === 'admin' ? systemAccountForm.sensitiveUnmasked : false
-      };
-      const { data: createdUser } = await axios.post(`${apiBase}/users`, userPayload, authHeaders);
-      setUsers((prev) => [...prev, createdUser]);
-      setSystemCredential({ email: createdUser.email, password, name: createdUser.name });
-      resetSystemAccountForm();
-      triggerDataRefresh();
-      setToast('系统账号已创建');
-    } catch (error) {
-      setToast(error.response?.data?.message || '创建系统账号失败');
-    }
-  };
-
   const handleDeletePerson = async (id) => {
-    if (!window.confirm('确定要删除该人才及其档案吗？')) return;
+    if (!window.confirm('确认删除该人才及其档案吗？')) return;
     try {
       await axios.delete(`${apiBase}/personnel/${id}`, authHeaders);
       setPeople((prev) => prev.filter((person) => person.id !== id));
@@ -256,15 +266,34 @@ function AdminPage({
 
   const handleUserRoleChange = async (id, role) => {
     try {
+      const { data } = await axios.put(`${apiBase}/users/${id}`, { role }, authHeaders);
+      setUsers((prev) => prev.map((userItem) => (userItem.id === id ? data : userItem)));
+      setToast('账号角色已更新');
+    } catch (error) {
+      setToast(error.response?.data?.message || '更新失败');
+    }
+  };
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault();
+    if (!resetTarget) return;
+    const nextPassword = resetPassword.trim() || generateNumericPassword();
+    try {
       const { data } = await axios.put(
-        `${apiBase}/users/${id}`,
-        { role },
+        `${apiBase}/users/${resetTarget.id}`,
+        { password: nextPassword },
         authHeaders
       );
-      setUsers((prev) => prev.map((userItem) => (userItem.id === id ? data : userItem)));
-      setToast('权限已更新');
+      setUsers((prev) => prev.map((item) => (item.id === data.id ? data : item)));
+      setResetCredential({
+        name: resetTarget.name,
+        email: resetTarget.email,
+        password: nextPassword
+      });
+      setResetPassword(nextPassword);
+      setToast('密码已重置');
     } catch (error) {
-      setToast(error.response?.data?.message || '更新权限失败');
+      setToast(error.response?.data?.message || '重置失败');
     }
   };
 
@@ -349,7 +378,6 @@ function AdminPage({
       setImporting(false);
     }
   };
-
   const toggleAttendee = (personId) => {
     setMeetingForm((prev) => {
       const exists = prev.attendeeIds.includes(personId);
@@ -414,15 +442,15 @@ function AdminPage({
 
   const stats = [
     { label: '人才档案', value: people.length, detail: '可维护档案' },
-    { label: '系统账号', value: users.length, detail: '含展示专用账号' },
-    { label: '会议记录', value: meetings.length, detail: '政治思想/工会等' }
+    { label: '系统账号', value: users.length, detail: '含展示/管理员账号' },
+    { label: '会议记录', value: meetings.length, detail: '政治思想/业务培训等' }
   ];
 
   return (
     <section className="admin-page">
       <aside className="admin-sidebar">
         <p className="eyebrow">全局管理</p>
-        <h2>金岩高新 · 全局管理</h2>
+        <h2>金岩高新 · 管理后台</h2>
         <nav className="admin-nav">
           {ADMIN_SECTIONS.filter(
             (section) => section.id !== 'permissions' || canManagePermissions
@@ -433,378 +461,162 @@ function AdminPage({
               onClick={() => setActivePanel(section.id)}
             >
               <span>{section.label}</span>
-              {section.id === 'talent' && <small>{people.length}</small>}
+              {section.id === 'people' && <small>{people.length}</small>}
+              {section.id === 'accounts' && <small>{users.length}</small>}
               {section.id === 'meetings' && <small>{meetings.length}</small>}
-              {section.id === 'ops' && <small>{users.length}</small>}
+              {section.id === 'ops' && <small>{logItems.length}</small>}
             </button>
           ))}
         </nav>
-        <p className="sidebar-hint">选择模块以管理档案、会议以及系统配置。</p>
+        <p className="sidebar-hint">模块化管理档案、账号、权限与会议。</p>
       </aside>
+
       <div className="admin-main">
-        {activePanel === 'talent' && (
-          <>
-            {canManageUsers ? (
-              <div className="admin-panel-grid two-columns">
-                <div className="panel admin-section">
-                  <div className="panel-head">
-                    <p className="panel-subtitle">账号开户</p>
-                    <h3>新增人才与账号</h3>
+        {activePanel === 'people' && (
+          <div className="panel admin-section">
+            <div className="panel-head inline">
+              <div>
+                <p className="panel-subtitle">档案清单</p>
+                <h3>人才档案列表</h3>
+              </div>
+              <div className="admin-toolbar">
+                <input
+                  className="admin-search"
+                  placeholder="姓名 / 部门 / 职务"
+                  value={peopleSearch}
+                  onChange={(event) => setPeopleSearch(event.target.value)}
+                />
+              </div>
+            </div>
+            <div className="admin-list scrollable">
+              {filteredPeople.map((person) => (
+                <div key={person.id} className="admin-list-item">
+                  <div>
+                    <strong>{person.name}</strong>
+                    <p>
+                      {person.title || '未填写职务'} · {person.department || '未设置部门'}
+                    </p>
                   </div>
-                  <form className="admin-form" onSubmit={handleCreateTalentAccount}>
-                    <div className="form-row">
-                      <input
-                        placeholder="姓名*"
-                        value={personAccountForm.name}
-                        onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, name: event.target.value }))}
-                      />
-                      <input
-                        placeholder="登录邮箱 / 账号*"
-                        value={personAccountForm.email}
-                        onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, email: event.target.value }))}
-                      />
-                    </div>
-                    <div className="form-row">
-                      <input
-                        placeholder="职务"
-                        value={personAccountForm.title}
-                        onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, title: event.target.value }))}
-                      />
-                      <input
-                        placeholder="部门"
-                        value={personAccountForm.department}
-                        onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, department: event.target.value }))}
-                      />
-                    </div>
-                    <div className="form-row">
-                      <input
-                        type="date"
-                        value={personAccountForm.birth_date}
-                        onChange={(event) =>
-                          setPersonAccountForm((prev) => ({ ...prev, birth_date: event.target.value }))
-                        }
-                      />
-                      <select
-                        value={personAccountForm.gender}
-                        onChange={(event) =>
-                          setPersonAccountForm((prev) => ({ ...prev, gender: event.target.value }))
-                        }
-                      >
-                        <option value="">性别</option>
-                        <option value="男">男</option>
-                        <option value="女">女</option>
-                        <option value="其他">其他</option>
-                      </select>
-                      <input
-                        placeholder="手机号"
-                        value={personAccountForm.phone}
-                        onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, phone: event.target.value }))}
-                      />
-                    </div>
-                    <textarea
-                      placeholder="聚焦方向"
-                      value={personAccountForm.focus}
-                      onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, focus: event.target.value }))}
-                    />
-                    <textarea
-                      placeholder="简介"
-                      value={personAccountForm.bio}
-                      onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, bio: event.target.value }))}
-                    />
-                  <p className="panel-subtitle">默认创建为普通用户账号，仅用于人才档案维护。</p>
-                  <div className="form-actions">
-                    <button className="primary-button" type="submit">
-                      创建人才与账号
+                  <div className="admin-actions">
+                    <button className="ghost-button slim" onClick={() => openEditModal(person.id)}>
+                      编辑档案
                     </button>
-                      <button type="button" className="ghost-button slim" onClick={resetPersonAccountForm}>
-                        重置
-                      </button>
-                    </div>
-                  </form>
-                  {lastCredential && (
-                    <div className="credential-card">
-                      <p>已为 {lastCredential.name} 创建账号：</p>
-                      <p>
-                        账号：<strong>{lastCredential.email}</strong>
-                      </p>
-                      <p>
-                        初始密码：<code className="monospace">{lastCredential.password}</code>
-                      </p>
-                      <span>请尽快通知用户更改密码。</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="panel admin-section">
-                  <div className="panel-head">
-                    <p className="panel-subtitle">系统账号</p>
-                    <h3>创建领导 / 展示账号</h3>
-                  </div>
-                  <form className="panel-form" onSubmit={handleCreateSystemAccount}>
-                    <div className="form-row">
-                      <input
-                        placeholder="账号名称"
-                        value={systemAccountForm.name}
-                        onChange={(event) =>
-                          setSystemAccountForm((prev) => ({ ...prev, name: event.target.value }))
-                        }
-                      />
-                      <input
-                        placeholder="账号邮箱"
-                        value={systemAccountForm.email}
-                        onChange={(event) =>
-                          setSystemAccountForm((prev) => ({ ...prev, email: event.target.value }))
-                        }
-                      />
-                      <select
-                        value={systemAccountForm.role}
-                        onChange={(event) =>
-                          setSystemAccountForm((prev) => ({ ...prev, role: event.target.value }))
-                        }
-                      >
-                        <option value="admin">管理员（领导）</option>
-                        <option value="display">展示专用</option>
-                      </select>
-                    </div>
-                    {systemAccountForm.role === 'admin' && (
-                      <label className="inline-toggle">
-                        <input
-                          type="checkbox"
-                          checked={systemAccountForm.sensitiveUnmasked}
-                          onChange={(event) =>
-                            setSystemAccountForm((prev) => ({
-                              ...prev,
-                              sensitiveUnmasked: event.target.checked
-                            }))
-                          }
-                        />
-                        <span>管理员默认不脱敏（HR 勾选）</span>
-                      </label>
-                    )}
-                    <div className="form-actions">
-                      <button className="primary-button" type="submit">
-                        创建系统账号
-                      </button>
-                      <button type="button" className="ghost-button slim" onClick={resetSystemAccountForm}>
-                        重置
-                      </button>
-                    </div>
-                  </form>
-                  {systemCredential && (
-                    <div className="credential-card">
-                      <p>已为 {systemCredential.name} 创建系统账号：</p>
-                      <p>
-                        账号：<strong>{systemCredential.email}</strong>
-                      </p>
-                      <p>
-                        初始密码：<code className="monospace">{systemCredential.password}</code>
-                      </p>
-                      <span>请尽快通知用户更改密码。</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="panel admin-section">
-                  <div className="panel-head">
-                    <p className="panel-subtitle">账号列表</p>
-                    <h3>账户管理</h3>
-                    <select
-                      value={accountFilter}
-                      onChange={(event) => setAccountFilter(event.target.value)}
-                    >
-                      <option value="all">全部账号</option>
-                      <option value="linked">档案账号</option>
-                      <option value="system">系统账号</option>
-                    </select>
-                  </div>
-                  <div className="admin-table">
-                    <div className="admin-table-head">
-                      <span>姓名</span>
-                      <span>账号</span>
-                      <span>角色</span>
-                      <span>关联人员</span>
-                      <span>操作</span>
-                    </div>
-                    {visibleUsers.map((account) => (
-                      <div key={account.id} className="admin-table-row">
-                        <span>{account.name}</span>
-                        <span>{account.email}</span>
-                        <span>
-                          <select
-                            value={account.role}
-                            onChange={(event) => handleUserRoleChange(account.id, event.target.value)}
-                          >
-                            <option value="user">用户</option>
-                            <option value="admin">管理员</option>
-                            <option value="display">展示专用</option>
-                          </select>
-                        </span>
-                        <span>
-                          {account.personId
-                            ? people.find((person) => person.id === account.personId)?.name || '—'
-                            : '系统账号'}
-                        </span>
-                        <span>
-                          <button className="ghost-button slim" onClick={() => handleDeleteUser(account.id)}>
-                            删除
-                          </button>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="muted">当前账号无用户管理权限。</p>
-            )}
-
-            <div className="panel admin-section">
-              <div className="panel-head">
-                <p className="panel-subtitle">档案列表</p>
-                <h3>人才档案总览</h3>
-              </div>
-              <div className="admin-list scrollable">
-                {people.map((person) => (
-                  <div key={person.id} className="admin-list-item">
-                    <div>
-                      <strong>{person.name}</strong>
-                      <p>
-                        {person.title} · {person.department}
-                      </p>
-                    </div>
-                    <div className="admin-actions">
-                      <button className="ghost-button slim" onClick={() => setSelectedPersonId(person.id)}>
-                        编辑
-                      </button>
+                    {canManageUsers && (
                       <button className="ghost-button slim" onClick={() => handleDeletePerson(person.id)}>
                         删除
                       </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {filteredPeople.length === 0 && <p className="muted">暂无档案记录。</p>}
+            </div>
+          </div>
+        )}
+        {activePanel === 'accounts' && (
+          <div className="admin-panel-grid two-columns">
+            <div className="panel admin-section">
+              <div className="panel-head">
+                <p className="panel-subtitle">账号管理</p>
+                <h3>账号列表</h3>
+              </div>
+              <div className="admin-toolbar">
+                <input
+                  className="admin-search"
+                  placeholder="姓名 / 账号"
+                  value={accountSearch}
+                  onChange={(event) => setAccountSearch(event.target.value)}
+                />
+                <select
+                  className="admin-select"
+                  value={accountFilter}
+                  onChange={(event) => setAccountFilter(event.target.value)}
+                >
+                  <option value="all">全部账号</option>
+                  <option value="linked">档案账号</option>
+                  <option value="system">系统账号</option>
+                </select>
+                {canManageUsers && (
+                  <button className="primary-button subtle" onClick={openCreateModal}>
+                    新增人才账号
+                  </button>
+                )}
+              </div>
+              <div className="admin-list scrollable">
+                {filteredUsers.map((account) => (
+                  <div key={account.id} className="admin-list-item">
+                    <div>
+                      <strong>{account.name}</strong>
+                      <p>
+                        {account.email} · {ROLE_LABELS[account.role] || account.role}
+                        {account.isSuperAdmin ? ' · 超级管理员' : ''}
+                      </p>
+                      <span className="panel-tag">
+                        {account.personId ? '绑定档案' : '系统账号'}
+                      </span>
+                    </div>
+                    <div className="admin-actions">
+                      {canManageUsers && (
+                        <select
+                          value={account.role}
+                          onChange={(event) => handleUserRoleChange(account.id, event.target.value)}
+                        >
+                          <option value="user">用户</option>
+                          <option value="admin">管理员</option>
+                          <option value="display">展示专用</option>
+                        </select>
+                      )}
+                      {canManageUsers && (
+                        <button className="ghost-button slim" onClick={() => openResetModal(account)}>
+                          重置密码
+                        </button>
+                      )}
+                      {canManageUsers && !account.isSuperAdmin && (
+                        <button className="ghost-button slim" onClick={() => handleDeleteUser(account.id)}>
+                          删除
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
-                {people.length === 0 && <p className="muted">暂无档案，请先新增人才。</p>}
+                {filteredUsers.length === 0 && <p className="muted">暂无账号记录。</p>}
               </div>
             </div>
 
-            {selectedPerson ? (
-              <div className="profile-grid">
-                <div className="panel profile-form">
-                  <h3>基础资料</h3>
-                  <div className="profile-row">
-                    <label>
-                      出生日期
-                      <input
-                        type="date"
-                        value={draftProfile.birth_date}
-                        onChange={(event) =>
-                          setDraftProfile((prev) => ({ ...prev, birth_date: event.target.value }))
-                        }
-                      />
-                    </label>
-                    <label>
-                      性别
-                      <select
-                        value={draftProfile.gender}
-                        onChange={(event) =>
-                          setDraftProfile((prev) => ({ ...prev, gender: event.target.value }))
-                        }
-                      >
-                        <option value="">未填写</option>
-                        <option value="男">男</option>
-                        <option value="女">女</option>
-                        <option value="其他">其他</option>
-                      </select>
-                    </label>
-                  </div>
-                  <label>
-                    手机号
-                    <input
-                      value={draftProfile.phone}
-                      onChange={(event) => setDraftProfile((prev) => ({ ...prev, phone: event.target.value }))}
-                    />
-                  </label>
-                  <label>
-                    聚焦方向
-                    <textarea
-                      value={draftProfile.focus}
-                      onChange={(event) => setDraftProfile((prev) => ({ ...prev, focus: event.target.value }))}
-                    />
-                  </label>
-                  <label>
-                    关键简介
-                    <textarea
-                      value={draftProfile.bio}
-                      onChange={(event) => setDraftProfile((prev) => ({ ...prev, bio: event.target.value }))}
-                    />
-                  </label>
-                  <div className="profile-row">
-                    <label>
-                      职务抬头
-                      <input
-                        value={draftProfile.title}
-                        onChange={(event) => setDraftProfile((prev) => ({ ...prev, title: event.target.value }))}
-                      />
-                    </label>
-                    <label>
-                      所属部门
-                      <input
-                        value={draftProfile.department}
-                        onChange={(event) =>
-                          setDraftProfile((prev) => ({ ...prev, department: event.target.value }))
-                        }
-                      />
-                    </label>
-                  </div>
-                  <button className="primary-button" onClick={saveProfile} disabled={!canEditSelected}>
-                    保存资料
-                  </button>
-                </div>
-
-                <div className="panel profile-dimensions">
-                  <div className="panel-head">
-                    <div>
-                      <h3>月度六维维护</h3>
-                      <p className="panel-subtitle">按月记录，未填写则默认“无”。</p>
-                    </div>
-                    <label className="inline-field">
-                      月份
-                      <input
-                        type="month"
-                        value={dimensionMonth}
-                        onChange={(event) => setDimensionMonth(event.target.value)}
-                        disabled={!canEditSelected}
-                      />
-                    </label>
-                  </div>
-                  <div className="dimension-grid">
-                    {dimensionDrafts.map((dimension, idx) => (
-                      <div key={dimension.id || idx} className="dimension-card">
-                        <div className="dimension-header">
-                          <span>{dimension.category}</span>
-                        </div>
-                        <textarea
-                          value={dimension.detail}
-                          onChange={(event) => updateDimensionDraft(idx, 'detail', event.target.value)}
-                          disabled={!canEditSelected}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="dimension-actions-row">
-                    <button
-                      className="primary-button"
-                      onClick={() => saveDimensions(dimensionMonth)}
-                      disabled={!canEditSelected}
-                    >
-                      保存本月画像
-                    </button>
-                  </div>
-                </div>
+            <div className="panel admin-section">
+              <div className="panel-head">
+                <p className="panel-subtitle">Excel 工具</p>
+                <h3>档案导入导出</h3>
               </div>
-            ) : (
-              <p className="muted">请选择左侧人员后再进行信息维护。</p>
-            )}
-          </>
+              <div className="form-row">
+                <button
+                  className="primary-button"
+                  onClick={() => handleExport(false)}
+                  disabled={exporting}
+                >
+                  导出全部档案
+                </button>
+                <button
+                  className="ghost-button"
+                  onClick={() => handleExport(true)}
+                  disabled={!selectedPerson || exporting}
+                >
+                  导出选中档案
+                </button>
+              </div>
+              <div className="form-row">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(event) => setImportFile(event.target.files?.[0] || null)}
+                />
+                <button className="primary-button" onClick={handleImportExcel} disabled={importing}>
+                  开始导入
+                </button>
+              </div>
+              <p className="muted">模板需包含姓名、出生日期、性别、手机号及六维字段。</p>
+            </div>
+          </div>
         )}
 
         {activePanel === 'permissions' && (
@@ -813,7 +625,7 @@ function AdminPage({
               <div className="panel admin-section">
                 <div className="panel-head">
                   <p className="panel-subtitle">权限配置</p>
-                  <h3>权限配置中心</h3>
+                  <h3>账号权限中心</h3>
                 </div>
                 <div className="permission-grid">
                   <div className="permission-users">
@@ -822,9 +634,7 @@ function AdminPage({
                       {users.map((account) => (
                         <button
                           key={account.id}
-                          className={`admin-list-item ${
-                            permissionTargetId === account.id ? 'active' : ''
-                          }`}
+                          className={`admin-list-item ${permissionTargetId === account.id ? 'active' : ''}`}
                           onClick={() => setPermissionTargetId(account.id)}
                         >
                           <div>
@@ -833,11 +643,7 @@ function AdminPage({
                               {account.email} ·{' '}
                               {account.isSuperAdmin
                                 ? '超级管理员'
-                                : account.role === 'admin'
-                                ? '管理员'
-                                : account.role === 'display'
-                                ? '展示专用'
-                                : '用户'}
+                                : ROLE_LABELS[account.role] || account.role}
                             </p>
                           </div>
                         </button>
@@ -884,7 +690,6 @@ function AdminPage({
             )}
           </>
         )}
-
         {activePanel === 'meetings' && (
           <div className="meeting-admin">
             <div className="panel admin-section">
@@ -1036,52 +841,6 @@ function AdminPage({
               </button>
             </div>
 
-            {hasPerm('export.excel') && (
-              <div className="panel admin-section">
-                <div className="panel-head">
-                  <p className="panel-subtitle">Excel 工具</p>
-                  <h3>数据导出</h3>
-                </div>
-                <div className="form-row">
-                  <button
-                    className="primary-button"
-                    onClick={() => handleExport(false)}
-                    disabled={exporting}
-                  >
-                    导出全部档案
-                  </button>
-                  <button
-                    className="ghost-button"
-                    onClick={() => handleExport(true)}
-                    disabled={!selectedPerson || exporting}
-                  >
-                    导出当前人员
-                  </button>
-                </div>
-                <p className="muted">导出格式为一人一表，包含六维、评价、成长、证书摘要。</p>
-              </div>
-            )}
-
-            {hasPerm('import.excel') && (
-              <div className="panel admin-section">
-                <div className="panel-head">
-                  <p className="panel-subtitle">Excel 工具</p>
-                  <h3>批量导入</h3>
-                </div>
-                <div className="form-row">
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={(event) => setImportFile(event.target.files?.[0] || null)}
-                  />
-                  <button className="primary-button" onClick={handleImportExcel} disabled={importing}>
-                    开始导入
-                  </button>
-                </div>
-                <p className="muted">模板需包含姓名/出生日期/性别/手机号及六维列。</p>
-              </div>
-            )}
-
             {hasPerm('logs.view') && (
               <div className="panel admin-section">
                 <div className="panel-head">
@@ -1108,6 +867,305 @@ function AdminPage({
           </div>
         )}
       </div>
+
+      {createModalOpen && (
+        <div className="modal-backdrop" onClick={() => setCreateModalOpen(false)}>
+          <div className="modal-card wide" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <h3>新增人才账号</h3>
+                <p className="panel-subtitle">创建档案并生成登录账号</p>
+              </div>
+              <button className="modal-close" onClick={() => setCreateModalOpen(false)}>
+                关闭
+              </button>
+            </div>
+            <form className="admin-form" onSubmit={handleCreateTalentAccount}>
+              <div className="form-row">
+                <input
+                  placeholder="姓名*"
+                  value={personAccountForm.name}
+                  onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, name: event.target.value }))}
+                />
+                <input
+                  placeholder="账号（姓名/手机号）*"
+                  value={personAccountForm.email}
+                  onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, email: event.target.value }))}
+                />
+              </div>
+              <div className="form-row">
+                <input
+                  placeholder="职务"
+                  value={personAccountForm.title}
+                  onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, title: event.target.value }))}
+                />
+                <input
+                  placeholder="部门"
+                  value={personAccountForm.department}
+                  onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, department: event.target.value }))}
+                />
+              </div>
+              <div className="form-row">
+                <input
+                  type="date"
+                  value={personAccountForm.birth_date}
+                  onChange={(event) =>
+                    setPersonAccountForm((prev) => ({ ...prev, birth_date: event.target.value }))
+                  }
+                />
+                <select
+                  value={personAccountForm.gender}
+                  onChange={(event) =>
+                    setPersonAccountForm((prev) => ({ ...prev, gender: event.target.value }))
+                  }
+                >
+                  <option value="">性别</option>
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                  <option value="其他">其他</option>
+                </select>
+                <input
+                  placeholder="手机号"
+                  value={personAccountForm.phone}
+                  onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, phone: event.target.value }))}
+                />
+              </div>
+              <div className="form-row">
+                <input
+                  placeholder="登录密码"
+                  value={personAccountForm.password}
+                  onChange={(event) =>
+                    setPersonAccountForm((prev) => ({ ...prev, password: event.target.value }))
+                  }
+                />
+                <button
+                  type="button"
+                  className="ghost-button slim"
+                  onClick={() =>
+                    setPersonAccountForm((prev) => ({
+                      ...prev,
+                      password: generateNumericPassword()
+                    }))
+                  }
+                >
+                  随机生成
+                </button>
+              </div>
+              <textarea
+                placeholder="聚焦方向"
+                value={personAccountForm.focus}
+                onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, focus: event.target.value }))}
+              />
+              <textarea
+                placeholder="个人简介"
+                value={personAccountForm.bio}
+                onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, bio: event.target.value }))}
+              />
+              <div className="form-actions">
+                <button className="primary-button" type="submit">
+                  创建账号
+                </button>
+                <button type="button" className="ghost-button slim" onClick={resetPersonAccountForm}>
+                  清空
+                </button>
+              </div>
+            </form>
+            {lastCredential && (
+              <div className="credential-card">
+                <p>已为 {lastCredential.name} 创建账号：</p>
+                <p>
+                  账号：<strong>{lastCredential.email}</strong>
+                </p>
+                <p>
+                  密码：<strong>{lastCredential.password}</strong>
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {editModalOpen && selectedPerson && (
+        <div className="modal-backdrop" onClick={() => setEditModalOpen(false)}>
+          <div className="modal-card wide" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <h3>编辑档案</h3>
+                <p className="panel-subtitle">{selectedPerson.name}</p>
+              </div>
+              <button className="modal-close" onClick={() => setEditModalOpen(false)}>
+                关闭
+              </button>
+            </div>
+            <div className="profile-grid">
+              <div className="panel profile-form">
+                <div className="panel-head">
+                  <h3>基础资料</h3>
+                  <p className="panel-subtitle">仅管理员可编辑</p>
+                </div>
+                <label>
+                  出生日期
+                  <input
+                    type="date"
+                    value={draftProfile.birth_date}
+                    onChange={(event) =>
+                      setDraftProfile((prev) => ({ ...prev, birth_date: event.target.value }))
+                    }
+                    disabled={!canEditSelected}
+                  />
+                </label>
+                <label>
+                  性别
+                  <select
+                    value={draftProfile.gender}
+                    onChange={(event) => setDraftProfile((prev) => ({ ...prev, gender: event.target.value }))}
+                    disabled={!canEditSelected}
+                  >
+                    <option value="">未填写</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                    <option value="其他">其他</option>
+                  </select>
+                </label>
+                <label>
+                  手机号
+                  <input
+                    value={draftProfile.phone}
+                    onChange={(event) => setDraftProfile((prev) => ({ ...prev, phone: event.target.value }))}
+                    disabled={!canEditSelected}
+                  />
+                </label>
+                <label>
+                  聚焦方向
+                  <textarea
+                    value={draftProfile.focus}
+                    onChange={(event) => setDraftProfile((prev) => ({ ...prev, focus: event.target.value }))}
+                    disabled={!canEditSelected}
+                  />
+                </label>
+                <label>
+                  个人简介
+                  <textarea
+                    value={draftProfile.bio}
+                    onChange={(event) => setDraftProfile((prev) => ({ ...prev, bio: event.target.value }))}
+                    disabled={!canEditSelected}
+                  />
+                </label>
+                <div className="profile-row">
+                  <label>
+                    职务抬头
+                    <input
+                      value={draftProfile.title}
+                      onChange={(event) => setDraftProfile((prev) => ({ ...prev, title: event.target.value }))}
+                      disabled={!canEditSelected}
+                    />
+                  </label>
+                  <label>
+                    所属部门
+                    <input
+                      value={draftProfile.department}
+                      onChange={(event) =>
+                        setDraftProfile((prev) => ({ ...prev, department: event.target.value }))
+                      }
+                      disabled={!canEditSelected}
+                    />
+                  </label>
+                </div>
+                <button className="primary-button" onClick={saveProfile} disabled={!canEditSelected}>
+                  保存基础资料
+                </button>
+              </div>
+
+              <div className="panel profile-dimensions">
+                <div className="panel-head">
+                  <div>
+                    <h3>月度六维</h3>
+                    <p className="panel-subtitle">按月记录，未填写默认“无”</p>
+                  </div>
+                  <label className="inline-field">
+                    月份
+                    <input
+                      type="month"
+                      value={dimensionMonth}
+                      onChange={(event) => setDimensionMonth(event.target.value)}
+                      disabled={!canEditSelected}
+                    />
+                  </label>
+                </div>
+                <div className="dimension-grid">
+                  {dimensionDrafts.map((dimension, idx) => (
+                    <div key={dimension.id || idx} className="dimension-card">
+                      <div className="dimension-header">
+                        <span>{dimension.category}</span>
+                      </div>
+                      <textarea
+                        value={dimension.detail}
+                        onChange={(event) => updateDimensionDraft(idx, 'detail', event.target.value)}
+                        disabled={!canEditSelected}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="dimension-actions-row">
+                  <button
+                    className="primary-button"
+                    onClick={() => saveDimensions(dimensionMonth)}
+                    disabled={!canEditSelected}
+                  >
+                    保存本月画像
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resetModalOpen && resetTarget && (
+        <div className="modal-backdrop" onClick={() => setResetModalOpen(false)}>
+          <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <h3>重置密码</h3>
+                <p className="panel-subtitle">{resetTarget.name}</p>
+              </div>
+              <button className="modal-close" onClick={() => setResetModalOpen(false)}>
+                关闭
+              </button>
+            </div>
+            <form className="admin-form" onSubmit={handleResetPassword}>
+              <input
+                placeholder="新密码"
+                value={resetPassword}
+                onChange={(event) => setResetPassword(event.target.value)}
+              />
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="ghost-button slim"
+                  onClick={() => setResetPassword(generateNumericPassword())}
+                >
+                  随机生成
+                </button>
+                <button className="primary-button" type="submit">
+                  确认重置
+                </button>
+              </div>
+            </form>
+            {resetCredential && (
+              <div className="credential-card">
+                <p>已重置 {resetCredential.name} 的密码：</p>
+                <p>
+                  账号：<strong>{resetCredential.email}</strong>
+                </p>
+                <p>
+                  新密码：<strong>{resetCredential.password}</strong>
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
