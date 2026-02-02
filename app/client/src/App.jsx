@@ -600,7 +600,7 @@ function AppShell() {
   useEffect(() => {
     if (!loginError || lockRemaining > 0) return;
     setLoginError('');
-  }, [loginForm.email, loginForm.password, lockRemaining, loginError]);
+  }, [loginForm.email, loginForm.password, acceptPrivacy, lockRemaining]);
   const handleLogin = async (event) => {
 
     event.preventDefault();
