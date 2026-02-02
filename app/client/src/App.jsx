@@ -897,23 +897,23 @@ function AppShell() {
 
     <div className="app-shell">
 
-      <header className="global-header">
+      {user && (
+        <header className="global-header">
 
-        <div className="brand">
+          <div className="brand">
 
-          <span className="badge">T·矩阵</span>
+            <span className="badge">T·矩阵</span>
 
-          <div>
+            <div>
 
-            <h1>金岩高新百名英才档案管理</h1>
+              <h1>金岩高新百名英才档案管理</h1>
 
-            <p>融合多维档案，洞察人才脉动</p>
+              <p>融合多维档案，洞察人才脉动</p>
+
+            </div>
 
           </div>
 
-        </div>
-
-        {user && (
           <nav className="global-nav">
             {NAV_ITEMS.filter((item) => item.path !== '/profile' || isAdmin).map((item) => (
               <button
@@ -930,9 +930,7 @@ function AppShell() {
               </button>
             ))}
           </nav>
-        )}
-        <div className="user-section">
-          {user ? (
+          <div className="user-section">
             <>
               <div className="user-meta" style={{ borderColor: ROLE_COLORS[user.role] }}>
                 <p>{user.name}</p>
@@ -961,16 +959,10 @@ function AppShell() {
               </button>
 
             </>
+          </div>
 
-          ) : (
-
-            <p className="user-tip">请登录以解锁多维档案</p>
-
-          )}
-
-        </div>
-
-      </header>
+        </header>
+      )}
 
 
 
