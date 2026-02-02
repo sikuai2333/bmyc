@@ -888,7 +888,7 @@ button:disabled {
 
 .dashboard-person-list {
   margin-top: 12px;
-  height: 360px;
+  height: 252px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -934,7 +934,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  height: 360px;
+  height: 252px;
   overflow-y: auto;
   padding-right: 4px;
 }
