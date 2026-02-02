@@ -1,79 +1,193 @@
-import React from 'react';
+﻿import React from 'react';
 
-const ROLE_PRESETS = {
-  user: { label: '普通用户', email: '靳贺凯', password: '13696653085' },
-  admin: { label: '管理员', email: 'admin', password: 'admin@123' },
-  super: { label: '超级管理员', email: 'sikuai', password: 'sikuai@2333' }
-};
+const UserIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
-function LoginHero({ loginForm, setLoginForm, onSubmit }) {
-  const selectedRole = loginForm.role || 'user';
-  const selectedPreset = ROLE_PRESETS[selectedRole];
+const LockIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7zm3 9.73V18a1 1 0 0 1-2 0v-1.27a1.8 1.8 0 1 1 2 0z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+function LoginHero({
+  loginForm,
+  setLoginForm,
+  onSubmit,
+  accountStatus,
+  passwordStatus,
+  rememberAccount,
+  setRememberAccount,
+  showPassword,
+  setShowPassword,
+  loginLoading,
+  loginError,
+  lockRemaining,
+  acceptPrivacy,
+  setAcceptPrivacy,
+  onResetPassword,
+  onRegister,
+  onThirdLogin
+}) {
+  const accountHint = accountStatus.message || '支持姓名或手机号登录';
+  const passwordHint = passwordStatus.message || '建议至少 6 位，区分大小写';
+  const accountClass = accountStatus.status === 'invalid' ? 'invalid' : accountStatus.status === 'valid' ? 'valid' : '';
+  const passwordClass = passwordStatus.status === 'invalid' ? 'invalid' : passwordStatus.status === 'valid' ? 'valid' : '';
+  const isLocked = lockRemaining > 0;
 
   return (
-    <section className="login-hero">
+    <section className="login-shell">
       <div className="login-card">
-        <div className="login-brand">
-          <p className="eyebrow">金岩高新</p>
-          <h3>统一身份中心</h3>
-          <p>人才档案入口 · 角色分级访问</p>
-        </div>
-        <form className="login-form" onSubmit={onSubmit}>
-          <label>
-            <span>账号类型</span>
-            <select
-              value={selectedRole}
-              onChange={(event) => {
-                const role = event.target.value;
-                const preset = ROLE_PRESETS[role];
-                setLoginForm((prev) => ({
-                  ...prev,
-                  role,
-                  email: preset.email,
-                  password: preset.password
-                }));
-              }}
-            >
-              {Object.entries(ROLE_PRESETS).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="muted" style={{ fontSize: 12 }}>
-            当前账号：{selectedPreset.email}
+        <aside className="login-brand">
+          <div className="brand-header">
+            <div className="brand-logo">JY</div>
+            <div>
+              <p className="brand-name">金岩高新</p>
+              <h2>金岩高新人才成长APP</h2>
+              <p className="brand-slogan">专业、可信、可追溯的人才档案管理平台</p>
+            </div>
           </div>
-          <label>
-            <span>登录密码</span>
+          <div className="brand-visual">
+            <div className="visual-card">
+              <div className="visual-row">
+                <span className="visual-dot" />
+                <span>人才画像运营</span>
+              </div>
+              <div className="visual-bars">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+            <div className="visual-card light">
+              <strong>6 维档案</strong>
+              <p>月度沉淀与成长轨迹</p>
+            </div>
+          </div>
+          <div className="brand-foot">
+            <span>安全可信 · 多端协同 · 数据可追溯</span>
+          </div>
+        </aside>
+
+        <div className="login-panel">
+          <div className="login-head">
+            <p className="panel-subtitle">企业登录</p>
+            <h3>统一身份认证</h3>
+            <p className="login-subtitle">输入姓名/手机号与密码进入人才档案平台</p>
+          </div>
+
+          <form className="login-form" onSubmit={onSubmit}>
+            <label className="input-field">
+              <span>姓名 / 手机号</span>
+              <div className={`input-group ${accountClass}`}>
+                <span className="input-icon">
+                  <UserIcon />
+                </span>
+                <input
+                  value={loginForm.email}
+                  onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
+                  placeholder="请输入姓名或手机号"
+                />
+              </div>
+              <small className={`field-hint ${accountClass}`}>{accountHint}</small>
+            </label>
+
+            <label className="input-field">
+              <span>密码</span>
+              <div className={`input-group ${passwordClass}`}>
+                <span className="input-icon">
+                  <LockIcon />
+                </span>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={loginForm.password}
+                  onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
+                  placeholder="请输入密码"
+                />
+                <button
+                  type="button"
+                  className="toggle-visibility"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? '隐藏' : '显示'}
+                </button>
+              </div>
+              <small className={`field-hint ${passwordClass}`}>{passwordHint}</small>
+            </label>
+
+            {(loginError || isLocked) && (
+              <div className="login-alert">
+                {isLocked ? `连续失败已锁定，请 ${lockRemaining}s 后再试` : loginError}
+              </div>
+            )}
+
+            <div className="login-actions">
+              <button className="primary-button" type="submit" disabled={loginLoading || isLocked}>
+                {loginLoading ? '登录中...' : '登录'}
+              </button>
+              <button className="ghost-button slim" type="button" onClick={onResetPassword}>
+                重置密码
+              </button>
+            </div>
+          </form>
+
+          <div className="login-assist">
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={rememberAccount}
+                onChange={(event) => setRememberAccount(event.target.checked)}
+              />
+              记住账号
+            </label>
+            <button className="text-link" type="button" onClick={onRegister}>
+              英才账号注册
+            </button>
+          </div>
+
+          <label className="privacy-row">
             <input
-              type="password"
-              placeholder="••••••••"
-              value={loginForm.password}
-              onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
+              type="checkbox"
+              checked={acceptPrivacy}
+              onChange={(event) => setAcceptPrivacy(event.target.checked)}
             />
+            <span>
+              我已阅读并同意《档案保密协议》《隐私协议》
+            </span>
           </label>
-          <div className="login-actions">
-            <button type="submit" className="primary-button">
-              进入系统
+
+          <div className="login-divider">
+            <span>第三方登录</span>
+          </div>
+
+          <div className="third-login">
+            <button type="button" className="third-button" onClick={() => onThirdLogin('企业微信')}>
+              <span className="third-dot wecom" />企业微信
             </button>
-            <button
-              type="button"
-              className="ghost-button slim"
-              onClick={() =>
-                setLoginForm({
-                  role: 'user',
-                  email: ROLE_PRESETS.user.email,
-                  password: ROLE_PRESETS.user.password
-                })
-              }
-            >
-              重置选择
+            <button type="button" className="third-button" onClick={() => onThirdLogin('钉钉')}>
+              <span className="third-dot dingtalk" />钉钉
+            </button>
+            <button type="button" className="third-button" onClick={() => onThirdLogin('飞书')}>
+              <span className="third-dot feishu" />飞书
             </button>
           </div>
-        </form>
-        <p className="login-hint">没有账号？请联系系统管理员开通。</p>
+
+          <p className="login-security">建议在 HTTPS 环境下使用，传输自动加密。</p>
+        </div>
       </div>
+
+      <footer className="login-footer">
+        <span>© 2026 金岩高新人才成长APP</span>
+        <a className="footer-link" href="#">企业官网</a>
+      </footer>
     </section>
   );
 }

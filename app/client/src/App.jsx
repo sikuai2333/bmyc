@@ -98,10 +98,10 @@ const NAV_ITEMS = [
 
 
 const STORAGE_TOKEN_KEY = 'talent_dashboard_token';
-
-
-
 const STORAGE_USER_KEY = 'talent_dashboard_user';
+const STORAGE_ACCOUNT_KEY = 'talent_dashboard_account';
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 30000;
 
 
 
@@ -128,14 +128,17 @@ function AppShell() {
   const [user, setUser] = useState(null);
 
   const [loginForm, setLoginForm] = useState({
-
-    role: 'user',
-
-    email: 'user@talent.local',
-
-    password: 'User#123'
-
+    email: '',
+    password: ''
   });
+  const [rememberAccount, setRememberAccount] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockUntil, setLockUntil] = useState(0);
+  const [lockRemaining, setLockRemaining] = useState(0);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
 
   const [people, setPeople] = useState([]);
 
@@ -270,6 +273,11 @@ function AppShell() {
         setSensitiveUnmasked(Boolean(parsedUser.sensitiveUnmasked));
 
       }
+      const storedAccount = localStorage.getItem(STORAGE_ACCOUNT_KEY);
+      if (storedAccount) {
+        setLoginForm((prev) => ({ ...prev, email: storedAccount }));
+        setRememberAccount(true);
+      }
 
     } catch (error) {
 
@@ -278,6 +286,24 @@ function AppShell() {
     }
 
   }, []);
+
+  useEffect(() => {
+    if (!lockUntil) {
+      setLockRemaining(0);
+      return;
+    }
+    const updateRemaining = () => {
+      const remaining = Math.max(0, Math.ceil((lockUntil - Date.now()) / 1000));
+      setLockRemaining(remaining);
+      if (remaining === 0) {
+        setLockUntil(0);
+        setFailedAttempts(0);
+      }
+    };
+    updateRemaining();
+    const timer = setInterval(updateRemaining, 1000);
+    return () => clearInterval(timer);
+  }, [lockUntil]);
 
 
 
@@ -545,40 +571,95 @@ function AppShell() {
         .slice(0, 6),
     [people]
   );
+  const accountStatus = useMemo(() => {
+    const value = loginForm.email.trim();
+    if (!value) {
+      return { status: 'empty', valid: false, message: '支持姓名或手机号登录' };
+    }
+    const isPhone = /^1\\d{10}$/.test(value);
+    if (isPhone) {
+      return { status: 'valid', valid: true, message: '手机号格式正确' };
+    }
+    if (value.length >= 2) {
+      return { status: 'valid', valid: true, message: '姓名格式可用' };
+    }
+    return { status: 'invalid', valid: false, message: '请输入正确的姓名或手机号' };
+  }, [loginForm.email]);
+
+  const passwordStatus = useMemo(() => {
+    const value = loginForm.password;
+    if (!value) {
+      return { status: 'empty', valid: false, message: '建议至少 6 位，区分大小写' };
+    }
+    if (value.length < 6) {
+      return { status: 'invalid', valid: false, message: '密码至少 6 位' };
+    }
+    return { status: 'valid', valid: true, message: '密码格式正确' };
+  }, [loginForm.password]);
+
+  useEffect(() => {
+    if (!loginError || lockRemaining > 0) return;
+    setLoginError('');
+  }, [loginForm.email, loginForm.password, lockRemaining, loginError]);
   const handleLogin = async (event) => {
 
     event.preventDefault();
 
-    if (!loginForm.email || !loginForm.password) {
-
-      setToast('请输入完整账号信息');
-
+    if (lockRemaining > 0) {
+      setLoginError(`连续失败已锁定，请 ${lockRemaining}s 后再试`);
       return;
-
     }
 
-    try {
+    if (!accountStatus.valid || !passwordStatus.valid) {
+      setLoginError(accountStatus.valid ? passwordStatus.message : accountStatus.message);
+      return;
+    }
 
-      const { data } = await axios.post(`${API_BASE}/login`, loginForm);
+    if (!acceptPrivacy) {
+      setLoginError('请先阅读并同意相关协议');
+      return;
+    }
+
+    setLoginLoading(true);
+    setLoginError('');
+
+    try {
+      const payload = {
+        email: loginForm.email.trim(),
+        password: loginForm.password
+      };
+      const { data } = await axios.post(`${API_BASE}/login`, payload);
 
       setToken(data.token);
-
       setUser(data.user);
-
       setSensitiveUnmasked(Boolean(data.user?.sensitiveUnmasked));
+      setFailedAttempts(0);
+      setLockUntil(0);
 
       localStorage.setItem(STORAGE_TOKEN_KEY, data.token);
-
       localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(data.user));
+      if (rememberAccount) {
+        localStorage.setItem(STORAGE_ACCOUNT_KEY, payload.email);
+      } else {
+        localStorage.removeItem(STORAGE_ACCOUNT_KEY);
+      }
 
       setToast(`欢迎 ${data.user.name} (${data.user.role})`);
-
       navigate('/');
-
     } catch (error) {
-
-      setToast(error.response?.data?.message || '登录失败');
-
+      const message = error.response?.data?.message || '登录失败';
+      setLoginError(message);
+      setToast(message);
+      setFailedAttempts((prev) => {
+        const next = prev + 1;
+        if (next >= MAX_LOGIN_ATTEMPTS) {
+          setLockUntil(Date.now() + LOCK_DURATION_MS);
+          return 0;
+        }
+        return next;
+      });
+    } finally {
+      setLoginLoading(false);
     }
 
   };
@@ -591,17 +672,14 @@ function AppShell() {
 
     setUser(null);
 
+    const remembered = rememberAccount ? localStorage.getItem(STORAGE_ACCOUNT_KEY) || '' : '';
     setLoginForm({
-
-      role: 'user',
-
-      email: 'user@talent.local',
-
-      password: 'User#123'
-
+      email: remembered,
+      password: ''
     });
 
     setSensitiveUnmasked(false);
+    setLoginError('');
 
     localStorage.removeItem(STORAGE_TOKEN_KEY);
 
@@ -611,6 +689,18 @@ function AppShell() {
 
     setToast('已安全退出');
 
+  };
+
+  const handleResetPassword = () => {
+    setToast('请联系管理员重置密码');
+  };
+
+  const handleRegister = () => {
+    setToast('注册入口暂未开放');
+  };
+
+  const handleThirdLogin = (provider) => {
+    setToast(`${provider} 登录暂未接入`);
   };
 
 
@@ -890,7 +980,25 @@ function AppShell() {
 
       {!user ? (
 
-        <LoginHero loginForm={loginForm} setLoginForm={setLoginForm} onSubmit={handleLogin} />
+        <LoginHero
+          loginForm={loginForm}
+          setLoginForm={setLoginForm}
+          onSubmit={handleLogin}
+          accountStatus={accountStatus}
+          passwordStatus={passwordStatus}
+          rememberAccount={rememberAccount}
+          setRememberAccount={setRememberAccount}
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
+          loginLoading={loginLoading}
+          loginError={loginError}
+          lockRemaining={lockRemaining}
+          acceptPrivacy={acceptPrivacy}
+          setAcceptPrivacy={setAcceptPrivacy}
+          onResetPassword={handleResetPassword}
+          onRegister={handleRegister}
+          onThirdLogin={handleThirdLogin}
+        />
 
       ) : (
 
