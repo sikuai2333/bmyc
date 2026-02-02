@@ -259,7 +259,7 @@ function DashboardPage({
 
                 </div>
 
-                <span className="value">{person.dimensions?.length || 0} 维</span>
+                <span className="value">{person.dimensionMonthCount || 0} 月</span>
 
               </button>
 
@@ -521,7 +521,7 @@ function DashboardPage({
 
                 </div>
 
-                <span className="value">{person.dimensions?.length || 0} 维</span>
+                <span className="value">{person.dimensionMonthCount || 0} 月</span>
 
               </button>
 

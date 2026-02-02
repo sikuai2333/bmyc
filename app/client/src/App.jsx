@@ -33,11 +33,22 @@ const API_BASE =
     return `${protocol}//${hostname}${portSuffix}/api`;
   })();
 
-const ROLE_COLORS = { admin: '#f6bf4f', user: '#5dc0ff', display: '#3fe0b8' };
-
-const NAV_ITEMS = [
-  { label: '大屏总览', path: '/' },
-  { label: '人才信息采集', path: '/talent' },
+const ROLE_COLORS = { admin: '#f6bf4f', user: '#5dc0ff', display: '#3fe0b8' };
+
+const getCurrentMonth = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const createEmptyDimensions = () =>
+  DIMENSION_CATEGORIES.map((category) => ({
+    category,
+    detail: '\u65e0'
+  }));
+
+const NAV_ITEMS = [
+  { label: '大屏总览', path: '/' },
+  { label: '人才信息采集', path: '/talent' },
   { label: '评价管理', path: '/evaluations' },
   { label: '成长轨迹', path: '/growth' },
   { label: '证书管理', path: '/certificates' },
@@ -71,16 +82,18 @@ function AppShell() {
   const [meetings, setMeetings] = useState([]);
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
   const [insights, setInsights] = useState([]);
-  const [draftProfile, setDraftProfile] = useState({
-    focus: '',
-    bio: '',
-    title: '',
-    department: '',
-    birth_date: '',
-    gender: '',
-    phone: ''
-  });
-  const [dimensionDrafts, setDimensionDrafts] = useState([]);
+  const [draftProfile, setDraftProfile] = useState({
+    focus: '',
+    bio: '',
+    title: '',
+    department: '',
+    birth_date: '',
+    gender: '',
+    phone: ''
+  });
+  const [dimensionMonth, setDimensionMonth] = useState(getCurrentMonth());
+  const [dimensionMonthlyRows, setDimensionMonthlyRows] = useState([]);
+  const [dimensionDrafts, setDimensionDrafts] = useState(createEmptyDimensions());
   const [evaluations, setEvaluations] = useState([]);
   const [growthEvents, setGrowthEvents] = useState([]);
   const [certificates, setCertificates] = useState([]);
@@ -183,37 +196,44 @@ function AppShell() {
     fetchData();
   }, [token, dataVersion]);
 
-  useEffect(() => {
-    if (!token || !selectedPersonId) {
-      setEvaluations([]);
-      setGrowthEvents([]);
-      setCertificates([]);
-      return;
-    }
+  useEffect(() => {
+    if (!token || !selectedPersonId) {
+      setEvaluations([]);
+      setGrowthEvents([]);
+      setCertificates([]);
+      setDimensionMonthlyRows([]);
+      return;
+    }
     const fetchExtras = async () => {
       try {
-        const [evalRes, growthRes, certRes] = await Promise.all([
-          axios.get(`${API_BASE}/evaluations`, {
-            ...authHeaders,
-            params: { personId: selectedPersonId }
-          }),
-          axios.get(`${API_BASE}/growth`, {
-            ...authHeaders,
-            params: { personId: selectedPersonId }
-          }),
-          axios.get(`${API_BASE}/certificates`, {
-            ...authHeaders,
-            params: { personId: selectedPersonId }
-          })
-        ]);
-        setEvaluations(evalRes.data || []);
-        setGrowthEvents(growthRes.data || []);
-        setCertificates(certRes.data || []);
-      } catch (error) {
-        setEvaluations([]);
-        setGrowthEvents([]);
-        setCertificates([]);
-      }
+        const [evalRes, growthRes, certRes, dimensionRes] = await Promise.all([
+          axios.get(`${API_BASE}/evaluations`, {
+            ...authHeaders,
+            params: { personId: selectedPersonId }
+          }),
+          axios.get(`${API_BASE}/growth`, {
+            ...authHeaders,
+            params: { personId: selectedPersonId }
+          }),
+          axios.get(`${API_BASE}/certificates`, {
+            ...authHeaders,
+            params: { personId: selectedPersonId }
+          }),
+          axios.get(`${API_BASE}/personnel/${selectedPersonId}/dimensions/monthly`, {
+            ...authHeaders,
+            params: { months: 6 }
+          })
+        ]);
+        setEvaluations(evalRes.data || []);
+        setGrowthEvents(growthRes.data || []);
+        setCertificates(certRes.data || []);
+        setDimensionMonthlyRows(dimensionRes?.data?.rows || []);
+      } catch (error) {
+        setEvaluations([]);
+        setGrowthEvents([]);
+        setCertificates([]);
+        setDimensionMonthlyRows([]);
+      }
     };
     fetchExtras();
   }, [token, selectedPersonId, dataVersion]);
@@ -236,50 +256,77 @@ function AppShell() {
     fetchUsers();
   }, [token, canManageUsers, dataVersion]);
 
-  useEffect(() => {
-    if (selectedPerson) {
-      setDraftProfile({
-        focus: selectedPerson.focus || '',
-        bio: selectedPerson.bio || '',
-        title: selectedPerson.title || '',
-        department: selectedPerson.department || '',
-        birth_date: selectedPerson.birth_date || '',
-        gender: selectedPerson.gender || '',
-        phone: selectedPerson.phone || ''
-      });
-      setDimensionDrafts(selectedPerson.dimensions?.map((dimension) => ({ ...dimension })) || []);
-    } else {
-      setDraftProfile({
-        focus: '',
-        bio: '',
-        title: '',
-        department: '',
-        birth_date: '',
-        gender: '',
-        phone: ''
-      });
-      setDimensionDrafts([]);
-    }
-  }, [selectedPerson]);
+  useEffect(() => {
+    if (selectedPerson) {
+      setDraftProfile({
+        focus: selectedPerson.focus || '',
+        bio: selectedPerson.bio || '',
+        title: selectedPerson.title || '',
+        department: selectedPerson.department || '',
+        birth_date: selectedPerson.birth_date || '',
+        gender: selectedPerson.gender || '',
+        phone: selectedPerson.phone || ''
+      });
+    } else {
+      setDraftProfile({
+        focus: '',
+        bio: '',
+        title: '',
+        department: '',
+        birth_date: '',
+        gender: '',
+        phone: ''
+      });
+      setDimensionDrafts(createEmptyDimensions());
+    }
+  }, [selectedPerson]);
+
+  useEffect(() => {
+    if (!token || !selectedPersonId) {
+      setDimensionDrafts(createEmptyDimensions());
+      return;
+    }
+    const fetchDimensionMonth = async () => {
+      try {
+        const { data } = await axios.get(`${API_BASE}/personnel/${selectedPersonId}/dimensions/monthly`, {
+          ...authHeaders,
+          params: { month: dimensionMonth }
+        });
+        const row = data?.rows?.find((item) => item.month === dimensionMonth) || data?.rows?.[0];
+        if (row?.dimensions?.length) {
+          setDimensionDrafts(row.dimensions.map((dimension) => ({ ...dimension })));
+        } else {
+          setDimensionDrafts(createEmptyDimensions());
+        }
+      } catch (error) {
+        setDimensionDrafts(createEmptyDimensions());
+      }
+    };
+    fetchDimensionMonth();
+  }, [token, selectedPersonId, dimensionMonth, dataVersion]);
 
-  const overview = useMemo(() => {
-    const totalDimensions = people.reduce((sum, person) => sum + (person.dimensions?.length || 0), 0);
-    return [
-      { label: '入库英才', value: people.length, unit: '人' },
-      { label: '多维画像', value: totalDimensions, unit: '条' },
-      { label: '政治思想会议', value: meetings.length, unit: '场' },
-      { label: '维度覆盖率', value: insights.length ? `${Math.min(100, insights.length * 6)}%` : '—', unit: '' }
-    ];
-  }, [people, meetings, insights]);
+  const overview = useMemo(() => {
+    const totalDimensions = people.reduce((sum, person) => sum + (person.dimensionMonthCount || 0), 0);
+    const coveredCategories = insights.filter((item) => item.count > 0).length;
+    const coverage = insights.length
+      ? `${Math.round((coveredCategories / DIMENSION_CATEGORIES.length) * 100)}%`
+      : '—';
+    return [
+      { label: '入库英才', value: people.length, unit: '人' },
+      { label: '月度画像', value: totalDimensions, unit: '条' },
+      { label: '政治思想会议', value: meetings.length, unit: '场' },
+      { label: '维度覆盖率', value: coverage, unit: '' }
+    ];
+  }, [people, meetings, insights]);
 
-  const trendingPeople = useMemo(
-    () =>
-      people
-        .slice()
-        .sort((a, b) => (b.dimensions?.length || 0) - (a.dimensions?.length || 0))
-        .slice(0, 6),
-    [people]
-  );
+  const trendingPeople = useMemo(
+    () =>
+      people
+        .slice()
+        .sort((a, b) => (b.dimensionMonthCount || 0) - (a.dimensionMonthCount || 0))
+        .slice(0, 6),
+    [people]
+  );
   const handleLogin = async (event) => {
     event.preventDefault();
     if (!loginForm.email || !loginForm.password) {
@@ -335,23 +382,12 @@ function AppShell() {
     }
   };
 
-  const updateDimensionDraft = (idx, key, value) => {
-    setDimensionDrafts((prev) =>
-      prev.map((dimension, index) => (index === idx ? { ...dimension, [key]: value } : dimension))
-    );
-  };
-
-  const addDimensionDraft = () => {
-    setDimensionDrafts((prev) => [
-      ...prev,
-      { id: `local-${Date.now()}`, category: DIMENSION_CATEGORIES[0], detail: '请输入描述' }
-    ]);
-  };
-
-  const removeDimensionDraft = (idx) => {
-    setDimensionDrafts((prev) => prev.filter((_, index) => index !== idx));
-  };
-
+  const updateDimensionDraft = (idx, key, value) => {
+    setDimensionDrafts((prev) =>
+      prev.map((dimension, index) => (index === idx ? { ...dimension, [key]: value } : dimension))
+    );
+  };
+
   const saveProfile = async () => {
     if (!selectedPerson) return;
     try {
@@ -369,28 +405,30 @@ function AppShell() {
     }
   };
 
-  const saveDimensions = async () => {
-    if (!selectedPerson) return;
-    try {
-      const payload = dimensionDrafts.map(({ category, detail }) => ({
-        category,
-        detail
-      }));
-      const { data } = await axios.put(
-        `${API_BASE}/personnel/${selectedPerson.id}/dimensions`,
-        { dimensions: payload },
-        authHeaders
-      );
-      setPeople((prev) =>
-        prev.map((person) =>
-          person.id === selectedPerson.id ? { ...person, dimensions: data } : person
-        )
-      );
-      setToast('多维度数据已更新');
-    } catch (error) {
-      setToast(error.response?.data?.message || '更新失败');
-    }
-  };
+  const saveDimensions = async (monthOverride) => {
+    if (!selectedPerson) return;
+    try {
+      const targetMonth = monthOverride || dimensionMonth || getCurrentMonth();
+      const payload = dimensionDrafts.map(({ category, detail }) => ({
+        category,
+        detail: detail && String(detail).trim() ? String(detail).trim() : '\u65e0'
+      }));
+      const { data } = await axios.put(
+        `${API_BASE}/personnel/${selectedPerson.id}/dimensions`,
+        { dimensions: payload, month: targetMonth },
+        authHeaders
+      );
+      setDimensionMonthlyRows((prev) => {
+        const next = prev.filter((row) => row.month !== targetMonth);
+        next.push({ month: targetMonth, dimensions: data });
+        return next.sort((a, b) => b.month.localeCompare(a.month));
+      });
+      setToast('月度画像已更新');
+      triggerDataRefresh();
+    } catch (error) {
+      setToast(error.response?.data?.message || '更新失败');
+    }
+  };
 
   const canEditSelected =
     user &&
@@ -522,16 +560,16 @@ function AppShell() {
             <Route
               path="/talent"
               element={
-                <TalentPage
-                  people={people}
-                  insights={insights}
-                  meetings={meetings}
-                  selectedPerson={selectedPerson}
-                  setSelectedPersonId={setSelectedPersonId}
-                  navigate={navigate}
-                  user={user}
-                  sensitiveUnmasked={sensitiveUnmasked}
-                  hasPerm={hasPerm}
+                <TalentPage
+                  people={people}
+                  meetings={meetings}
+                  selectedPerson={selectedPerson}
+                  dimensionMonthlyRows={dimensionMonthlyRows}
+                  setSelectedPersonId={setSelectedPersonId}
+                  navigate={navigate}
+                  user={user}
+                  sensitiveUnmasked={sensitiveUnmasked}
+                  hasPerm={hasPerm}
                 />
               }
             />
@@ -609,14 +647,14 @@ function AppShell() {
                     selectedPerson={selectedPerson}
                     setSelectedPersonId={setSelectedPersonId}
                     setSelectedMeetingId={setSelectedMeetingId}
-                    draftProfile={draftProfile}
-                    setDraftProfile={setDraftProfile}
-                    dimensionDrafts={dimensionDrafts}
-                    updateDimensionDraft={updateDimensionDraft}
-                    addDimensionDraft={addDimensionDraft}
-                    removeDimensionDraft={removeDimensionDraft}
-                    saveProfile={saveProfile}
-                    saveDimensions={saveDimensions}
+                    draftProfile={draftProfile}
+                    setDraftProfile={setDraftProfile}
+                    dimensionMonth={dimensionMonth}
+                    setDimensionMonth={setDimensionMonth}
+                    dimensionDrafts={dimensionDrafts}
+                    updateDimensionDraft={updateDimensionDraft}
+                    saveProfile={saveProfile}
+                    saveDimensions={saveDimensions}
                     canEditSelected={canEditSelected}
                     canManageUsers={canManageUsers}
                     canManagePermissions={canManagePermissions}

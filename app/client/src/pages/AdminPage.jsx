@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { DEFAULT_ICON, DIMENSION_CATEGORIES, MEETING_CATEGORY_TAGS } from '../constants';
+import { DEFAULT_ICON, MEETING_CATEGORY_TAGS } from '../constants';
 import { generateNumericPassword } from '../utils';
 
 const ADMIN_SECTIONS = [
@@ -23,10 +23,10 @@ function AdminPage({
   setSelectedMeetingId,
   draftProfile,
   setDraftProfile,
+  dimensionMonth,
+  setDimensionMonth,
   dimensionDrafts,
   updateDimensionDraft,
-  addDimensionDraft,
-  removeDimensionDraft,
   saveProfile,
   saveDimensions,
   canEditSelected,
@@ -664,39 +664,41 @@ function AdminPage({
 
                 <div className="panel profile-dimensions">
                   <div className="panel-head">
-                    <h3>多维度维护</h3>
-                    <button className="ghost-button slim" onClick={addDimensionDraft} disabled={!canEditSelected}>
-                      + 新增维度
-                    </button>
+                    <div>
+                      <h3>月度六维维护</h3>
+                      <p className="panel-subtitle">按月记录，未填写则默认“无”。</p>
+                    </div>
+                    <label className="inline-field">
+                      月份
+                      <input
+                        type="month"
+                        value={dimensionMonth}
+                        onChange={(event) => setDimensionMonth(event.target.value)}
+                        disabled={!canEditSelected}
+                      />
+                    </label>
                   </div>
                   <div className="dimension-grid">
                     {dimensionDrafts.map((dimension, idx) => (
                       <div key={dimension.id || idx} className="dimension-card">
                         <div className="dimension-header">
-                          <select
-                            value={dimension.category}
-                            onChange={(event) => updateDimensionDraft(idx, 'category', event.target.value)}
-                          >
-                            {DIMENSION_CATEGORIES.map((category) => (
-                              <option key={category} value={category}>
-                                {category}
-                              </option>
-                            ))}
-                          </select>
+                          <span>{dimension.category}</span>
                         </div>
                         <textarea
                           value={dimension.detail}
                           onChange={(event) => updateDimensionDraft(idx, 'detail', event.target.value)}
+                          disabled={!canEditSelected}
                         />
-                        <div className="dimension-actions">
-                          <button onClick={() => removeDimensionDraft(idx)}>移除</button>
-                        </div>
                       </div>
                     ))}
                   </div>
                   <div className="dimension-actions-row">
-                    <button className="primary-button" onClick={saveDimensions} disabled={!canEditSelected}>
-                      保存多维度
+                    <button
+                      className="primary-button"
+                      onClick={() => saveDimensions(dimensionMonth)}
+                      disabled={!canEditSelected}
+                    >
+                      保存本月画像
                     </button>
                   </div>
                 </div>
