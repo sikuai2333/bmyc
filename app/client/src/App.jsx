@@ -1204,6 +1204,9 @@ function AppShell() {
                     saveProfile={saveProfile}
                     saveDimensions={saveDimensions}
                     canEditSelected={canEditSelected}
+                    growthEvents={growthEvents}
+                    setGrowthEvents={setGrowthEvents}
+                    canEditGrowth={canEditGrowth}
                     evaluations={evaluations}
                     certificates={certificates}
                     setCertificates={setCertificates}

@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const SECTION_ITEMS = [
-  { id: 'profile', label: '»ù´¡×ÊÁÏ' },
-  { id: 'dimensions', label: 'ÔÂ¶ÈÁùÎ¬' },
-  { id: 'evaluations', label: 'ÆÀ¼Û¼ÇÂ¼' },
-  { id: 'certificates', label: 'Ö¤Êé¹ÜÀí' }
+  { id: 'profile', label: 'åŸºç¡€èµ„æ–™' },
+  { id: 'dimensions', label: 'æœˆåº¦å…­ç»´' },
+  { id: 'growth', label: 'æˆé•¿è½¨è¿¹' },
+  { id: 'evaluations', label: 'è¯„ä»·è®°å½•' },
+  { id: 'certificates', label: 'è¯ä¹¦ç®¡ç†' }
 ];
 
 const EVALUATION_LABELS = {
-  quarterly: '¼¾¶ÈÆÀ¼Û',
-  annual: 'Äê¶È×ÛºÏÆÀ¹À',
-  marriage: '»éÁµ²¹³äÆÀ¼Û'
+  quarterly: 'å­£åº¦è¯„ä»·',
+  annual: 'å¹´åº¦ç»¼åˆè¯„ä¼°',
+  marriage: 'å©šæ‹è¡¥å……è¯„ä»·'
 };
 
 function PersonalCenterPage({
@@ -27,6 +28,9 @@ function PersonalCenterPage({
   saveProfile,
   saveDimensions,
   canEditSelected,
+  growthEvents,
+  setGrowthEvents,
+  canEditGrowth,
   evaluations,
   certificates,
   setCertificates,
@@ -42,6 +46,12 @@ function PersonalCenterPage({
     description: '',
     file: null
   });
+  const [growthForm, setGrowthForm] = useState({
+    eventDate: '',
+    title: '',
+    description: '',
+    category: ''
+  });
 
   useEffect(() => {
     if (user?.personId) {
@@ -53,7 +63,7 @@ function PersonalCenterPage({
     return (
       <section className="profile-page">
         <div className="panel">
-          <p className="muted">ÇëÏÈµÇÂ¼ÔÙ·ÃÎÊ¸öÈËÖĞĞÄ¡£</p>
+          <p className="muted">è¯·å…ˆç™»å½•å†è®¿é—®ä¸ªäººä¸­å¿ƒã€‚</p>
         </div>
       </section>
     );
@@ -63,7 +73,7 @@ function PersonalCenterPage({
     return (
       <section className="profile-page">
         <div className="panel">
-          <p className="muted">µ±Ç°ÕËºÅÎ´°ó¶¨ÈË²Åµµ°¸£¬ÇëÁªÏµ¹ÜÀíÔ±¡£</p>
+          <p className="muted">å½“å‰è´¦å·æœªç»‘å®šäººæ‰æ¡£æ¡ˆï¼Œè¯·è”ç³»ç®¡ç†å‘˜ã€‚</p>
         </div>
       </section>
     );
@@ -72,11 +82,11 @@ function PersonalCenterPage({
   const handleUpload = async (event) => {
     event.preventDefault();
     if (!selectedPerson) {
-      setToast('ÇëÏÈÑ¡ÔñÈËÔ±');
+      setToast('è¯·å…ˆé€‰æ‹©äººå‘˜');
       return;
     }
     if (!form.name.trim()) {
-      setToast('ÇëÌîĞ´Ö¤ÊéÃû³Æ');
+      setToast('è¯·å¡«å†™è¯ä¹¦åç§°');
       return;
     }
     try {
@@ -93,20 +103,20 @@ function PersonalCenterPage({
       });
       setCertificates((prev) => [data, ...prev]);
       setForm({ name: '', issuedDate: '', description: '', file: null });
-      setToast('Ö¤ÊéÒÑÉÏ´«');
+      setToast('è¯ä¹¦å·²ä¸Šä¼ ');
     } catch (error) {
-      setToast(error.response?.data?.message || 'ÉÏ´«Ê§°Ü');
+      setToast(error.response?.data?.message || 'ä¸Šä¼ å¤±è´¥');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('È·ÈÏÉ¾³ı¸ÃÖ¤Êé£¿')) return;
+    if (!window.confirm('ç¡®è®¤åˆ é™¤è¯¥è¯ä¹¦ï¼Ÿ')) return;
     try {
       await axios.delete(`${apiBase}/certificates/${id}`, authHeaders);
       setCertificates((prev) => prev.filter((item) => item.id !== id));
-      setToast('Ö¤ÊéÒÑÉ¾³ı');
+      setToast('è¯ä¹¦å·²åˆ é™¤');
     } catch (error) {
-      setToast(error.response?.data?.message || 'É¾³ıÊ§°Ü');
+      setToast(error.response?.data?.message || 'åˆ é™¤å¤±è´¥');
     }
   };
 
@@ -123,7 +133,45 @@ function PersonalCenterPage({
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      setToast(error.response?.data?.message || 'ÏÂÔØÊ§°Ü');
+      setToast(error.response?.data?.message || 'ä¸‹è½½å¤±è´¥');
+    }
+  };
+
+  const handleGrowthSubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedPerson) {
+      setToast('è¯·å…ˆé€‰æ‹©äººå‘˜');
+      return;
+    }
+    if (!growthForm.eventDate || !growthForm.title.trim()) {
+      setToast('è¯·å¡«å†™äº‹ä»¶æ—¶é—´ä¸æ ‡é¢˜');
+      return;
+    }
+    try {
+      const payload = {
+        personId: selectedPerson.id,
+        eventDate: growthForm.eventDate,
+        title: growthForm.title.trim(),
+        description: growthForm.description.trim(),
+        category: growthForm.category.trim()
+      };
+      const { data } = await axios.post(`${apiBase}/growth`, payload, authHeaders);
+      setGrowthEvents((prev) => [data, ...prev]);
+      setGrowthForm((prev) => ({ ...prev, title: '', description: '' }));
+      setToast('æˆé•¿äº‹ä»¶å·²æ·»åŠ ');
+    } catch (error) {
+      setToast(error.response?.data?.message || 'æ·»åŠ å¤±è´¥');
+    }
+  };
+
+  const handleGrowthDelete = async (id) => {
+    if (!window.confirm('ç¡®è®¤åˆ é™¤è¯¥æˆé•¿äº‹ä»¶ï¼Ÿ')) return;
+    try {
+      await axios.delete(`${apiBase}/growth/${id}`, authHeaders);
+      setGrowthEvents((prev) => prev.filter((item) => item.id !== id));
+      setToast('æˆé•¿äº‹ä»¶å·²åˆ é™¤');
+    } catch (error) {
+      setToast(error.response?.data?.message || 'åˆ é™¤å¤±è´¥');
     }
   };
 
@@ -132,14 +180,14 @@ function PersonalCenterPage({
       <div className="panel profile-banner">
         <div className="panel-head">
           <div>
-            <p className="panel-subtitle">¸öÈËÖĞĞÄ</p>
-            <h2>¸öÈËµµ°¸Î¬»¤</h2>
+            <p className="panel-subtitle">ä¸ªäººä¸­å¿ƒ</p>
+            <h2>ä¸ªäººæ¡£æ¡ˆç»´æŠ¤</h2>
           </div>
         </div>
         {selectedPerson && (
           <div className="profile-name">
             <strong>{selectedPerson.name}</strong>
-            <span>{selectedPerson.title || 'Î´ÌîĞ´Ö°Îñ'}</span>
+            <span>{selectedPerson.title || 'æœªå¡«å†™èŒåŠ¡'}</span>
           </div>
         )}
       </div>
@@ -147,8 +195,8 @@ function PersonalCenterPage({
       <div className="profile-layout">
         <aside className="panel profile-sidebar">
           <div className="panel-head">
-            <h3>¹¦ÄÜµ¼º½</h3>
-            <p className="panel-subtitle">ÖğÏîÎ¬»¤Èë¿Ú</p>
+            <h3>åŠŸèƒ½å¯¼èˆª</h3>
+            <p className="panel-subtitle">é€é¡¹ç»´æŠ¤å…¥å£</p>
           </div>
           <div className="profile-nav">
             {SECTION_ITEMS.map((item) => (
@@ -168,11 +216,11 @@ function PersonalCenterPage({
           {activeSection === 'profile' && (
             <div className="panel profile-form">
               <div className="panel-head">
-                <h3>»ù´¡×ÊÁÏ</h3>
-                <p className="panel-subtitle">½ö¿É±à¼­±¾ÈËĞÅÏ¢</p>
+                <h3>åŸºç¡€èµ„æ–™</h3>
+                <p className="panel-subtitle">ä»…å¯ç¼–è¾‘æœ¬äººä¿¡æ¯</p>
               </div>
               <label>
-                ³öÉúÈÕÆÚ
+                å‡ºç”Ÿæ—¥æœŸ
                 <input
                   type="date"
                   value={draftProfile.birth_date}
@@ -181,7 +229,7 @@ function PersonalCenterPage({
                 />
               </label>
               <label>
-                ĞÔ±ğ
+                æ€§åˆ«
                 <input
                   value={draftProfile.gender}
                   onChange={(event) => setDraftProfile((prev) => ({ ...prev, gender: event.target.value }))}
@@ -189,7 +237,7 @@ function PersonalCenterPage({
                 />
               </label>
               <label>
-                ÊÖ»úºÅ
+                æ‰‹æœºå·
                 <input
                   value={draftProfile.phone}
                   onChange={(event) => setDraftProfile((prev) => ({ ...prev, phone: event.target.value }))}
@@ -197,7 +245,7 @@ function PersonalCenterPage({
                 />
               </label>
               <label>
-                ¾Û½¹·½Ïò
+                èšç„¦æ–¹å‘
                 <textarea
                   value={draftProfile.focus}
                   onChange={(event) => setDraftProfile((prev) => ({ ...prev, focus: event.target.value }))}
@@ -205,7 +253,7 @@ function PersonalCenterPage({
                 />
               </label>
               <label>
-                ¸öÈË¼ò½é
+                ä¸ªäººç®€ä»‹
                 <textarea
                   value={draftProfile.bio}
                   onChange={(event) => setDraftProfile((prev) => ({ ...prev, bio: event.target.value }))}
@@ -214,7 +262,7 @@ function PersonalCenterPage({
               </label>
               <div className="profile-row">
                 <label>
-                  Ö°ÎñÌ§Í·
+                  èŒåŠ¡æŠ¬å¤´
                   <input
                     value={draftProfile.title}
                     onChange={(event) => setDraftProfile((prev) => ({ ...prev, title: event.target.value }))}
@@ -222,7 +270,7 @@ function PersonalCenterPage({
                   />
                 </label>
                 <label>
-                  ËùÊô²¿ÃÅ
+                  æ‰€å±éƒ¨é—¨
                   <input
                     value={draftProfile.department}
                     onChange={(event) => setDraftProfile((prev) => ({ ...prev, department: event.target.value }))}
@@ -231,7 +279,7 @@ function PersonalCenterPage({
                 </label>
               </div>
               <button className="primary-button" onClick={saveProfile} disabled={!canEditSelected}>
-                ±£´æ»ù´¡×ÊÁÏ
+                ä¿å­˜åŸºç¡€èµ„æ–™
               </button>
             </div>
           )}
@@ -240,11 +288,11 @@ function PersonalCenterPage({
             <div className="panel profile-dimensions">
               <div className="panel-head">
                 <div>
-                  <h3>ÔÂ¶ÈÁùÎ¬</h3>
-                  <p className="panel-subtitle">°´ÔÂÌá½»£¬Î´ÌîĞ´Ä¬ÈÏ¡°ÎŞ¡±</p>
+                  <h3>æœˆåº¦å…­ç»´</h3>
+                  <p className="panel-subtitle">æŒ‰æœˆæäº¤ï¼Œæœªå¡«å†™é»˜è®¤â€œæ— â€</p>
                 </div>
                 <label className="inline-field">
-                  ÔÂ·İ
+                  æœˆä»½
                   <input
                     type="month"
                     value={dimensionMonth}
@@ -273,25 +321,94 @@ function PersonalCenterPage({
                   onClick={() => saveDimensions(dimensionMonth)}
                   disabled={!canEditSelected}
                 >
-                  ±£´æ±¾ÔÂ»­Ïñ
+                  ä¿å­˜æœ¬æœˆç”»åƒ
                 </button>
               </div>
             </div>
           )}
 
+          {activeSection === 'growth' && (
+            <>
+              <div className="panel">
+                <div className="panel-head">
+                  <h3>æˆé•¿è½¨è¿¹</h3>
+                  <p className="panel-subtitle">è®°å½•åŸ¹è®­ã€é¡¹ç›®ã€è·å¥–ç­‰å…³é”®èŠ‚ç‚¹</p>
+                </div>
+                <div className="growth-timeline">
+                  {growthEvents.length === 0 && <p className="muted">æš‚æ— æˆé•¿è½¨è¿¹è®°å½•ã€‚</p>}
+                  {growthEvents.map((item) => (
+                    <div key={item.id} className="timeline-card">
+                      <div className="timeline-date">{item.event_date}</div>
+                      <div className="timeline-main">
+                        <div className="timeline-head">
+                          <div className="timeline-title">
+                            <strong>{item.title}</strong>
+                            {item.category && <span className="tag-pill">{item.category}</span>}
+                          </div>
+                          {canEditGrowth && (
+                            <button className="danger-button slim" onClick={() => handleGrowthDelete(item.id)}>
+                              åˆ é™¤
+                            </button>
+                          )}
+                        </div>
+                        <p>{item.description || 'æš‚æ— æè¿°'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {canEditGrowth && (
+                <div className="panel">
+                  <div className="panel-head">
+                    <h3>æ–°å¢æˆé•¿äº‹ä»¶</h3>
+                    <p className="panel-subtitle">è¡¥å……ä¸ªäººæˆé•¿é‡Œç¨‹ç¢‘</p>
+                  </div>
+                  <form className="admin-form" onSubmit={handleGrowthSubmit}>
+                    <div className="form-row">
+                      <input
+                        type="date"
+                        value={growthForm.eventDate}
+                        onChange={(event) => setGrowthForm((prev) => ({ ...prev, eventDate: event.target.value }))}
+                      />
+                      <input
+                        placeholder="äº‹ä»¶ç±»å‹ï¼ˆå¯é€‰ï¼‰"
+                        value={growthForm.category}
+                        onChange={(event) => setGrowthForm((prev) => ({ ...prev, category: event.target.value }))}
+                      />
+                    </div>
+                    <input
+                      placeholder="äº‹ä»¶æ ‡é¢˜"
+                      value={growthForm.title}
+                      onChange={(event) => setGrowthForm((prev) => ({ ...prev, title: event.target.value }))}
+                    />
+                    <textarea
+                      placeholder="äº‹ä»¶æè¿°"
+                      value={growthForm.description}
+                      onChange={(event) => setGrowthForm((prev) => ({ ...prev, description: event.target.value }))}
+                    />
+                    <button className="primary-button" type="submit" disabled={!selectedPerson}>
+                      ä¿å­˜æˆé•¿äº‹ä»¶
+                    </button>
+                  </form>
+                </div>
+              )}
+            </>
+          )}
+
           {activeSection === 'evaluations' && (
             <div className="panel">
               <div className="panel-head">
-                <h3>ÆÀ¼Û¼ÇÂ¼</h3>
-                <p className="panel-subtitle">À´×ÔÁìµ¼Óë HR µÄÆÀ¼Û£¬½ö¿É²é¿´</p>
+                <h3>è¯„ä»·è®°å½•</h3>
+                <p className="panel-subtitle">æ¥è‡ªé¢†å¯¼ä¸ HR çš„è¯„ä»·ï¼Œä»…å¯æŸ¥çœ‹</p>
               </div>
               <div className="evaluation-list">
-                {!evaluations?.length && <p className="muted">ÔİÎŞÆÀ¼Û¼ÇÂ¼¡£</p>}
+                {!evaluations?.length && <p className="muted">æš‚æ— è¯„ä»·è®°å½•ã€‚</p>}
                 {evaluations?.map((item) => (
                   <div key={item.id} className="evaluation-card">
                     <div>
-                      <strong>{EVALUATION_LABELS[item.type] || 'ÆÀ¼Û'}</strong>
-                      <span>{item.period || 'Î´ÌîĞ´ÖÜÆÚ'}</span>
+                      <strong>{EVALUATION_LABELS[item.type] || 'è¯„ä»·'}</strong>
+                      <span>{item.period || 'æœªå¡«å†™å‘¨æœŸ'}</span>
                     </div>
                     <p>{item.content}</p>
                   </div>
@@ -304,27 +421,27 @@ function PersonalCenterPage({
             <>
               <div className="panel">
                 <div className="panel-head">
-                  <h3>Ö¤Êéµµ°¸</h3>
-                  <p className="panel-subtitle">{selectedPerson ? selectedPerson.name : 'ÇëÑ¡ÔñÈËÔ±'}</p>
+                  <h3>è¯ä¹¦æ¡£æ¡ˆ</h3>
+                  <p className="panel-subtitle">{selectedPerson ? selectedPerson.name : 'è¯·é€‰æ‹©äººå‘˜'}</p>
                 </div>
                 <div className="certificate-list">
-                  {certificates.length === 0 && <p className="muted">ÔİÎŞÖ¤Êé¼ÇÂ¼¡£</p>}
+                  {certificates.length === 0 && <p className="muted">æš‚æ— è¯ä¹¦è®°å½•ã€‚</p>}
                   {certificates.map((item) => (
                     <div key={item.id} className="certificate-card">
                       <div>
                         <strong>{item.name}</strong>
-                        <span>{item.issued_date || 'Î´ÌîĞ´Ê±¼ä'}</span>
-                        <p>{item.description || 'ÔİÎŞÃèÊö'}</p>
+                        <span>{item.issued_date || 'æœªå¡«å†™æ—¶é—´'}</span>
+                        <p>{item.description || 'æš‚æ— æè¿°'}</p>
                       </div>
                       <div className="certificate-actions">
                         {item.file_path && (
                           <button className="ghost-button slim" onClick={() => handleDownload(item)}>
-                            ÏÂÔØ¸½¼ş
+                            ä¸‹è½½é™„ä»¶
                           </button>
                         )}
                         {canManageCertificates && (
                           <button className="ghost-button slim" onClick={() => handleDelete(item.id)}>
-                            É¾³ı
+                            åˆ é™¤
                           </button>
                         )}
                       </div>
@@ -336,12 +453,12 @@ function PersonalCenterPage({
               {canManageCertificates && (
                 <div className="panel">
                   <div className="panel-head">
-                    <h3>ÉÏ´«Ö¤Êé</h3>
-                    <p className="panel-subtitle">Ö§³Ö PDF/JPG/PNG</p>
+                    <h3>ä¸Šä¼ è¯ä¹¦</h3>
+                    <p className="panel-subtitle">æ”¯æŒ PDF/JPG/PNG</p>
                   </div>
                   <form className="admin-form" onSubmit={handleUpload}>
                     <input
-                      placeholder="Ö¤ÊéÃû³Æ"
+                      placeholder="è¯ä¹¦åç§°"
                       value={form.name}
                       onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
                     />
@@ -358,12 +475,12 @@ function PersonalCenterPage({
                       />
                     </div>
                     <textarea
-                      placeholder="Ö¤ÊéÃèÊö"
+                      placeholder="è¯ä¹¦æè¿°"
                       value={form.description}
                       onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
                     />
                     <button className="primary-button" type="submit" disabled={!selectedPerson}>
-                      ÉÏ´«Ö¤Êé
+                      ä¸Šä¼ è¯ä¹¦
                     </button>
                   </form>
                 </div>
