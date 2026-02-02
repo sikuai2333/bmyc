@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
 const multer = require('multer');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const { db, init } = require('./db');
 const { PERMISSIONS, getDefaultPermissions, normalizePermissions, hasPermission } = require('./permissions');
 
@@ -227,6 +227,31 @@ function splitComments(value) {
     .split(/[\n;\uff1b]+/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeExcelValue(cell) {
+  if (!cell) return '';
+  const value = cell.value;
+  if (value === null || value === undefined) return '';
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === 'object') {
+    if (value.text) return String(value.text);
+    if (value.richText) {
+      return value.richText.map((part) => part.text).join('');
+    }
+    if (value.formula && value.result !== undefined && value.result !== null) {
+      return String(value.result);
+    }
+    if (value.result !== undefined && value.result !== null) {
+      return String(value.result);
+    }
+    if (value.hyperlink) {
+      return String(value.text || value.hyperlink);
+    }
+  }
+  return String(value);
 }
 
 app.post('/api/login', (req, res) => {
@@ -1135,7 +1160,7 @@ app.get('/api/certificates/:id/file', authenticate, requirePermission('certifica
   return res.status(404).json({ message: '附件不存在' });
 });
 
-app.get('/api/export/people', authenticate, requirePermission('export.excel'), (req, res) => {
+app.get('/api/export/people', authenticate, requirePermission('export.excel'), async (req, res) => {
   const personId = req.query.personId ? Number(req.query.personId) : null;
   const people = personId
     ? db
@@ -1150,102 +1175,123 @@ app.get('/api/export/people', authenticate, requirePermission('export.excel'), (
   const growthStmt = db.prepare('SELECT event_date,title,description,category FROM growth_events WHERE person_id = ?');
   const certStmt = db.prepare('SELECT name,issued_date,description,file_path FROM certificates WHERE person_id = ?');
 
-  const workbook = XLSX.utils.book_new();
+  const workbook = new ExcelJS.Workbook();
   people.forEach((person) => {
     const rows = [
-      ['字段', '值'],
-      ['姓名', person.name],
-      ['出生日期', person.birth_date || ''],
-      ['性别', person.gender || ''],
-      ['手机号', person.phone || ''],
-      ['部门', person.department || ''],
-      ['职务', person.title || ''],
-      ['聚焦方向', person.focus || ''],
-      ['简介', person.bio || ''],
+      ['??', '?'],
+      ['??', person.name],
+      ['????', person.birth_date || ''],
+      ['??', person.gender || ''],
+      ['???', person.phone || ''],
+      ['??', person.department || ''],
+      ['??', person.title || ''],
+      ['????', person.focus || ''],
+      ['??', person.bio || ''],
       [''],
-      ['维度类别', '维度内容']
+      ['????', '????']
     ];
     dimensionStmt.all(person.id).forEach((dimension) => {
       rows.push([dimension.category, dimension.detail]);
     });
     rows.push(['']);
-    rows.push(['评价类型', '周期', '内容', '创建时间']);
+    rows.push(['????', '??', '??', '????']);
     evaluationStmt.all(person.id).forEach((evaluation) => {
       rows.push([evaluation.type, evaluation.period, evaluation.content, evaluation.created_at]);
     });
     rows.push(['']);
-    rows.push(['成长日期', '事件', '描述', '类型']);
+    rows.push(['????', '??', '??', '??']);
     growthStmt.all(person.id).forEach((event) => {
       rows.push([event.event_date, event.title, event.description || '', event.category || '']);
     });
     rows.push(['']);
-    rows.push(['证书名称', '颁发时间', '描述', '附件路径']);
+    rows.push(['????', '????', '??', '????']);
     certStmt.all(person.id).forEach((cert) => {
       rows.push([cert.name, cert.issued_date || '', cert.description || '', cert.file_path || '']);
     });
-    const sheet = XLSX.utils.aoa_to_sheet(rows);
-    XLSX.utils.book_append_sheet(workbook, sheet, safeSheetName(person.name || `person-${person.id}`));
+    const worksheet = workbook.addWorksheet(safeSheetName(person.name || `person-${person.id}`));
+    rows.forEach((row) => worksheet.addRow(row));
   });
 
-  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   res.setHeader('Content-Disposition', 'attachment; filename="talent-export.xlsx"');
   res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   logAction({ actorId: req.user.id, action: 'export', entityType: 'people', detail: { count: people.length } });
-  res.send(buffer);
+  const buffer = await workbook.xlsx.writeBuffer();
+  res.send(Buffer.from(buffer));
 });
-
-app.post('/api/import/excel', authenticate, requirePermission('import.excel'), upload.single('file'), (req, res) => {
+app.post('/api/import/excel', authenticate, requirePermission('import.excel'), upload.single('file'), async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: '请上传 Excel 文件' });
+    return res.status(400).json({ message: '??? Excel ??' });
   }
-  let workbook;
+  const workbook = new ExcelJS.Workbook();
   try {
-    workbook = XLSX.readFile(req.file.path);
+    await workbook.xlsx.readFile(req.file.path);
   } finally {
     if (fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
   }
-  const firstSheetName = workbook.SheetNames[0];
-  if (!firstSheetName) {
-    return res.status(400).json({ message: 'Excel 文件为空' });
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) {
+    return res.status(400).json({ message: 'Excel ????' });
   }
-  const sheet = workbook.Sheets[firstSheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+  const headerMap = {};
+  const headerRow = worksheet.getRow(1);
+  headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+    const key = normalizeExcelValue(cell).trim();
+    if (key) {
+      headerMap[colNumber] = key;
+    }
+  });
+
   const errors = [];
   const payload = [];
 
-  rows.forEach((row, index) => {
-    const name = row['姓名']?.toString().trim();
-    const birthDate = row['出生日期']?.toString().trim();
-    const gender = row['性别']?.toString().trim();
-    const phone = row['手机号']?.toString().trim();
+  for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber += 1) {
+    const row = worksheet.getRow(rowNumber);
+    if (!row || row.actualCellCount === 0) {
+      continue;
+    }
+    const rowData = {};
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      const key = headerMap[colNumber];
+      if (!key) return;
+      rowData[key] = normalizeExcelValue(cell).trim();
+    });
+    if (!Object.keys(rowData).length) {
+      continue;
+    }
+
+    const name = rowData['??']?.toString().trim();
+    const birthDate = rowData['????']?.toString().trim();
+    const gender = rowData['??']?.toString().trim();
+    const phone = rowData['???']?.toString().trim();
     if (!name || !birthDate || !gender || !phone) {
-      errors.push({ row: index + 2, message: '姓名/出生日期/性别/手机号不能为空' });
-      return;
+      errors.push({ row: rowNumber, message: '??/????/??/???????' });
+      continue;
     }
     const dimensions = [];
     DIMENSION_CATEGORIES.forEach((category) => {
-      const cell = row[category];
+      const cell = rowData[category];
       splitComments(cell).forEach((detail) => {
         dimensions.push({ category, detail });
       });
     });
     payload.push({
       name,
-      title: row['职务']?.toString().trim() || '',
-      department: row['部门']?.toString().trim() || '',
-      focus: row['聚焦方向']?.toString().trim() || '',
-      bio: row['简介']?.toString().trim() || '',
+      title: rowData['??']?.toString().trim() || '',
+      department: rowData['??']?.toString().trim() || '',
+      focus: rowData['????']?.toString().trim() || '',
+      bio: rowData['??']?.toString().trim() || '',
       birth_date: birthDate,
       gender,
       phone,
       dimensions
     });
-  });
+  }
 
   if (errors.length) {
-    return res.status(400).json({ message: 'Excel 校验失败', errors });
+    return res.status(400).json({ message: 'Excel ????', errors });
   }
 
   const insertPerson = db.prepare(
