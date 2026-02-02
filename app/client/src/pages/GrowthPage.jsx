@@ -109,15 +109,19 @@ function GrowthPage({
             {growthEvents.map((item) => (
               <div key={item.id} className="timeline-card">
                 <div className="timeline-date">{item.event_date}</div>
-                <div>
-                  <strong>{item.title}</strong>
-                  {item.category && <span className="tag-pill">{item.category}</span>}
+                <div className="timeline-main">
+                  <div className="timeline-head">
+                    <div className="timeline-title">
+                      <strong>{item.title}</strong>
+                      {item.category && <span className="tag-pill">{item.category}</span>}
+                    </div>
+                    {canEditGrowth && (
+                      <button className="danger-button slim" onClick={() => handleDelete(item.id)}>
+                        删除
+                      </button>
+                    )}
+                  </div>
                   <p>{item.description || '暂无描述'}</p>
-                  {canEditGrowth && (
-                    <button className="ghost-button slim" onClick={() => handleDelete(item.id)}>
-                      删除
-                    </button>
-                  )}
                 </div>
               </div>
             ))}
