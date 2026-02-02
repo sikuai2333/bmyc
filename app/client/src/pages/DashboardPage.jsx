@@ -39,11 +39,29 @@ function DashboardPage({
 
   canEditSelected,
 
+  canEditDimensions,
+
   navigate,
 
   loadError,
 
-  onRetry
+  onRetry,
+
+  draftProfile,
+
+  setDraftProfile,
+
+  dimensionDrafts,
+
+  updateDimensionDraft,
+
+  addDimensionDraft,
+
+  removeDimensionDraft,
+
+  saveProfile,
+
+  saveDimensions
 
 }) {
 
