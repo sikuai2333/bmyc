@@ -391,7 +391,7 @@ button:disabled {
 }
 
 .brand-logo-image {
-  width: min(260px, 100%);
+  width: 60%;
   height: auto;
   display: block;
 }
