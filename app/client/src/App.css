@@ -1655,6 +1655,22 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.file-trigger {
+  position: relative;
+  overflow: hidden;
+}
+
+.file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-name {
+  margin: 8px 0 0;
+}
+
 .admin-search,
 .admin-select {
   border: 1px solid var(--color-border);
@@ -1832,9 +1848,11 @@ button:disabled {
   background: #fff;
 }
 
-.admin-table-row span:last-child {
+.admin-row-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .profile-grid + .muted {

@@ -210,6 +210,11 @@ function AdminPage({
     setResetModalOpen(true);
   };
 
+  const openPermissionPanel = (accountId) => {
+    setPermissionTargetId(accountId);
+    setActivePanel('permissions');
+  };
+
   const handleCreateTalentAccount = async (event) => {
     event.preventDefault();
     if (!personAccountForm.name.trim() || !personAccountForm.email.trim()) {
@@ -514,107 +519,119 @@ function AdminPage({
           </div>
         )}
         {activePanel === 'accounts' && (
-          <div className="admin-panel-grid two-columns">
-            <div className="panel admin-section">
-              <div className="panel-head">
-                <p className="panel-subtitle">账号管理</p>
-                <h3>账号列表</h3>
-              </div>
-              <div className="admin-toolbar">
-                <input
-                  className="admin-search"
-                  placeholder="姓名 / 账号"
-                  value={accountSearch}
-                  onChange={(event) => setAccountSearch(event.target.value)}
-                />
-                <select
-                  className="admin-select"
-                  value={accountFilter}
-                  onChange={(event) => setAccountFilter(event.target.value)}
-                >
-                  <option value="all">全部账号</option>
-                  <option value="linked">档案账号</option>
-                  <option value="system">系统账号</option>
-                </select>
-                {canManageUsers && (
-                  <button className="primary-button subtle" onClick={openCreateModal}>
-                    新增人才账号
-                  </button>
-                )}
-              </div>
-              <div className="admin-list scrollable">
-                {filteredUsers.map((account) => (
-                  <div key={account.id} className="admin-list-item">
-                    <div>
-                      <strong>{account.name}</strong>
-                      <p>
-                        {account.email} · {ROLE_LABELS[account.role] || account.role}
-                        {account.isSuperAdmin ? ' · 超级管理员' : ''}
-                      </p>
-                      <span className="panel-tag">
-                        {account.personId ? '绑定档案' : '系统账号'}
-                      </span>
-                    </div>
-                    <div className="admin-actions">
-                      {canManageUsers && (
-                        <select
-                          value={account.role}
-                          onChange={(event) => handleUserRoleChange(account.id, event.target.value)}
-                        >
-                          <option value="user">用户</option>
-                          <option value="admin">管理员</option>
-                          <option value="display">展示专用</option>
-                        </select>
-                      )}
-                      {canManageUsers && (
-                        <button className="ghost-button slim" onClick={() => openResetModal(account)}>
-                          重置密码
-                        </button>
-                      )}
-                      {canManageUsers && !account.isSuperAdmin && (
-                        <button className="ghost-button slim" onClick={() => handleDeleteUser(account.id)}>
-                          删除
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {filteredUsers.length === 0 && <p className="muted">暂无账号记录。</p>}
-              </div>
+          <div className="panel admin-section">
+            <div className="panel-head">
+              <p className="panel-subtitle">账号管理</p>
+              <h3>账号列表</h3>
             </div>
-
-            <div className="panel admin-section">
-              <div className="panel-head">
-                <p className="panel-subtitle">Excel 工具</p>
-                <h3>档案导入导出</h3>
-              </div>
-              <div className="form-row">
-                <button
-                  className="primary-button"
-                  onClick={() => handleExport(false)}
-                  disabled={exporting}
-                >
-                  导出全部档案
+            <div className="admin-toolbar">
+              <input
+                className="admin-search"
+                placeholder="姓名 / 账号"
+                value={accountSearch}
+                onChange={(event) => setAccountSearch(event.target.value)}
+              />
+              <select
+                className="admin-select"
+                value={accountFilter}
+                onChange={(event) => setAccountFilter(event.target.value)}
+              >
+                <option value="all">全部账号</option>
+                <option value="linked">档案账号</option>
+                <option value="system">系统账号</option>
+              </select>
+              {canManageUsers && (
+                <button className="primary-button subtle" onClick={openCreateModal}>
+                  新增人才账号
                 </button>
-                <button
-                  className="ghost-button"
-                  onClick={() => handleExport(true)}
-                  disabled={!selectedPerson || exporting}
-                >
-                  导出选中档案
-                </button>
+              )}
+              {hasPerm('export.excel') && (
+                <>
+                  <button className="ghost-button slim" onClick={() => handleExport(false)} disabled={exporting}>
+                    导出全部
+                  </button>
+                  <button
+                    className="ghost-button slim"
+                    onClick={() => handleExport(true)}
+                    disabled={!selectedPerson || exporting}
+                  >
+                    导出选中
+                  </button>
+                </>
+              )}
+              {hasPerm('import.excel') && (
+                <>
+                  <label className="ghost-button slim file-trigger">
+                    选择文件
+                    <input
+                      className="file-input"
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={(event) => setImportFile(event.target.files?.[0] || null)}
+                    />
+                  </label>
+                  <button
+                    className="primary-button subtle"
+                    onClick={handleImportExcel}
+                    disabled={importing}
+                  >
+                    开始导入
+                  </button>
+                </>
+              )}
+            </div>
+            {importFile && <p className="muted file-name">已选择文件：{importFile.name}</p>}
+            <div className="admin-table">
+              <div className="admin-table-head">
+                <span>姓名</span>
+                <span>账号</span>
+                <span>角色</span>
+                <span>绑定</span>
+                <span>操作</span>
               </div>
-              <div className="form-row">
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={(event) => setImportFile(event.target.files?.[0] || null)}
-                />
-                <button className="primary-button" onClick={handleImportExcel} disabled={importing}>
-                  开始导入
-                </button>
-              </div>
-              <p className="muted">模板需包含姓名、出生日期、性别、手机号及六维字段。</p>
+              {filteredUsers.map((account) => (
+                <div key={account.id} className="admin-table-row">
+                  <span>
+                    <strong>{account.name}</strong>
+                  </span>
+                  <span>{account.email}</span>
+                  <span>
+                    {canManageUsers && !account.isSuperAdmin ? (
+                      <select
+                        value={account.role}
+                        onChange={(event) => handleUserRoleChange(account.id, event.target.value)}
+                      >
+                        <option value="user">用户</option>
+                        <option value="admin">管理员</option>
+                        <option value="display">展示专用</option>
+                      </select>
+                    ) : (
+                      account.isSuperAdmin
+                        ? '超级管理员'
+                        : ROLE_LABELS[account.role] || account.role
+                    )}
+                  </span>
+                  <span>{account.personId ? '绑定档案' : '系统账号'}</span>
+                  <span className="admin-row-actions">
+                    {canManagePermissions && (
+                      <button className="ghost-button slim" onClick={() => openPermissionPanel(account.id)}>
+                        修改权限
+                      </button>
+                    )}
+                    {canManageUsers && (
+                      <button className="ghost-button slim" onClick={() => openResetModal(account)}>
+                        重置密码
+                      </button>
+                    )}
+                    {canManageUsers && !account.isSuperAdmin && (
+                      <button className="ghost-button slim" onClick={() => handleDeleteUser(account.id)}>
+                        删除
+                      </button>
+                    )}
+                  </span>
+                </div>
+              ))}
+              {filteredUsers.length === 0 && <p className="muted">暂无账号记录。</p>}
             </div>
           </div>
         )}
