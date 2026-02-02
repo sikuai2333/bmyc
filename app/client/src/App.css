@@ -51,6 +51,12 @@ p {
   gap: 20px;
 }
 
+.app-shell.login-only {
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #eef3ff 0%, #e6f6ff 45%, #e7fff5 100%);
+}
+
 .global-header {
   display: grid;
   align-items: center;
@@ -233,13 +239,13 @@ button:disabled {
 
 .login-shell {
   position: relative;
-  min-height: calc(100vh - 140px);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 24px;
-  padding: 32px 0 40px;
+  padding: clamp(24px, 6vw, 72px) 0 48px;
 }
 
 .login-shell::before {

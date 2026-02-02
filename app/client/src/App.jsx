@@ -895,7 +895,7 @@ function AppShell() {
 
   return (
 
-    <div className="app-shell">
+    <div className={`app-shell${user ? '' : ' login-only'}`}>
 
       {user && (
         <header className="global-header">
