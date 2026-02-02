@@ -17,8 +17,30 @@ if (!ENABLE_DEMO_DATA && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWOR
   throw new Error('ADMIN_EMAIL 和 ADMIN_PASSWORD 必须在关闭示例数据时提供');
 }
 
+const TEST_PERSON = {
+  name: '\u6d4b\u8bd5\u8d26\u6237',
+  title: '\u6570\u636e\u5206\u6790\u5b9e\u4e60\u751f',
+  department: '\u4eba\u624d\u53d1\u5c55\u4e2d\u5fc3',
+  focus: '\u4eba\u624d\u753b\u50cf\u4e0e\u6570\u636e\u6cbb\u7406',
+  bio:
+    '\u8d1f\u8d23\u5165\u804c\u8d44\u6599\u6570\u636e\u6574\u7406\u4e0e\u8bb0\u5f55\uff0c\u5c1d\u8bd5\u5efa\u7acb\u7edf\u8ba1\u770b\u677f\u4e0e\u5b66\u4e60\u6a21\u677f\u3002',
+  icon: '\uD83E\uDDEA',
+  phone: '13900001111',
+  birth_date: '1999-08-16',
+  gender: '\u7537'
+};
+
+const TEST_USER = {
+  name: '\u6d4b\u8bd5\u8d26\u6237',
+  email: 'test',
+  role: 'user',
+  password: 'test@123',
+  is_super_admin: 0
+};
+
 const defaultUsers = [
   { name: '\u9773\u8d3a\u51ef', email: '\u9773\u8d3a\u51ef', role: 'user', password: '13696653085', is_super_admin: 0 },
+  TEST_USER,
   { name: 'admin', email: 'admin', role: 'admin', password: 'admin@123', is_super_admin: 0 },
   {
     name: 'sikuai',
@@ -35,7 +57,8 @@ const defaultPeople = [
     name: '\u9773\u8d3a\u51ef',
     phone: '13696653085',
     icon: '\uD83D\uDC64'
-  }
+  },
+  TEST_PERSON
 ];
 
 const DIMENSION_CATEGORIES = [
@@ -313,7 +336,7 @@ function init() {
   const peopleCount = db.prepare('SELECT COUNT(*) as count FROM people').get().count;
   if (ENABLE_DEMO_DATA && peopleCount === 0) {
     const insertPerson = db.prepare(
-      'INSERT INTO people (name,title,department,focus,bio,icon,phone) VALUES (?,?,?,?,?,?,?)'
+      'INSERT INTO people (name,title,department,focus,bio,icon,phone,birth_date,gender) VALUES (?,?,?,?,?,?,?,?,?)'
     );
     const recentMonths = buildRecentMonths(6);
     const insertDimension = db.prepare(
@@ -328,7 +351,9 @@ function init() {
           person.focus,
           person.bio,
           person.icon,
-          person.phone
+          person.phone,
+          person.birth_date || '',
+          person.gender || ''
         );
         const personId = result.lastInsertRowid;
         recentMonths.forEach((monthKey, monthIndex) => {
@@ -373,14 +398,33 @@ function init() {
             password: ADMIN_PASSWORD
           }
         ];
-    const personIds = db.prepare('SELECT id FROM people ORDER BY id').all().map((p) => p.id);
+    const people = db.prepare('SELECT id, name, phone FROM people').all();
+    const peopleByName = new Map();
+    const peopleByPhone = new Map();
+    people.forEach((person) => {
+      if (person.name) {
+        peopleByName.set(person.name, person.id);
+      }
+      if (person.phone) {
+        peopleByPhone.set(person.phone, person.id);
+      }
+    });
+    const resolvePersonId = (user) => {
+      if (!ENABLE_DEMO_DATA) {
+        return user.person_id || null;
+      }
+      if (user.role !== 'user') {
+        return null;
+      }
+      return peopleByName.get(user.name) || peopleByPhone.get(user.email) || null;
+    };
     const insertUser = db.prepare(
       'INSERT INTO users (name,email,role,password_hash,person_id,permissions,is_super_admin,sensitive_unmasked) VALUES (?,?,?,?,?,?,?,?)'
     );
     const transaction = db.transaction(() => {
       baseUsers.forEach((user, idx) => {
         const hash = bcrypt.hashSync(user.password, 10);
-        const personId = ENABLE_DEMO_DATA ? personIds[idx] || null : user.person_id || null;
+        const personId = resolvePersonId(user);
         const isSuperAdmin = Number(user.is_super_admin) === 1 ? 1 : 0;
         const permissions = JSON.stringify(getDefaultPermissions(user.role, isSuperAdmin));
         const sensitiveUnmasked = user.sensitive_unmasked ? 1 : 0;
@@ -389,14 +433,27 @@ function init() {
     });
     transaction();
   } else {
-    const users = db.prepare(
-      'SELECT id, person_id, role, permissions, is_super_admin, sensitive_unmasked FROM users'
-    ).all();
-    const personIds = db.prepare('SELECT id FROM people ORDER BY id').all().map((p) => p.id);
+    const users = db
+      .prepare('SELECT id, person_id, role, name, permissions, is_super_admin, sensitive_unmasked FROM users')
+      .all();
+    const people = db.prepare('SELECT id, name, phone FROM people').all();
+    const peopleByName = new Map();
+    const peopleByPhone = new Map();
+    people.forEach((person) => {
+      if (person.name) {
+        peopleByName.set(person.name, person.id);
+      }
+      if (person.phone) {
+        peopleByPhone.set(person.phone, person.id);
+      }
+    });
     const updatePerson = db.prepare('UPDATE users SET person_id=? WHERE id=?');
-    users.forEach((user, idx) => {
-      if (!user.person_id && personIds[idx]) {
-        updatePerson.run(personIds[idx], user.id);
+    users.forEach((user) => {
+      if (!user.person_id && user.role === 'user') {
+        const personId = peopleByName.get(user.name) || peopleByPhone.get(user.name) || null;
+        if (personId) {
+          updatePerson.run(personId, user.id);
+        }
       }
     });
     const updatePermissions = db.prepare(
@@ -410,6 +467,66 @@ function init() {
       }
     });
   }
+
+  const ensureTestAccount = () => {
+    if (!ENABLE_DEMO_DATA) {
+      return;
+    }
+    const existingUser = db.prepare('SELECT id, person_id FROM users WHERE email = ?').get(TEST_USER.email);
+    let personId = existingUser?.person_id || null;
+    if (!personId) {
+      const existingPerson = db
+        .prepare('SELECT id FROM people WHERE name = ? OR phone = ?')
+        .get(TEST_PERSON.name, TEST_PERSON.phone);
+      if (existingPerson) {
+        personId = existingPerson.id;
+      } else {
+        const insertPerson = db.prepare(
+          'INSERT INTO people (name,title,department,focus,bio,icon,phone,birth_date,gender) VALUES (?,?,?,?,?,?,?,?,?)'
+        );
+        personId = insertPerson.run(
+          TEST_PERSON.name,
+          TEST_PERSON.title,
+          TEST_PERSON.department,
+          TEST_PERSON.focus,
+          TEST_PERSON.bio,
+          TEST_PERSON.icon,
+          TEST_PERSON.phone,
+          TEST_PERSON.birth_date,
+          TEST_PERSON.gender
+        ).lastInsertRowid;
+      }
+    }
+    if (!existingUser) {
+      const hash = bcrypt.hashSync(TEST_USER.password, 10);
+      const permissions = JSON.stringify(getDefaultPermissions(TEST_USER.role, false));
+      db.prepare(
+        'INSERT INTO users (name,email,role,password_hash,person_id,permissions,is_super_admin,sensitive_unmasked) VALUES (?,?,?,?,?,?,?,?)'
+      ).run(TEST_USER.name, TEST_USER.email, TEST_USER.role, hash, personId, permissions, 0, 0);
+    } else if (!existingUser.person_id && personId) {
+      db.prepare('UPDATE users SET person_id = ? WHERE id = ?').run(personId, existingUser.id);
+    }
+    if (personId) {
+      const existingCount = db
+        .prepare('SELECT COUNT(*) as count FROM dimensions_monthly WHERE person_id = ?')
+        .get(personId).count;
+      if (existingCount === 0) {
+        const insertDimension = db.prepare(
+          'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
+        );
+        const recentMonths = buildRecentMonths(6);
+        const transaction = db.transaction(() => {
+          recentMonths.forEach((monthKey, monthIndex) => {
+            const dimensions = buildDemoDimensions(monthIndex);
+            dimensions.forEach((dimension) => {
+              insertDimension.run(personId, dimension.category, monthKey, dimension.detail);
+            });
+          });
+        });
+        transaction();
+      }
+    }
+  };
 
   const ensureAdminUser = () => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
@@ -435,6 +552,8 @@ function init() {
   if (!ENABLE_DEMO_DATA) {
     ensureAdminUser();
   }
+
+  ensureTestAccount();
 
   fixCorruptedNames();
 
@@ -466,37 +585,8 @@ function init() {
   }
 }
 
-function resetDemoDimensions() {
-  if (!ENABLE_DEMO_DATA) {
-    return { ok: false, disabled: true };
-  }
-  const people = db.prepare('SELECT id FROM people').all();
-  if (people.length === 0) {
-    return { ok: false, empty: true };
-  }
-  const recentMonths = buildRecentMonths(6);
-  const deleteMonthly = db.prepare('DELETE FROM dimensions_monthly');
-  const insertDimension = db.prepare(
-    'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
-  );
-  const transaction = db.transaction(() => {
-    deleteMonthly.run();
-    people.forEach((person) => {
-      recentMonths.forEach((monthKey, monthIndex) => {
-        const dimensions = buildDemoDimensions(monthIndex);
-        dimensions.forEach((dimension) => {
-          insertDimension.run(person.id, dimension.category, monthKey, dimension.detail);
-        });
-      });
-    });
-  });
-  transaction();
-  return { ok: true, peopleCount: people.length, months: recentMonths };
-}
-
 module.exports = {
   db,
   init,
-  resetDemoDimensions,
   close: () => db.close()
 };
