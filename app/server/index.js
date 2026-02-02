@@ -17,6 +17,7 @@ const dotenv = require('dotenv');
 const multer = require('multer');
 
 const ExcelJS = require('exceljs');
+const archiver = require('archiver');
 
 const { db, init } = require('./db');
 
@@ -454,6 +455,42 @@ function safeSheetName(input) {
 
     .slice(0, 31);
 
+}
+
+function safeFileName(input) {
+  if (!input) return 'export';
+  return String(input)
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 60);
+}
+
+function applySectionStyle(cell) {
+  cell.font = { bold: true, size: 12 };
+  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F0FF' } };
+  cell.alignment = { vertical: 'middle', horizontal: 'left' };
+}
+
+function applyHeaderStyle(cell) {
+  cell.font = { bold: true };
+  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F7FF' } };
+  cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  cell.border = {
+    top: { style: 'thin', color: { argb: 'FFDEE3F3' } },
+    left: { style: 'thin', color: { argb: 'FFDEE3F3' } },
+    bottom: { style: 'thin', color: { argb: 'FFDEE3F3' } },
+    right: { style: 'thin', color: { argb: 'FFDEE3F3' } }
+  };
+}
+
+function applyValueBorder(cell) {
+  cell.border = {
+    top: { style: 'thin', color: { argb: 'FFE6E9F5' } },
+    left: { style: 'thin', color: { argb: 'FFE6E9F5' } },
+    bottom: { style: 'thin', color: { argb: 'FFE6E9F5' } },
+    right: { style: 'thin', color: { argb: 'FFE6E9F5' } }
+  };
 }
 
 
@@ -1754,17 +1791,21 @@ app.put('/api/users/:id', authenticate, requireAnyPermission(['users.manage', 'p
 
   const hash = password ? bcrypt.hashSync(password, 10) : null;
 
-  const resolvedPermissions = Array.isArray(permissions)
-
-    ? JSON.stringify(permissions)
-
-    : target.permissions;
-
   const canAssignSuper = req.user.is_super_admin;
 
-  const nextIsSuper = typeof isSuperAdmin === 'boolean' && canAssignSuper ? (isSuperAdmin ? 1 : 0) : target.is_super_admin;
+  const roleChanged = role && role !== target.role;
 
-  const nextSensitive = typeof sensitiveUnmasked === 'boolean' ? (sensitiveUnmasked ? 1 : 0) : target.sensitive_unmasked;
+  const nextIsSuper =
+    typeof isSuperAdmin === 'boolean' && canAssignSuper ? (isSuperAdmin ? 1 : 0) : target.is_super_admin;
+
+  const nextSensitive =
+    typeof sensitiveUnmasked === 'boolean' ? (sensitiveUnmasked ? 1 : 0) : target.sensitive_unmasked;
+
+  const resolvedPermissions = roleChanged
+    ? JSON.stringify(getDefaultPermissions(role, nextIsSuper === 1))
+    : Array.isArray(permissions)
+    ? JSON.stringify(permissions)
+    : target.permissions;
 
   db.prepare(
 
@@ -2507,24 +2548,101 @@ app.get('/api/export/people', authenticate, requirePermission('export.excel'), a
 
   const certStmt = db.prepare('SELECT name,issued_date,description,file_path FROM certificates WHERE person_id = ?');
 
+  const exportTime = new Date().toLocaleString('zh-CN', { hour12: false });
+  const totalColumns = Math.max(7, DIMENSION_CATEGORIES.length + 1);
+  const columnLetters = Array.from({ length: totalColumns }, (_, idx) =>
+    String.fromCharCode(65 + idx)
+  );
+  const titleRange = `A1:${columnLetters[totalColumns - 1]}1`;
+  const infoRange = `A2:${columnLetters[totalColumns - 1]}2`;
 
-
-  const workbook = new ExcelJS.Workbook();
-
-  people.forEach((person) => {
-    const rows = [
-      ['????', ''],
-      ['??', person.name],
-      ['????', person.birth_date || ''],
-      ['??', person.gender || ''],
-      ['???', person.phone || ''],
-      ['????', person.department || ''],
-      ['????', person.title || ''],
-      ['????', person.focus || ''],
-      ['????', person.bio || ''],
-      [''],
-      ['????????', '']
+  const buildWorkbook = (person) => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = '金岩高新人才成长APP';
+    workbook.created = new Date();
+    const worksheet = workbook.addWorksheet('人才档案');
+    worksheet.columns = [
+      { width: 14 },
+      ...Array.from({ length: totalColumns - 1 }, () => ({ width: 22 }))
     ];
+
+    worksheet.mergeCells(titleRange);
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = `人才档案全量导出 · ${person.name || '未知人员'}`;
+    titleCell.font = { bold: true, size: 16, color: { argb: 'FF1F3A6D' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    worksheet.mergeCells(infoRange);
+    const infoCell = worksheet.getCell('A2');
+    infoCell.value = `导出时间：${exportTime}`;
+    infoCell.font = { size: 11, color: { argb: 'FF6B7AA6' } };
+    infoCell.alignment = { vertical: 'middle', horizontal: 'right' };
+
+    let rowCursor = 4;
+    worksheet.mergeCells(`A${rowCursor}:${columnLetters[totalColumns - 1]}${rowCursor}`);
+    const baseHeader = worksheet.getCell(`A${rowCursor}`);
+    baseHeader.value = '基础信息';
+    applySectionStyle(baseHeader);
+    rowCursor += 1;
+
+    const addRow = (values, labelIdx = [0, 2, 4]) => {
+      const row = worksheet.addRow(values);
+      labelIdx.forEach((idx) => {
+        const cell = row.getCell(idx + 1);
+        cell.font = { bold: true, color: { argb: 'FF2F3B63' } };
+        cell.alignment = { vertical: 'middle' };
+      });
+      row.eachCell((cell) => {
+        applyValueBorder(cell);
+        if (!cell.alignment) {
+          cell.alignment = { vertical: 'middle' };
+        }
+      });
+      return row;
+    };
+
+    addRow([
+      '姓名',
+      person.name || '',
+      '出生日期',
+      person.birth_date || '',
+      '性别',
+      person.gender || ''
+    ]);
+    addRow([
+      '手机号',
+      person.phone || '',
+      '所属部门',
+      person.department || '',
+      '职务抬头',
+      person.title || ''
+    ]);
+
+    const focusRow = worksheet.addRow(['聚焦方向', person.focus || '']);
+    worksheet.mergeCells(`B${focusRow.number}:${columnLetters[totalColumns - 1]}${focusRow.number}`);
+    focusRow.getCell(1).font = { bold: true, color: { argb: 'FF2F3B63' } };
+    focusRow.eachCell((cell) => {
+      applyValueBorder(cell);
+      cell.alignment = { wrapText: true, vertical: 'top' };
+    });
+
+    const bioRow = worksheet.addRow(['个人简介', person.bio || '']);
+    worksheet.mergeCells(`B${bioRow.number}:${columnLetters[totalColumns - 1]}${bioRow.number}`);
+    bioRow.getCell(1).font = { bold: true, color: { argb: 'FF2F3B63' } };
+    bioRow.eachCell((cell) => {
+      applyValueBorder(cell);
+      cell.alignment = { wrapText: true, vertical: 'top' };
+    });
+
+    rowCursor = bioRow.number + 2;
+    worksheet.mergeCells(`A${rowCursor}:${columnLetters[totalColumns - 1]}${rowCursor}`);
+    const dimHeader = worksheet.getCell(`A${rowCursor}`);
+    dimHeader.value = '六维画像（按月记录）';
+    applySectionStyle(dimHeader);
+    rowCursor += 1;
+
+    const dimHeadRow = worksheet.addRow(['月份', ...DIMENSION_CATEGORIES]);
+    dimHeadRow.eachCell((cell) => applyHeaderStyle(cell));
 
     const dimensionRows = dimensionStmt.all(person.id);
     const monthMap = new Map();
@@ -2538,45 +2656,108 @@ app.get('/api/export/people', authenticate, requirePermission('export.excel'), a
     if (!months.length) {
       months.push(getCurrentMonth());
     }
-    rows.push(['??', ...DIMENSION_CATEGORIES]);
     months.forEach((month) => {
       const categoryMap = monthMap.get(month) || new Map();
-      const row = [month, ...DIMENSION_CATEGORIES.map((category) => categoryMap.get(category) || '?')];
-      rows.push(row);
+      const row = worksheet.addRow([
+        month,
+        ...DIMENSION_CATEGORIES.map((category) => categoryMap.get(category) || '无')
+      ]);
+      row.eachCell((cell) => {
+        applyValueBorder(cell);
+        cell.alignment = { wrapText: true, vertical: 'top' };
+      });
     });
 
-    rows.push(['']);
-    rows.push(['????', '??', '??', '??', '????']);
+    rowCursor = worksheet.lastRow.number + 2;
+    worksheet.mergeCells(`A${rowCursor}:${columnLetters[totalColumns - 1]}${rowCursor}`);
+    const evalHeader = worksheet.getCell(`A${rowCursor}`);
+    evalHeader.value = '评价记录';
+    applySectionStyle(evalHeader);
+    rowCursor += 1;
+
+    const evalHead = worksheet.addRow(['类型', '周期', '内容', '时间']);
+    evalHead.eachCell((cell) => applyHeaderStyle(cell));
     evaluationStmt.all(person.id).forEach((evaluation) => {
-      rows.push([evaluation.type, evaluation.period, evaluation.content, evaluation.created_at]);
+      const row = worksheet.addRow([
+        evaluation.type,
+        evaluation.period,
+        evaluation.content,
+        evaluation.created_at
+      ]);
+      row.eachCell((cell) => {
+        applyValueBorder(cell);
+        cell.alignment = { wrapText: true, vertical: 'top' };
+      });
     });
-    rows.push(['']);
-    rows.push(['????', '??', '??', '??', '??']);
+
+    rowCursor = worksheet.lastRow.number + 2;
+    worksheet.mergeCells(`A${rowCursor}:${columnLetters[totalColumns - 1]}${rowCursor}`);
+    const growthHeader = worksheet.getCell(`A${rowCursor}`);
+    growthHeader.value = '成长轨迹';
+    applySectionStyle(growthHeader);
+    rowCursor += 1;
+
+    const growthHead = worksheet.addRow(['时间', '标题', '描述', '类别']);
+    growthHead.eachCell((cell) => applyHeaderStyle(cell));
     growthStmt.all(person.id).forEach((event) => {
-      rows.push([event.event_date, event.title, event.description || '', event.category || '']);
+      const row = worksheet.addRow([
+        event.event_date,
+        event.title,
+        event.description || '',
+        event.category || ''
+      ]);
+      row.eachCell((cell) => {
+        applyValueBorder(cell);
+        cell.alignment = { wrapText: true, vertical: 'top' };
+      });
     });
-    rows.push(['']);
-    rows.push(['????', '????', '????', '??', '????']);
+
+    rowCursor = worksheet.lastRow.number + 2;
+    worksheet.mergeCells(`A${rowCursor}:${columnLetters[totalColumns - 1]}${rowCursor}`);
+    const certHeader = worksheet.getCell(`A${rowCursor}`);
+    certHeader.value = '证书记录';
+    applySectionStyle(certHeader);
+    rowCursor += 1;
+
+    const certHead = worksheet.addRow(['证书名称', '颁发时间', '描述', '附件路径']);
+    certHead.eachCell((cell) => applyHeaderStyle(cell));
     certStmt.all(person.id).forEach((cert) => {
-      rows.push([cert.name, cert.issued_date || '', cert.description || '', cert.file_path || '']);
+      const row = worksheet.addRow([
+        cert.name,
+        cert.issued_date || '',
+        cert.description || '',
+        cert.file_path || ''
+      ]);
+      row.eachCell((cell) => {
+        applyValueBorder(cell);
+        cell.alignment = { wrapText: true, vertical: 'top' };
+      });
     });
-    const worksheet = workbook.addWorksheet(safeSheetName(person.name || `person-${person.id}`));
 
-    rows.forEach((row) => worksheet.addRow(row));
+    return workbook;
+  };
 
+  res.setHeader('Content-Disposition', 'attachment; filename="talent-export.zip"');
+  res.type('application/zip');
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.on('error', (error) => {
+    console.error(error);
+    if (!res.headersSent) {
+      res.status(500).end();
+    }
   });
+  archive.pipe(res);
 
-
-
-  res.setHeader('Content-Disposition', 'attachment; filename="talent-export.xlsx"');
-
-  res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  for (const person of people) {
+    const workbook = buildWorkbook(person);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileName = `${safeFileName(person.name || `person-${person.id}`)}-档案.xlsx`;
+    archive.append(Buffer.from(buffer), { name: fileName });
+  }
 
   logAction({ actorId: req.user.id, action: 'export', entityType: 'people', detail: { count: people.length } });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-
-  res.send(Buffer.from(buffer));
+  archive.finalize();
 
 });
 
@@ -2584,6 +2765,7 @@ app.post('/api/import/excel', authenticate, requirePermission('import.excel'), u
   if (!req.file) {
     return res.status(400).json({ message: '??? Excel ??' });
   }
+  const allowCreate = req.query.allowCreate === 'true' || req.query.allowCreate === '1';
 
   const workbook = new ExcelJS.Workbook();
   try {
@@ -2682,7 +2864,7 @@ app.post('/api/import/excel', authenticate, requirePermission('import.excel'), u
   );
 
   const summary = db.transaction(() => {
-    const stats = { created: 0, updated: 0 };
+    const stats = { created: 0, updated: 0, skipped: 0, skippedNames: [] };
     payload.forEach((person) => {
       const existing = findPersonByName.get(person.name);
       const targetMonth = normalizeMonthInput(person.dimensionMonth) || currentMonth;
@@ -2703,7 +2885,7 @@ app.post('/api/import/excel', authenticate, requirePermission('import.excel'), u
           insertDimension.run(existing.id, dimension.category, targetMonth, dimension.detail);
         });
         stats.updated += 1;
-      } else {
+      } else if (allowCreate) {
         const newId = insertPerson.run(
           person.name,
           person.title,
@@ -2719,13 +2901,25 @@ app.post('/api/import/excel', authenticate, requirePermission('import.excel'), u
           insertDimension.run(newId, dimension.category, targetMonth, dimension.detail);
         });
         stats.created += 1;
+      } else {
+        stats.skipped += 1;
+        stats.skippedNames.push(person.name);
       }
     });
     return stats;
   })();
 
   logAction({ actorId: req.user.id, action: 'import', entityType: 'people', detail: summary });
-  res.json(summary);
+  if (!allowCreate && summary.skipped > 0) {
+    return res.json({
+      created: summary.created,
+      updated: summary.updated,
+      skipped: summary.skipped,
+      needsConfirm: true,
+      pendingNames: summary.skippedNames.slice(0, 20)
+    });
+  }
+  res.json({ created: summary.created, updated: summary.updated, skipped: summary.skipped });
 });
 
 

@@ -60,8 +60,17 @@ function AdminPage({
     phone: '',
     password: ''
   });
+  const [systemAccountForm, setSystemAccountForm] = useState({
+    name: '',
+    email: '',
+    role: 'admin',
+    password: '',
+    sensitiveUnmasked: true
+  });
   const [lastCredential, setLastCredential] = useState(null);
+  const [systemCredential, setSystemCredential] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [systemModalOpen, setSystemModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [resetTarget, setResetTarget] = useState(null);
@@ -192,10 +201,26 @@ function AdminPage({
     });
   };
 
+  const resetSystemAccountForm = () => {
+    setSystemAccountForm({
+      name: '',
+      email: '',
+      role: 'admin',
+      password: '',
+      sensitiveUnmasked: true
+    });
+  };
+
   const openCreateModal = () => {
     setCreateModalOpen(true);
     setLastCredential(null);
     resetPersonAccountForm();
+  };
+
+  const openSystemModal = () => {
+    setSystemModalOpen(true);
+    setSystemCredential(null);
+    resetSystemAccountForm();
   };
 
   const openEditModal = (personId) => {
@@ -266,6 +291,31 @@ function AdminPage({
       setToast('人才已删除');
     } catch (error) {
       setToast(error.response?.data?.message || '删除失败');
+    }
+  };
+
+  const handleCreateSystemAccount = async (event) => {
+    event.preventDefault();
+    if (!systemAccountForm.name.trim() || !systemAccountForm.email.trim()) {
+      setToast('请输入账号名称与账号');
+      return;
+    }
+    try {
+      const password = systemAccountForm.password.trim() || generateNumericPassword();
+      const userPayload = {
+        name: systemAccountForm.name.trim(),
+        email: systemAccountForm.email.trim(),
+        password,
+        role: systemAccountForm.role,
+        personId: null,
+        sensitiveUnmasked: systemAccountForm.role === 'admin' ? systemAccountForm.sensitiveUnmasked : false
+      };
+      const { data: createdUser } = await axios.post(`${apiBase}/users`, userPayload, authHeaders);
+      setUsers((prev) => [...prev, createdUser]);
+      setSystemCredential({ name: createdUser.name, email: createdUser.email, password });
+      setToast('系统账号已创建');
+    } catch (error) {
+      setToast(error.response?.data?.message || '创建系统账号失败');
     }
   };
 
@@ -351,7 +401,7 @@ function AdminPage({
       const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = onlySelected && selectedPerson ? `${selectedPerson.name}-档案.xlsx` : '人才档案导出.xlsx';
+      link.download = onlySelected && selectedPerson ? `${selectedPerson.name}-档案.zip` : '人才档案导出.zip';
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -370,9 +420,27 @@ function AdminPage({
       setImporting(true);
       const payload = new FormData();
       payload.append('file', importFile);
-      const { data } = await axios.post(`${apiBase}/import/excel`, payload, {
-        headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' }
-      });
+      const requestImport = async (allowCreate) =>
+        axios.post(`${apiBase}/import/excel?allowCreate=${allowCreate ? 1 : 0}`, payload, {
+          headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' }
+        });
+
+      const { data } = await requestImport(false);
+      if (data.needsConfirm && data.pendingNames?.length) {
+        const preview = data.pendingNames.slice(0, 5).join('、');
+        const confirmed = window.confirm(
+          `发现未匹配姓名：${preview}${data.pendingNames.length > 5 ? ' 等' : ''}。是否新建这些档案？`
+        );
+        if (confirmed) {
+          const confirmRes = await requestImport(true);
+          setToast(`导入完成：新增 ${confirmRes.data.created}，更新 ${confirmRes.data.updated}`);
+          setImportFile(null);
+          triggerDataRefresh();
+        } else {
+          setToast(`已更新 ${data.updated} 条，未新建 ${data.pendingNames.length} 条`);
+        }
+        return;
+      }
       setToast(`导入完成：新增 ${data.created}，更新 ${data.updated}`);
       setImportFile(null);
       triggerDataRefresh();
@@ -547,6 +615,11 @@ function AdminPage({
               {canManageUsers && (
                 <button className="primary-button subtle" onClick={openCreateModal}>
                   新增人才账号
+                </button>
+              )}
+              {canManageUsers && (
+                <button className="ghost-button slim" onClick={openSystemModal}>
+                  新增系统账号
                 </button>
               )}
               {hasPerm('export.excel') && (
@@ -1004,6 +1077,95 @@ function AdminPage({
                 </p>
                 <p>
                   密码：<strong>{lastCredential.password}</strong>
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {systemModalOpen && (
+        <div className="modal-backdrop" onClick={() => setSystemModalOpen(false)}>
+          <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <h3>新增系统账号</h3>
+                <p className="panel-subtitle">用于领导/展示账号，不绑定人才</p>
+              </div>
+              <button className="modal-close" onClick={() => setSystemModalOpen(false)}>
+                关闭
+              </button>
+            </div>
+            <form className="admin-form" onSubmit={handleCreateSystemAccount}>
+              <input
+                placeholder="账号名称*"
+                value={systemAccountForm.name}
+                onChange={(event) =>
+                  setSystemAccountForm((prev) => ({ ...prev, name: event.target.value }))
+                }
+              />
+              <input
+                placeholder="登录账号*"
+                value={systemAccountForm.email}
+                onChange={(event) =>
+                  setSystemAccountForm((prev) => ({ ...prev, email: event.target.value }))
+                }
+              />
+              <div className="form-row">
+                <select
+                  value={systemAccountForm.role}
+                  onChange={(event) =>
+                    setSystemAccountForm((prev) => ({ ...prev, role: event.target.value }))
+                  }
+                >
+                  <option value="admin">管理员</option>
+                  <option value="display">展示专用</option>
+                </select>
+                <input
+                  placeholder="登录密码"
+                  value={systemAccountForm.password}
+                  onChange={(event) =>
+                    setSystemAccountForm((prev) => ({ ...prev, password: event.target.value }))
+                  }
+                />
+              </div>
+              <div className="form-actions">
+                <label className="inline-toggle">
+                  <input
+                    type="checkbox"
+                    checked={systemAccountForm.sensitiveUnmasked}
+                    disabled={systemAccountForm.role !== 'admin'}
+                    onChange={(event) =>
+                      setSystemAccountForm((prev) => ({ ...prev, sensitiveUnmasked: event.target.checked }))
+                    }
+                  />
+                  <span>默认不脱敏显示</span>
+                </label>
+                <button
+                  type="button"
+                  className="ghost-button slim"
+                  onClick={() =>
+                    setSystemAccountForm((prev) => ({
+                      ...prev,
+                      password: generateNumericPassword()
+                    }))
+                  }
+                >
+                  随机生成
+                </button>
+                <button className="primary-button" type="submit">
+                  创建账号
+                </button>
+              </div>
+            </form>
+            {systemCredential && (
+              <div className="credential-card">
+                <p>已创建 {systemCredential.name} 的系统账号：</p>
+                <p>
+                  账号：<strong>{systemCredential.email}</strong>
+                </p>
+                <p>
+                  密码：<strong>{systemCredential.password}</strong>
                 </p>
               </div>
             )}

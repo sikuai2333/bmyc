@@ -81,6 +81,7 @@ const createEmptyDimensions = () =>
 const NAV_ITEMS = [
   { label: '大屏总览', path: '/' },
   { label: '档案清单', path: '/talent' },
+  { label: '评价管理', path: '/evaluations', requiresPermission: 'evaluations.edit' },
   { label: '成长轨迹', path: '/growth' },
   { label: '会议活动', path: '/meetings' },
   { label: '管理后台', path: '/profile', restricted: true }
@@ -934,7 +935,11 @@ function AppShell() {
           </div>
 
           <nav className="global-nav">
-            {NAV_ITEMS.filter((item) => item.path !== '/profile' || isAdmin).map((item) => (
+            {NAV_ITEMS.filter(
+              (item) =>
+                (item.path !== '/profile' || isAdmin) &&
+                (!item.requiresPermission || hasPerm(item.requiresPermission))
+            ).map((item) => (
               <button
                 key={item.path}
                 className={`nav-link ${
@@ -1126,27 +1131,21 @@ function AppShell() {
 
               element={
 
-                <EvaluationPage
-
-                  people={people}
-
-                  selectedPerson={selectedPerson}
-
-                  setSelectedPersonId={setSelectedPersonId}
-
-                  evaluations={evaluations}
-
-                  setEvaluations={setEvaluations}
-
-                  canEditEvaluations={canEditEvaluations}
-
-                  apiBase={API_BASE}
-
-                  authHeaders={authHeaders}
-
-                  setToast={setToast}
-
-                />
+                hasPerm('evaluations.view') ? (
+                  <EvaluationPage
+                    people={people}
+                    selectedPerson={selectedPerson}
+                    setSelectedPersonId={setSelectedPersonId}
+                    evaluations={evaluations}
+                    setEvaluations={setEvaluations}
+                    canEditEvaluations={canEditEvaluations}
+                    apiBase={API_BASE}
+                    authHeaders={authHeaders}
+                    setToast={setToast}
+                  />
+                ) : (
+                  <Navigate to="/" replace />
+                )
 
               }
 
