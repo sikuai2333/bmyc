@@ -47,13 +47,18 @@ function AdminPage({
     focus: '',
     bio: '',
     email: '',
-    role: 'user',
     birth_date: '',
     gender: '',
-    phone: '',
+    phone: ''
+  });
+  const [systemAccountForm, setSystemAccountForm] = useState({
+    name: '',
+    email: '',
+    role: 'admin',
     sensitiveUnmasked: false
   });
   const [lastCredential, setLastCredential] = useState(null);
+  const [systemCredential, setSystemCredential] = useState(null);
   const [meetingForm, setMeetingForm] = useState({
     topic: '',
     meetingDate: '',
@@ -71,6 +76,7 @@ function AdminPage({
   const [importFile, setImportFile] = useState(null);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [accountFilter, setAccountFilter] = useState('all');
 
   useEffect(() => {
     if (!selectedPerson && people.length) {
@@ -134,6 +140,15 @@ function AdminPage({
     () => people.filter((person) => meetingForm.attendeeIds.includes(person.id)),
     [people, meetingForm.attendeeIds]
   );
+  const visibleUsers = useMemo(() => {
+    if (accountFilter === 'linked') {
+      return users.filter((account) => account.personId);
+    }
+    if (accountFilter === 'system') {
+      return users.filter((account) => !account.personId);
+    }
+    return users;
+  }, [accountFilter, users]);
 
   const resetPersonAccountForm = () => {
     setPersonAccountForm({
@@ -143,10 +158,16 @@ function AdminPage({
       focus: '',
       bio: '',
       email: '',
-      role: 'user',
       birth_date: '',
       gender: '',
-      phone: '',
+      phone: ''
+    });
+  };
+  const resetSystemAccountForm = () => {
+    setSystemAccountForm({
+      name: '',
+      email: '',
+      role: 'admin',
       sensitiveUnmasked: false
     });
   };
@@ -175,10 +196,9 @@ function AdminPage({
         name: personAccountForm.name.trim(),
         email: personAccountForm.email.trim(),
         password,
-        role: personAccountForm.role,
+        role: 'user',
         personId: createdPerson.id,
-        sensitiveUnmasked:
-          personAccountForm.role === 'admin' ? personAccountForm.sensitiveUnmasked : false
+        sensitiveUnmasked: false
       };
       const { data: createdUser } = await axios.post(`${apiBase}/users`, userPayload, authHeaders);
       setPeople((prev) => [createdPerson, ...prev]);
@@ -190,6 +210,32 @@ function AdminPage({
       setToast(`已创建 ${createdPerson.name} 的账号`);
     } catch (error) {
       setToast(error.response?.data?.message || '新增人才与账号失败');
+    }
+  };
+  const handleCreateSystemAccount = async (event) => {
+    event.preventDefault();
+    if (!systemAccountForm.name.trim() || !systemAccountForm.email.trim()) {
+      setToast('请输入账号名称与邮箱');
+      return;
+    }
+    try {
+      const password = generateNumericPassword();
+      const userPayload = {
+        name: systemAccountForm.name.trim(),
+        email: systemAccountForm.email.trim(),
+        password,
+        role: systemAccountForm.role,
+        personId: null,
+        sensitiveUnmasked: systemAccountForm.role === 'admin' ? systemAccountForm.sensitiveUnmasked : false
+      };
+      const { data: createdUser } = await axios.post(`${apiBase}/users`, userPayload, authHeaders);
+      setUsers((prev) => [...prev, createdUser]);
+      setSystemCredential({ email: createdUser.email, password, name: createdUser.name });
+      resetSystemAccountForm();
+      triggerDataRefresh();
+      setToast('系统账号已创建');
+    } catch (error) {
+      setToast(error.response?.data?.message || '创建系统账号失败');
     }
   };
 
@@ -465,36 +511,11 @@ function AdminPage({
                       value={personAccountForm.bio}
                       onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, bio: event.target.value }))}
                     />
-                  <label>
-                    权限角色
-                    <select
-                      value={personAccountForm.role}
-                      onChange={(event) => setPersonAccountForm((prev) => ({ ...prev, role: event.target.value }))}
-                    >
-                      <option value="user">用户</option>
-                      <option value="admin">管理员</option>
-                      <option value="display">展示专用</option>
-                    </select>
-                  </label>
-                  {personAccountForm.role === 'admin' && (
-                    <label className="inline-toggle">
-                      <input
-                        type="checkbox"
-                        checked={personAccountForm.sensitiveUnmasked}
-                        onChange={(event) =>
-                          setPersonAccountForm((prev) => ({
-                            ...prev,
-                            sensitiveUnmasked: event.target.checked
-                          }))
-                        }
-                      />
-                      <span>管理员默认不脱敏（HR 勾选）</span>
-                    </label>
-                  )}
-                    <div className="form-actions">
-                      <button className="primary-button" type="submit">
-                        创建人才与账号
-                      </button>
+                  <p className="panel-subtitle">默认创建为普通用户账号，仅用于人才档案维护。</p>
+                  <div className="form-actions">
+                    <button className="primary-button" type="submit">
+                      创建人才与账号
+                    </button>
                       <button type="button" className="ghost-button slim" onClick={resetPersonAccountForm}>
                         重置
                       </button>
@@ -516,8 +537,85 @@ function AdminPage({
 
                 <div className="panel admin-section">
                   <div className="panel-head">
+                    <p className="panel-subtitle">系统账号</p>
+                    <h3>创建领导 / 展示账号</h3>
+                  </div>
+                  <form className="panel-form" onSubmit={handleCreateSystemAccount}>
+                    <div className="form-row">
+                      <input
+                        placeholder="账号名称"
+                        value={systemAccountForm.name}
+                        onChange={(event) =>
+                          setSystemAccountForm((prev) => ({ ...prev, name: event.target.value }))
+                        }
+                      />
+                      <input
+                        placeholder="账号邮箱"
+                        value={systemAccountForm.email}
+                        onChange={(event) =>
+                          setSystemAccountForm((prev) => ({ ...prev, email: event.target.value }))
+                        }
+                      />
+                      <select
+                        value={systemAccountForm.role}
+                        onChange={(event) =>
+                          setSystemAccountForm((prev) => ({ ...prev, role: event.target.value }))
+                        }
+                      >
+                        <option value="admin">管理员（领导）</option>
+                        <option value="display">展示专用</option>
+                      </select>
+                    </div>
+                    {systemAccountForm.role === 'admin' && (
+                      <label className="inline-toggle">
+                        <input
+                          type="checkbox"
+                          checked={systemAccountForm.sensitiveUnmasked}
+                          onChange={(event) =>
+                            setSystemAccountForm((prev) => ({
+                              ...prev,
+                              sensitiveUnmasked: event.target.checked
+                            }))
+                          }
+                        />
+                        <span>管理员默认不脱敏（HR 勾选）</span>
+                      </label>
+                    )}
+                    <div className="form-actions">
+                      <button className="primary-button" type="submit">
+                        创建系统账号
+                      </button>
+                      <button type="button" className="ghost-button slim" onClick={resetSystemAccountForm}>
+                        重置
+                      </button>
+                    </div>
+                  </form>
+                  {systemCredential && (
+                    <div className="credential-card">
+                      <p>已为 {systemCredential.name} 创建系统账号：</p>
+                      <p>
+                        账号：<strong>{systemCredential.email}</strong>
+                      </p>
+                      <p>
+                        初始密码：<code className="monospace">{systemCredential.password}</code>
+                      </p>
+                      <span>请尽快通知用户更改密码。</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="panel admin-section">
+                  <div className="panel-head">
                     <p className="panel-subtitle">账号列表</p>
                     <h3>账户管理</h3>
+                    <select
+                      value={accountFilter}
+                      onChange={(event) => setAccountFilter(event.target.value)}
+                    >
+                      <option value="all">全部账号</option>
+                      <option value="linked">档案账号</option>
+                      <option value="system">系统账号</option>
+                    </select>
                   </div>
                   <div className="admin-table">
                     <div className="admin-table-head">
@@ -527,7 +625,7 @@ function AdminPage({
                       <span>关联人员</span>
                       <span>操作</span>
                     </div>
-                    {users.map((account) => (
+                    {visibleUsers.map((account) => (
                       <div key={account.id} className="admin-table-row">
                         <span>{account.name}</span>
                         <span>{account.email}</span>
@@ -544,7 +642,7 @@ function AdminPage({
                         <span>
                           {account.personId
                             ? people.find((person) => person.id === account.personId)?.name || '—'
-                            : '—'}
+                            : '系统账号'}
                         </span>
                         <span>
                           <button className="ghost-button slim" onClick={() => handleDeleteUser(account.id)}>
