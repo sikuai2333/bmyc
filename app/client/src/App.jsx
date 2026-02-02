@@ -379,27 +379,42 @@ function AppShell() {
       return;
     }
     const fetchExtras = async () => {
+      const requests = {
+        evaluations: hasPerm('evaluations.view')
+          ? axios.get(`${API_BASE}/evaluations`, {
+              ...authHeaders,
+              params: { personId: selectedPersonId }
+            })
+          : Promise.resolve({ data: [] }),
+        growth: hasPerm('growth.view.all') || hasPerm('growth.edit.self') || hasPerm('growth.edit.all')
+          ? axios.get(`${API_BASE}/growth`, {
+              ...authHeaders,
+              params: { personId: selectedPersonId }
+            })
+          : Promise.resolve({ data: [] }),
+        certificates: hasPerm('certificates.view')
+          ? axios.get(`${API_BASE}/certificates`, {
+              ...authHeaders,
+              params: { personId: selectedPersonId }
+            })
+          : Promise.resolve({ data: [] }),
+        dimensions: axios.get(`${API_BASE}/personnel/${selectedPersonId}/dimensions/monthly`, {
+          ...authHeaders,
+          params: { months: 6 }
+        }),
+        personDimensions: axios.get(`${API_BASE}/insights/person-dimensions`, {
+          ...authHeaders,
+          params: { personId: selectedPersonId }
+        })
+      };
 
       try {
-
         const [evalRes, growthRes, certRes, dimensionRes, personDimensionRes] = await Promise.all([
-          axios.get(`${API_BASE}/evaluations`, {
-            ...authHeaders,
-            params: { personId: selectedPersonId }
-          }),
-          axios.get(`${API_BASE}/growth`, {
-            ...authHeaders,
-            params: { personId: selectedPersonId }
-          }),
-          axios.get(`${API_BASE}/certificates`, {
-            ...authHeaders,
-            params: { personId: selectedPersonId }
-          }),
-          axios.get(`${API_BASE}/personnel/${selectedPersonId}/dimensions/monthly`, {
-            ...authHeaders,
-            params: { months: 6 }
-          }),
-          axios.get(`${API_BASE}/insights/person-dimensions`, { ...authHeaders, params: { personId: selectedPersonId } })
+          requests.evaluations,
+          requests.growth,
+          requests.certificates,
+          requests.dimensions,
+          requests.personDimensions
         ]);
         setEvaluations(evalRes.data || []);
         setGrowthEvents(growthRes.data || []);
