@@ -75,11 +75,12 @@ const defaultPeople = [
 ];
 
 const baseDimensions = [
-  { category: '\u5de5\u4f5c\u6210\u6548', detail: '\u72ec\u7acb\u5b8c\u6210\u7701\u7ea7\u91cd\u70b9\u9879\u76ee\u843d\u5730' },
-  { category: '\u653f\u6cbb\u601d\u60f3', detail: '\u5b9a\u671f\u53c2\u52a0\u9ad8\u8d28\u91cf\u515a\u5efa\u5b66\u4e60\u7814\u8ba8' },
-  { category: '\u751f\u6d3b\u65b9\u5f0f', detail: '\u4fdd\u6301\u8fd0\u52a8\u4e60\u60ef\u5e76\u7ec4\u7ec7\u56e2\u961f\u56e2\u5efa' },
-  { category: '\u5bb6\u5ead\u5a5a\u59fb', detail: '\u6ce8\u91cd\u4eb2\u5b50\u966a\u4f34\uff0c\u53c2\u4e0e\u5bb6\u5ead\u6559\u80b2\u6d3b\u52a8' },
-  { category: '\u798f\u5229\u8bc9\u6c42', detail: '\u5e0c\u671b\u516c\u53f8\u63d0\u4f9b\u6d77\u5916\u7814\u5b66\u4e0e\u5065\u5eb7\u4fdd\u969c' }
+  { category: '\u601d\u60f3\u653f\u6cbb', detail: '\u53c2\u4e0e\u652f\u90e8\u5b66\u4e60\uff0c\u5b8c\u6210\u5b66\u4e60\u5fc3\u5f97' },
+  { category: '\u4e1a\u52a1\u6c34\u5e73', detail: '\u6309\u671f\u5b8c\u6210\u5c97\u4f4d\u7ec3\u7ec3\u4e0e\u8003\u6838' },
+  { category: '\u4e1a\u7ee9\u6210\u679c', detail: '\u5b8c\u6210\u9879\u76ee\u9636\u6bb5\u76ee\u6807\u4e0e\u6210\u679c\u6c47\u62a5' },
+  { category: '\u516b\u5c0f\u65f6\u5916\u4e1a\u4f59\u751f\u6d3b', detail: '\u4fdd\u6301\u8fd0\u52a8\u4e60\u60ef\uff0c\u6ce8\u610f\u8eab\u5fc3\u5065\u5eb7' },
+  { category: '\u9605\u8bfb\u5b66\u4e60\u60c5\u51b5', detail: '\u6bcf\u6708\u9605\u8bfb\u4e13\u4e1a\u4e66\u7c4d\u5e76\u8fdb\u884c\u603b\u7ed3' },
+  { category: '\u5a5a\u604b\u60c5\u51b5', detail: '\u65e0' }
 ];
 
 const defaultMeetings = [
@@ -193,6 +194,27 @@ function init() {
       )`).run();
   }
 
+  db.prepare(`CREATE TABLE IF NOT EXISTS dimensions_monthly (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      person_id INTEGER NOT NULL,
+      category TEXT NOT NULL,
+      month TEXT NOT NULL,
+      detail TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(person_id, category, month),
+      FOREIGN KEY(person_id) REFERENCES people(id)
+    )`).run();
+
+  const dimensionMonthlyCount = db.prepare('SELECT COUNT(*) as count FROM dimensions_monthly').get().count;
+  const dimensionLegacyCount = db.prepare('SELECT COUNT(*) as count FROM dimensions').get().count;
+  if (dimensionMonthlyCount === 0 && dimensionLegacyCount > 0) {
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    db.prepare(
+      'INSERT INTO dimensions_monthly (person_id, category, month, detail) SELECT person_id, category, ?, detail FROM dimensions'
+    ).run(currentMonth);
+  }
+
   db.prepare(`CREATE TABLE IF NOT EXISTS meetings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       topic TEXT NOT NULL,
@@ -270,13 +292,17 @@ function init() {
   const peopleCount = db.prepare('SELECT COUNT(*) as count FROM people').get().count;
   if (ENABLE_DEMO_DATA && peopleCount === 0) {
     const insertPerson = db.prepare('INSERT INTO people (name,title,department,focus,bio,icon) VALUES (?,?,?,?,?,?)');
-    const insertDimension = db.prepare('INSERT INTO dimensions (person_id,category,detail) VALUES (?,?,?)');
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const insertDimension = db.prepare(
+      'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
+    );
     const transaction = db.transaction(() => {
       defaultPeople.forEach((person, idx) => {
         const result = insertPerson.run(person.name, person.title, person.department, person.focus, person.bio, person.icon);
         const personId = result.lastInsertRowid;
         baseDimensions.forEach((dimension) => {
-          insertDimension.run(personId, dimension.category, dimension.detail);
+          insertDimension.run(personId, dimension.category, currentMonth, dimension.detail);
         });
       });
     });
@@ -364,6 +390,11 @@ function init() {
     const getPersonByName = db.prepare('SELECT id FROM people WHERE name = ?');
     const insertPerson = db.prepare('INSERT INTO people (name,title,department,focus,bio,icon) VALUES (?,?,?,?,?,?)');
     const updateUserPerson = db.prepare('UPDATE users SET person_id=? WHERE id=?');
+    const insertDimensionMonthly = db.prepare(
+      'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
+    );
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
     const assignMissingProfiles = db.transaction(() => {
       ensureProfiles.forEach(({ email, profile }) => {
@@ -381,11 +412,7 @@ function init() {
           personId = insertPerson.run(profile.name, profile.title, profile.department, profile.focus, profile.bio, profile.icon)
             .lastInsertRowid;
           baseDimensions.forEach((dimension, idx) => {
-            db.prepare('INSERT INTO dimensions (person_id,category,detail) VALUES (?,?,?)').run(
-              personId,
-              dimension.category,
-              dimension.detail
-            );
+            insertDimensionMonthly.run(personId, dimension.category, currentMonth, dimension.detail);
           });
         }
         updateUserPerson.run(personId, user.id);
