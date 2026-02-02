@@ -430,6 +430,22 @@ button:disabled {
   background: rgba(255, 255, 255, 0.9);
 }
 
+.visual-card.feature {
+  background: #ffffff;
+  border: 1px solid rgba(75, 141, 255, 0.28);
+  box-shadow: 0 12px 24px rgba(38, 74, 160, 0.12);
+  text-align: center;
+  padding: 14px 18px;
+  color: #1b2d5a;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.visual-card.feature p {
+  margin: 0;
+  font-weight: 600;
+}
+
 .visual-row {
   display: flex;
   align-items: center;
