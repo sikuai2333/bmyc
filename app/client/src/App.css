@@ -374,8 +374,8 @@ button:disabled {
 }
 
 .login-brand {
-  background: linear-gradient(145deg, #2f6bff 0%, #5de0c4 100%);
-  color: #fff;
+  background: linear-gradient(160deg, #ffffff 0%, #f1f6ff 55%, #ebfff7 100%);
+  color: #0b1e4b;
   padding: 32px;
   display: flex;
   flex-direction: column;
@@ -417,8 +417,8 @@ button:disabled {
 
 .visual-card {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(190, 204, 240, 0.6);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -426,7 +426,7 @@ button:disabled {
 }
 
 .visual-card.light {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .visual-row {
@@ -440,8 +440,8 @@ button:disabled {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+  background: var(--color-primary);
+  box-shadow: 0 0 10px rgba(75, 141, 255, 0.4);
 }
 
 .visual-bars {
@@ -453,7 +453,7 @@ button:disabled {
 .visual-bars span {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(75, 141, 255, 0.35);
 }
 
 .brand-foot {
