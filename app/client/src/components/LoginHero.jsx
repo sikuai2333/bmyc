@@ -37,7 +37,7 @@ function LoginHero({
   onRegister,
   onThirdLogin
 }) {
-  const accountHint = accountStatus.message || '支持姓名或手机号登录';
+  const accountHint = accountStatus.message || '';
   const passwordHint = passwordStatus.message || '建议至少 6 位，区分大小写';
   const accountClass = accountStatus.status === 'invalid' ? 'invalid' : accountStatus.status === 'valid' ? 'valid' : '';
   const passwordClass = passwordStatus.status === 'invalid' ? 'invalid' : passwordStatus.status === 'valid' ? 'valid' : '';
@@ -63,7 +63,6 @@ function LoginHero({
             <div className="visual-card">
               <div className="visual-row">
                 <span className="visual-dot" />
-                <span>人才画像运营</span>
               </div>
               <div className="visual-bars">
                 <span />
@@ -71,21 +70,12 @@ function LoginHero({
                 <span />
               </div>
             </div>
-            <div className="visual-card light">
-              <strong>6 维档案</strong>
-              <p>月度沉淀与成长轨迹</p>
-            </div>
-          </div>
-          <div className="brand-foot">
-            <span>安全可信 · 多端协同 · 数据可追溯</span>
           </div>
         </aside>
 
         <div className="login-panel">
           <div className="login-head">
-            <p className="panel-subtitle">企业登录</p>
             <h3>统一身份认证</h3>
-            <p className="login-subtitle">输入姓名/手机号与密码进入人才档案平台</p>
           </div>
 
           <form className="login-form" onSubmit={onSubmit}>
@@ -101,7 +91,7 @@ function LoginHero({
                   placeholder="请输入姓名或手机号"
                 />
               </div>
-              <small className={`field-hint ${accountClass}`}>{accountHint}</small>
+              {accountHint && <small className={`field-hint ${accountClass}`}>{accountHint}</small>}
             </label>
 
             <label className="input-field">
