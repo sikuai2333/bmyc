@@ -12,7 +12,7 @@ function DocsPage({ user, roleLabel }) {
           <p className="panel-subtitle">系统文档</p>
           <h2>金岩高新人才成长APP · 使用说明</h2>
           <p className="docs-lead">
-            面向 HR、领导与应届生的统一档案平台，覆盖六维画像、评价管理、成长轨迹、
+            面向 HR、领导与应届生的统一档案平台，覆盖六维画像（月度）、评价管理、成长轨迹、
             会议活动与证书资产，确保数据可追溯、权限可分配、展示可控。
           </p>
         </div>
@@ -23,7 +23,7 @@ function DocsPage({ user, roleLabel }) {
           </div>
           <div>
             <span>核心模块</span>
-            <strong>六维档案 · 评价 · 成长 · 证书 · 会议</strong>
+            <strong>六维档案（月度） · 评价 · 成长 · 证书 · 会议</strong>
           </div>
           <div>
             <span>敏感字段</span>
@@ -46,7 +46,7 @@ function DocsPage({ user, roleLabel }) {
             </article>
             <article>
               <h4>管理员（HR/领导）</h4>
-              <p>可维护全局档案与会议，领导可填写评价；默认可脱敏显示。</p>
+              <p>可维护全局档案与会议，领导可填写评价；HR 默认可见敏感信息，领导默认脱敏，可手动解锁。</p>
               <span className="role-tag">管理视图</span>
             </article>
             <article>
@@ -65,7 +65,7 @@ function DocsPage({ user, roleLabel }) {
         <div className="panel docs-card">
           <div className="panel-head">
             <h3>六维画像范围</h3>
-            <p className="panel-subtitle">分类固定，不评分，可填写点评语句</p>
+            <p className="panel-subtitle">分类固定，按月记录，不评分，可填写点评语句</p>
           </div>
           <div className="docs-chip-grid">
             {DIMENSION_CATEGORIES.map((item) => (
@@ -75,7 +75,7 @@ function DocsPage({ user, roleLabel }) {
             ))}
           </div>
           <p className="muted">
-            婚恋情况属于敏感内容，展示与导出时默认脱敏，需具备敏感权限与解除脱敏设置。
+            婚恋情况属于敏感内容，展示与导出时默认脱敏；月度未填写项默认记为“无”。
           </p>
         </div>
       </div>
@@ -92,12 +92,16 @@ function DocsPage({ user, roleLabel }) {
               <strong>姓名 / 出生日期 / 性别 / 手机号 / 职务 / 部门 / 聚焦方向 / 简介</strong>
             </div>
             <div className="docs-row">
+              <span>六维画像（月度）</span>
+              <strong>月份 / 六维维度 / 记录内容（空则填“无”）</strong>
+            </div>
+            <div className="docs-row">
               <span>评价管理</span>
               <strong>{evaluationLabels.join(' / ')}</strong>
             </div>
             <div className="docs-row">
               <span>成长轨迹</span>
-              <strong>时间 / 事件 / 描述 / 备注</strong>
+              <strong>时间 / 事件 / 描述 / 分类</strong>
             </div>
             <div className="docs-row">
               <span>证书信息</span>
@@ -111,17 +115,17 @@ function DocsPage({ user, roleLabel }) {
         </div>
 
         <div className="panel docs-card">
-          <div className="panel-head">
-            <h3>敏感信息与脱敏规则</h3>
-            <p className="panel-subtitle">领导默认脱敏，可单次解锁并永久记忆</p>
-          </div>
-          <ul className="docs-list">
-            <li>手机号、出生日期、婚恋详情属于敏感字段。</li>
-            <li>展示专用账号永远脱敏且不可解锁。</li>
-            <li>领导/管理员具备敏感权限时，可一键切换明文显示并允许手动恢复。</li>
-            <li>普通用户可查看本人敏感信息，但不可查看他人明文。</li>
-          </ul>
+        <div className="panel-head">
+          <h3>敏感信息与脱敏规则</h3>
+          <p className="panel-subtitle">领导默认脱敏，HR 默认不脱敏，开关按账号记忆</p>
         </div>
+        <ul className="docs-list">
+          <li>手机号、出生日期、婚恋详情属于敏感字段。</li>
+          <li>展示专用账号永远脱敏且不可解锁。</li>
+          <li>HR 默认明文；领导默认脱敏，可一键切换并在本账号内持久化。</li>
+          <li>普通用户可查看本人敏感信息，但不可查看他人明文。</li>
+        </ul>
+      </div>
       </div>
 
       <div className="panel docs-card">
@@ -136,7 +140,7 @@ function DocsPage({ user, roleLabel }) {
           </article>
           <article>
             <h4>2. 个人完善档案</h4>
-            <p>应届生补充个人资料、六维画像与成长轨迹。</p>
+            <p>应届生按月补充六维画像、个人资料与成长轨迹。</p>
           </article>
           <article>
             <h4>3. 领导评价</h4>
@@ -160,8 +164,8 @@ function DocsPage({ user, roleLabel }) {
             <p className="panel-subtitle">导出为一人一表，导入支持校验</p>
           </div>
           <ul className="docs-list">
-            <li>导出：支持全量或单人档案导出，包含六维、评价、成长与证书摘要。</li>
-            <li>导入：模板需包含姓名、出生日期、性别、手机号及六维字段列。</li>
+            <li>导出：一人一表，含月度六维矩阵、评价、成长与证书摘要。</li>
+            <li>导入：模板需包含姓名、出生日期、性别、手机号、月份（可选）及六维字段列。</li>
             <li>校验：系统提示字段缺失或格式错误，避免脏数据进入档案库。</li>
           </ul>
         </div>
