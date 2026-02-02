@@ -1,4 +1,4 @@
-﻿import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+﻿import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
 
@@ -171,6 +171,8 @@ function AppShell() {
   const [loadError, setLoadError] = useState('');
 
   const [users, setUsers] = useState([]);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
 
 
 
@@ -883,6 +885,32 @@ function AppShell() {
 
   }, [toast]);
 
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [userMenuOpen]);
+
+  useEffect(() => {
+    if (!user) {
+      setUserMenuOpen(false);
+    }
+  }, [user]);
+
 
 
   return (
@@ -923,34 +951,59 @@ function AppShell() {
             ))}
           </nav>
           <div className="user-section">
-            <>
-              <div className="user-meta" style={{ borderColor: ROLE_COLORS[user.role] }}>
-                <p>{user.name}</p>
-                <span>{roleLabel}</span>
-              </div>
-              {user.role === 'user' && user.personId && (
-                <button
-                  className="ghost-button slim"
-                  onClick={() => {
-                    setSelectedPersonId(user.personId);
-                    navigate('/me');
-                  }}
-                >
-                  个人中心
-                </button>
-              )}
-              {hasPerm('sensitive.view') && (
-                <button className="ghost-button slim" onClick={toggleSensitiveView}>
-                  {sensitiveUnmasked ? '脱敏显示' : '显示明文'}
-                </button>
-              )}
-              <button className="ghost-button" onClick={handleLogout}>
-
-                退出
-
+            <div
+              className={`user-menu${userMenuOpen ? ' open' : ''}`}
+              ref={userMenuRef}
+              onMouseEnter={() => setUserMenuOpen(true)}
+              onMouseLeave={() => setUserMenuOpen(false)}
+            >
+              <button
+                type="button"
+                className="user-trigger"
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+              >
+                <span className="user-avatar">{user.name?.slice(0, 1) || 'U'}</span>
+                <span className="user-info">
+                  <span className="user-name">{user.name}</span>
+                  <span className="user-role">{roleLabel}</span>
+                </span>
+                <span className="user-caret">▾</span>
               </button>
-
-            </>
+              <div className="user-dropdown">
+                {user.role === 'user' && user.personId && (
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => {
+                      setSelectedPersonId(user.personId);
+                      navigate('/me');
+                      setUserMenuOpen(false);
+                    }}
+                  >
+                    个人中心
+                  </button>
+                )}
+                {hasPerm('sensitive.view') && (
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => {
+                      toggleSensitiveView();
+                      setUserMenuOpen(false);
+                    }}
+                  >
+                    {sensitiveUnmasked ? '脱敏显示' : '显示明文'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="dropdown-item danger"
+                  onClick={handleLogout}
+                >
+                  退出登录
+                </button>
+              </div>
+            </div>
           </div>
 
         </header>
@@ -1299,4 +1352,5 @@ function AppShell() {
 
 
 export default App;
+
 
