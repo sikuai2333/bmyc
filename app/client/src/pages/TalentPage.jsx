@@ -351,11 +351,6 @@ function TalentPage({
                     {selectedPerson.focus || '\u6682\u672a\u586b\u5199\u805a\u7126\u65b9\u5411'}
                   </p>
                 </div>
-                {hasPerm && hasPerm('people.edit.all') && (
-                  <button className="primary-button subtle" onClick={() => navigate('/profile')}>
-                    {'\u8fdb\u5165\u7ba1\u7406\u540e\u53f0'}
-                  </button>
-                )}
               </div>
               <p className="bio">
                 {selectedPerson.bio || '\u6b22\u8fce\u8865\u5145\u4e2a\u4eba\u4eae\u70b9\u3002'}
