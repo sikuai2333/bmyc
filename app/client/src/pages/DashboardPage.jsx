@@ -204,7 +204,7 @@ function DashboardPage({
 
 
 
-        <h2>鏁版嵁鍔犺浇澶辫触</h2>
+        <h2>数据加载失败</h2>
 
 
 
@@ -216,7 +216,7 @@ function DashboardPage({
 
 
 
-          閲嶆柊鍔犺浇
+          重新加载
 
 
 
@@ -256,23 +256,17 @@ function DashboardPage({
 
 
 
-          <div className="panel-head inline">
-
-
-
-            <div>
-              <p className="panel-subtitle">鏍稿績鏁版嵁姒傝</p>
-            <h3>人才关注度排行</h3>
-            </div>
-            {isAdmin && (
-              <button className="ghost-button slim" onClick={() => navigate('/profile')}>
-                杩涘叆绠＄悊鍚庡彴
-              </button>
-            )}
-
-
+        <div className="panel-head inline">
+          <div>
+            <p className="panel-subtitle">核心数据概览</p>
+            <h3>核心指标</h3>
           </div>
-
+          {isAdmin && (
+            <button className="ghost-button slim" onClick={() => navigate('/profile')}>
+              进入管理后台
+            </button>
+          )}
+        </div>
 
 
           <div className="kpi-grid">
@@ -287,7 +281,7 @@ function DashboardPage({
 
 
 
-            <p>按维度数量排序</p>
+                <p>{item.label}</p>
 
 
 
@@ -335,7 +329,7 @@ function DashboardPage({
 
 
 
-            <h3>浜烘墠鍚嶅崟</h3>
+            <h3>人才名单</h3>
 
 
 
@@ -346,7 +340,7 @@ function DashboardPage({
 
 
 
-          {loading && <p className="muted">姝ｅ湪鍔犺浇...</p>}
+          {loading && <p className="muted">正在加载...</p>}
 
 
 
@@ -402,7 +396,7 @@ function DashboardPage({
 
 
 
-                    {person.title} 路 {person.department}
+                    {person.title} · {person.department}
 
 
 
@@ -433,7 +427,7 @@ function DashboardPage({
 
 
 
-            鍓嶅線浜烘墠妗ｆ
+            前往人才档案
 
 
 
@@ -466,7 +460,7 @@ function DashboardPage({
 
 
             <h3>月度完成趋势</h3>
-            <p>按维度数量排序</p>
+            <p>统计全员完成事项</p>
 
 
 
@@ -678,7 +672,7 @@ function DashboardPage({
 
 
 
-              <h3>浼氳娲诲姩姒傝</h3>
+              <h3>会议活动概览</h3>
 
 
 
@@ -690,7 +684,7 @@ function DashboardPage({
 
 
 
-              鏌ョ湅鍏ㄩ儴
+              查看全部
 
 
 
@@ -750,7 +744,7 @@ function DashboardPage({
 
 
 
-                  <span className="meeting-category-chip">{meeting.category || '浼氳'}</span>
+                  <span className="meeting-category-chip">{meeting.category || '会议'}</span>
 
 
 
@@ -758,7 +752,7 @@ function DashboardPage({
 
 
 
-                    {meeting.meetingDate} 路 {meeting.location}
+                    {meeting.meetingDate} · {meeting.location}
 
 
 
@@ -802,7 +796,7 @@ function DashboardPage({
 
 
 
-            <p>按维度数量排序</p>
+                <p>{item.label}</p>
 
 
 
@@ -810,7 +804,7 @@ function DashboardPage({
 
 
 
-          {loading && <p className="muted">姝ｅ湪鍒锋柊...</p>}
+          {loading && <p className="muted">正在刷新...</p>}
 
 
 
@@ -910,5 +904,6 @@ function DashboardPage({
 
 
 export default DashboardPage;
+
 
 
