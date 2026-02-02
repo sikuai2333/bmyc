@@ -173,6 +173,7 @@ function AppShell() {
   const [users, setUsers] = useState([]);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+  const userMenuTimerRef = useRef(null);
 
 
 
@@ -911,6 +912,31 @@ function AppShell() {
     }
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      if (userMenuTimerRef.current) {
+        clearTimeout(userMenuTimerRef.current);
+      }
+    };
+  }, []);
+
+  const openUserMenu = () => {
+    if (userMenuTimerRef.current) {
+      clearTimeout(userMenuTimerRef.current);
+      userMenuTimerRef.current = null;
+    }
+    setUserMenuOpen(true);
+  };
+
+  const closeUserMenu = () => {
+    if (userMenuTimerRef.current) {
+      clearTimeout(userMenuTimerRef.current);
+    }
+    userMenuTimerRef.current = setTimeout(() => {
+      setUserMenuOpen(false);
+    }, 200);
+  };
+
 
 
   return (
@@ -958,13 +984,19 @@ function AppShell() {
             <div
               className={`user-menu${userMenuOpen ? ' open' : ''}`}
               ref={userMenuRef}
-              onMouseEnter={() => setUserMenuOpen(true)}
-              onMouseLeave={() => setUserMenuOpen(false)}
+              onMouseEnter={openUserMenu}
+              onMouseLeave={closeUserMenu}
             >
               <button
                 type="button"
                 className="user-trigger"
-                onClick={() => setUserMenuOpen((prev) => !prev)}
+                onClick={() => {
+                  if (userMenuOpen) {
+                    setUserMenuOpen(false);
+                  } else {
+                    openUserMenu();
+                  }
+                }}
               >
                 <span className="user-avatar">{user.name?.slice(0, 1) || 'U'}</span>
                 <span className="user-info">
