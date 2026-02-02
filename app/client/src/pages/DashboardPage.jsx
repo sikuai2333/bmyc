@@ -13,7 +13,7 @@ import {
   CartesianGrid,
   LabelList
 } from 'recharts';
-import { DIMENSION_COLORS } from '../constants';
+import { DIMENSION_CATEGORIES, DIMENSION_COLORS } from '../constants';
 
 function DashboardPage({
 
