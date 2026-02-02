@@ -41,7 +41,7 @@ const NAV_ITEMS = [
   { label: '评价管理', path: '/evaluations' },
   { label: '成长轨迹', path: '/growth' },
   { label: '证书管理', path: '/certificates' },
-  { label: '会议联动', path: '/meetings' },
+  { label: '会议活动', path: '/meetings' },
   { label: '系统文档', path: '/docs' },
   { label: '管理后台', path: '/profile', restricted: true }
 ];

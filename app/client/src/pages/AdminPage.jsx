@@ -375,7 +375,7 @@ function AdminPage({
   return (
     <section className="admin-page">
       <aside className="admin-sidebar">
-        <p className="eyebrow">Global Admin</p>
+        <p className="eyebrow">全局管理</p>
         <h2>金岩高新 · 全局管理</h2>
         <nav className="admin-nav">
           {ADMIN_SECTIONS.filter(
@@ -402,8 +402,8 @@ function AdminPage({
               <div className="admin-panel-grid two-columns">
                 <div className="panel admin-section">
                   <div className="panel-head">
-                    <p className="panel-subtitle">一体化开户</p>
-                    <h3>新增人才 & 账号</h3>
+                    <p className="panel-subtitle">账号开户</p>
+                    <h3>新增人才与账号</h3>
                   </div>
                   <form className="admin-form" onSubmit={handleCreateTalentAccount}>
                     <div className="form-row">
@@ -516,7 +516,7 @@ function AdminPage({
 
                 <div className="panel admin-section">
                   <div className="panel-head">
-                    <p className="panel-subtitle">账号一览</p>
+                    <p className="panel-subtitle">账号列表</p>
                     <h3>账户管理</h3>
                   </div>
                   <div className="admin-table">
@@ -712,7 +712,7 @@ function AdminPage({
             {canManagePermissions ? (
               <div className="panel admin-section">
                 <div className="panel-head">
-                  <p className="panel-subtitle">Authority</p>
+                  <p className="panel-subtitle">权限配置</p>
                   <h3>权限配置中心</h3>
                 </div>
                 <div className="permission-grid">
@@ -805,7 +805,7 @@ function AdminPage({
                     onChange={(event) => setMeetingForm((prev) => ({ ...prev, meetingDate: event.target.value }))}
                   />
                   <input
-                    placeholder="地点"
+                    placeholder="会议地点"
                     value={meetingForm.location}
                     onChange={(event) => setMeetingForm((prev) => ({ ...prev, location: event.target.value }))}
                   />
@@ -919,8 +919,8 @@ function AdminPage({
           <div className="ops-stack">
             <div className="panel admin-section">
               <div className="panel-head">
-                <p className="panel-subtitle">System</p>
-                <h3>运行概览</h3>
+                <p className="panel-subtitle">系统概览</p>
+                <h3>运行状态</h3>
               </div>
               <div className="ops-grid">
                 {stats.map((item) => (
@@ -939,7 +939,7 @@ function AdminPage({
             {hasPerm('export.excel') && (
               <div className="panel admin-section">
                 <div className="panel-head">
-                  <p className="panel-subtitle">Excel</p>
+                  <p className="panel-subtitle">Excel 工具</p>
                   <h3>数据导出</h3>
                 </div>
                 <div className="form-row">
@@ -965,7 +965,7 @@ function AdminPage({
             {hasPerm('import.excel') && (
               <div className="panel admin-section">
                 <div className="panel-head">
-                  <p className="panel-subtitle">Excel</p>
+                  <p className="panel-subtitle">Excel 工具</p>
                   <h3>批量导入</h3>
                 </div>
                 <div className="form-row">
@@ -985,7 +985,7 @@ function AdminPage({
             {hasPerm('logs.view') && (
               <div className="panel admin-section">
                 <div className="panel-head">
-                  <p className="panel-subtitle">Audit</p>
+                  <p className="panel-subtitle">操作日志</p>
                   <h3>操作日志</h3>
                 </div>
                 <div className="log-list">

@@ -9,7 +9,7 @@ function DocsPage({ user, roleLabel }) {
     <section className="docs-page">
       <div className="panel docs-hero">
         <div>
-          <p className="panel-subtitle">Product Docs</p>
+          <p className="panel-subtitle">系统文档</p>
           <h2>金岩高新人才成长APP · 使用说明</h2>
           <p className="docs-lead">
             面向 HR、领导与应届生的统一档案平台，覆盖六维画像、评价管理、成长轨迹、
