@@ -71,9 +71,25 @@ function LoginHero({
             </div>
             <div className="visual-card feature">
               <p>六维画像 · 月度沉淀 · 成长全景</p>
+              <div className="visual-row">
+                <span className="visual-dot" />
+              </div>
+              <div className="visual-bars">
+                <span />
+                <span />
+                <span />
+              </div>
             </div>
             <div className="visual-card feature">
               <p>统一档案 · 评价留痕 · 进展可见</p>
+              <div className="visual-row">
+                <span className="visual-dot" />
+              </div>
+              <div className="visual-bars">
+                <span />
+                <span />
+                <span />
+              </div>
             </div>
           </div>
         </aside>

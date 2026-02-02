@@ -446,6 +446,14 @@ button:disabled {
   font-weight: 600;
 }
 
+.visual-card.feature .visual-row {
+  justify-content: center;
+}
+
+.visual-card.feature .visual-bars {
+  margin-top: 6px;
+}
+
 .visual-row {
   display: flex;
   align-items: center;
