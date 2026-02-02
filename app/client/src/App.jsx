@@ -82,7 +82,6 @@ const NAV_ITEMS = [
   { label: '大屏总览', path: '/' },
   { label: '档案清单', path: '/talent' },
   { label: '成长轨迹', path: '/growth' },
-  { label: '证书管理', path: '/certificates' },
   { label: '会议活动', path: '/meetings' },
   { label: '管理后台', path: '/profile', restricted: true }
 ];
