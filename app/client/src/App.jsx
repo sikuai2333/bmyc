@@ -80,19 +80,11 @@ const createEmptyDimensions = () =>
 
 const NAV_ITEMS = [
   { label: '大屏总览', path: '/' },
-  { label: '人才信息采集', path: '/talent' },
-  { label: '评价管理', path: '/evaluations' },
-
+  { label: '档案清单', path: '/talent' },
   { label: '成长轨迹', path: '/growth' },
-
   { label: '证书管理', path: '/certificates' },
-
   { label: '会议活动', path: '/meetings' },
-
-  { label: '系统文档', path: '/docs' },
-
   { label: '管理后台', path: '/profile', restricted: true }
-
 ];
 
 
@@ -1212,6 +1204,13 @@ function AppShell() {
                     saveProfile={saveProfile}
                     saveDimensions={saveDimensions}
                     canEditSelected={canEditSelected}
+                    evaluations={evaluations}
+                    certificates={certificates}
+                    setCertificates={setCertificates}
+                    canManageCertificates={canManageCertificates}
+                    apiBase={API_BASE}
+                    authHeaders={authHeaders}
+                    setToast={setToast}
                   />
                 ) : (
                   <Navigate to="/" replace />
