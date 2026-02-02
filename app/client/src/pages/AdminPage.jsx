@@ -399,6 +399,10 @@ function AdminPage({
     setMeetingForm((prev) => ({ ...prev, attendeeIds: [] }));
   };
 
+  const selectAllAttendees = () => {
+    setMeetingForm((prev) => ({ ...prev, attendeeIds: people.map((person) => person.id) }));
+  };
+
   const handleMeetingSubmit = async (event) => {
     event.preventDefault();
     if (!meetingForm.topic.trim() || !meetingForm.meetingDate) {
@@ -755,9 +759,14 @@ function AdminPage({
                     <span>
                       已选 <strong>{attendeeSummary.length}</strong> / {people.length}
                     </span>
-                    <button type="button" className="ghost-button slim" onClick={clearAttendees}>
-                      清空
-                    </button>
+                    <div className="attendee-actions">
+                      <button type="button" className="ghost-button slim" onClick={selectAllAttendees}>
+                        全选
+                      </button>
+                      <button type="button" className="ghost-button slim" onClick={clearAttendees}>
+                        清空
+                      </button>
+                    </div>
                   </div>
                   <div className="attendee-selector">
                     {people.map((person) => (

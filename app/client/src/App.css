@@ -2002,6 +2002,11 @@ button:disabled {
   color: var(--color-muted);
 }
 
+.attendee-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .meeting-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
