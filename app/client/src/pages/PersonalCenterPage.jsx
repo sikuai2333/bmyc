@@ -48,7 +48,6 @@ function PersonalCenterPage({
             <p className="panel-subtitle">{'\u4e2a\u4eba\u4e2d\u5fc3'}</p>
             <h2>{'\u4e2a\u4eba\u6863\u6848\u7ef4\u62a4'}</h2>
           </div>
-          {!canEditSelected && <span className="tag-pill">{'\u5f53\u524d\u8d26\u53f7\u4ec5\u53ef\u67e5\u770b'}</span>}
         </div>
         {selectedPerson && (
           <div className="profile-name">

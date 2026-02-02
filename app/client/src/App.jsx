@@ -482,25 +482,24 @@ function AppShell() {
             <p>融合多维档案，洞察人才脉动</p>
           </div>
         </div>
-        {user && (
-          <nav className="global-nav">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.path}
-                className={`nav-link ${
-                  location.pathname === item.path ||
-                  (item.path !== '/' && location.pathname.startsWith(item.path))
-                    ? 'active'
-                    : ''
-                }`}
-                onClick={() => (item.restricted ? requireLogin(item.path) : navigate(item.path))}
-                disabled={item.restricted && !isAdmin}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
-        )}
+        {user && (
+          <nav className="global-nav">
+            {NAV_ITEMS.filter((item) => item.path !== '/profile' || isAdmin).map((item) => (
+              <button
+                key={item.path}
+                className={`nav-link ${
+                  location.pathname === item.path ||
+                  (item.path !== '/' && location.pathname.startsWith(item.path))
+                    ? 'active'
+                    : ''
+                }`}
+                onClick={() => (item.restricted ? requireLogin(item.path) : navigate(item.path))}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        )}
         <div className="user-section">
           {user ? (
             <>
@@ -508,19 +507,17 @@ function AppShell() {
                 <p>{user.name}</p>
                 <span>{roleLabel}</span>
               </div>
-              <button
-                className="ghost-button slim"
-                onClick={() => {
-                  if (user.personId) {
+              {user.role === 'user' && user.personId && (
+                <button
+                  className="ghost-button slim"
+                  onClick={() => {
                     setSelectedPersonId(user.personId);
                     navigate('/me');
-                  } else {
-                    setToast('当前账号未绑定档案');
-                  }
-                }}
-              >
-                个人中心
-              </button>
+                  }}
+                >
+                  个人中心
+                </button>
+              )}
               {hasPerm('sensitive.view') && (
                 <button className="ghost-button slim" onClick={toggleSensitiveView}>
                   {sensitiveUnmasked ? '脱敏显示' : '显示明文'}
@@ -564,7 +561,7 @@ function AppShell() {
                   loading={loading}
                   setSelectedPersonId={setSelectedPersonId}
                   setSelectedMeetingId={setSelectedMeetingId}
-                  canEditSelected={canEditSelected}
+                  isAdmin={isAdmin}
                   navigate={navigate}
                   loadError={loadError}
                   onRetry={triggerDataRefresh}
@@ -650,7 +647,7 @@ function AppShell() {
             <Route
               path="/me"
               element={
-                user ? (
+                user && user.role === 'user' ? (
                   <PersonalCenterPage
                     user={user}
                     selectedPerson={selectedPerson}

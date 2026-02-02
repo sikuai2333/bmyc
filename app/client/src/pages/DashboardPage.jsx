@@ -37,7 +37,7 @@ function DashboardPage({
 
   setSelectedMeetingId,
 
-  canEditSelected,
+  isAdmin,
 
   navigate,
 
@@ -173,19 +173,15 @@ function DashboardPage({
 
           <div className="panel-head inline">
 
-            <div>
-
-              <p className="panel-subtitle">???????</p>
-
-              <h3>核心指标</h3>
-
-            </div>
-
-            <button className="ghost-button slim" onClick={() => navigate('/profile')} disabled={!canEditSelected}>
-
-              {canEditSelected ? '进入档案维护' : '无编辑权限'}
-
-            </button>
+            <div>
+              <p className="panel-subtitle">核心数据概览</p>
+              <h3>核心指标</h3>
+            </div>
+            {isAdmin && (
+              <button className="ghost-button slim" onClick={() => navigate('/profile')}>
+                进入管理后台
+              </button>
+            )}
 
           </div>
 
