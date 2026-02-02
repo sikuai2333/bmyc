@@ -261,11 +261,6 @@ function DashboardPage({
             <p className="panel-subtitle">核心数据概览</p>
             <h3>核心指标</h3>
           </div>
-          {isAdmin && (
-            <button className="ghost-button slim" onClick={() => navigate('/profile')}>
-              进入管理后台
-            </button>
-          )}
         </div>
 
 
