@@ -54,7 +54,6 @@ function LoginHero({
               alt="金岩高新"
             />
             <div>
-              <p className="brand-name">金岩高新</p>
               <h2>金岩高新人才成长APP</h2>
               <p className="brand-slogan">专业、可信、可追溯的人才档案管理平台</p>
             </div>
