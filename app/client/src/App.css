@@ -1691,10 +1691,11 @@ button:disabled {
   inset: 0;
   background: rgba(12, 20, 45, 0.45);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 24px;
   z-index: 80;
+  overflow: auto;
 }
 
 .modal-card {
@@ -1707,6 +1708,8 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
 }
 
 .modal-card.wide {
