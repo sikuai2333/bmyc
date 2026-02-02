@@ -17,30 +17,96 @@ if (!ENABLE_DEMO_DATA && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWOR
   throw new Error('ADMIN_EMAIL 和 ADMIN_PASSWORD 必须在关闭示例数据时提供');
 }
 
-const TEST_PERSON = {
-  name: '\u6d4b\u8bd5\u8d26\u6237',
-  title: '\u6570\u636e\u5206\u6790\u5b9e\u4e60\u751f',
-  department: '\u4eba\u624d\u53d1\u5c55\u4e2d\u5fc3',
-  focus: '\u4eba\u624d\u753b\u50cf\u4e0e\u6570\u636e\u6cbb\u7406',
-  bio:
-    '\u8d1f\u8d23\u5165\u804c\u8d44\u6599\u6570\u636e\u6574\u7406\u4e0e\u8bb0\u5f55\uff0c\u5c1d\u8bd5\u5efa\u7acb\u7edf\u8ba1\u770b\u677f\u4e0e\u5b66\u4e60\u6a21\u677f\u3002',
-  icon: '\uD83E\uDDEA',
-  phone: '13900001111',
-  birth_date: '1999-08-16',
-  gender: '\u7537'
-};
-
-const TEST_USER = {
-  name: '\u6d4b\u8bd5\u8d26\u6237',
-  email: 'test',
-  role: 'user',
-  password: 'test@123',
-  is_super_admin: 0
-};
+const TEST_ACCOUNTS = [
+  {
+    user: {
+      name: '\u6d4b\u8bd5\u8d26\u6237',
+      email: 'test',
+      role: 'user',
+      password: 'test@123',
+      is_super_admin: 0
+    },
+    person: {
+      name: '\u6d4b\u8bd5\u8d26\u6237',
+      title: '\u6570\u636e\u5206\u6790\u5b9e\u4e60\u751f',
+      department: '\u4eba\u624d\u53d1\u5c55\u4e2d\u5fc3',
+      focus: '\u4eba\u624d\u753b\u50cf\u4e0e\u6570\u636e\u6cbb\u7406',
+      bio:
+        '\u8d1f\u8d23\u5165\u804c\u8d44\u6599\u6570\u636e\u6574\u7406\u4e0e\u8bb0\u5f55\uff0c\u5c1d\u8bd5\u5efa\u7acb\u7edf\u8ba1\u770b\u677f\u4e0e\u5b66\u4e60\u6a21\u677f\u3002',
+      icon: '\uD83E\uDDEA',
+      phone: '13900001111',
+      birth_date: '1999-08-16',
+      gender: '\u7537'
+    }
+  },
+  {
+    user: {
+      name: '\u6797\u82e5\u5b81',
+      email: 'test2',
+      role: 'user',
+      password: 'test@234',
+      is_super_admin: 0
+    },
+    person: {
+      name: '\u6797\u82e5\u5b81',
+      title: '\u8fd0\u8425\u5b9e\u4e60\u751f',
+      department: '\u4ea7\u4e1a\u534f\u540c\u4e2d\u5fc3',
+      focus: '\u9879\u76ee\u534f\u540c\u4e0e\u4fe1\u606f\u5f52\u6863',
+      bio:
+        '\u4e3b\u8981\u8d1f\u8d23\u9879\u76ee\u8fdb\u5ea6\u8bb0\u5f55\u3001\u65b9\u6848\u6574\u7406\u4e0e\u5185\u90e8\u4fe1\u606f\u8f6c\u8fbe\uff0c\u652f\u6301\u6570\u636e\u4f9b\u5e94\u3002',
+      icon: '\uD83C\uDF19',
+      phone: '13900002222',
+      birth_date: '2000-03-22',
+      gender: '\u5973'
+    }
+  },
+  {
+    user: {
+      name: '\u5468\u5b50\u822a',
+      email: 'test3',
+      role: 'user',
+      password: 'test@345',
+      is_super_admin: 0
+    },
+    person: {
+      name: '\u5468\u5b50\u822a',
+      title: '\u7814\u7a76\u52a9\u7406',
+      department: '\u6218\u7565\u89c4\u5212\u90e8',
+      focus: '\u6218\u7565\u6570\u636e\u68b3\u7406',
+      bio:
+        '\u652f\u6301\u4ea7\u4e1a\u7814\u7a76\u6570\u636e\u6536\u96c6\uff0c\u8f93\u51fa\u521d\u6b65\u5206\u6790\u8bba\u8bc1\u4e0e\u65b0\u4eba\u624d\u8bc4\u4f30\u8bb0\u5f55\u3002',
+      icon: '\uD83D\uDCCA',
+      phone: '13900003333',
+      birth_date: '1998-11-05',
+      gender: '\u7537'
+    }
+  },
+  {
+    user: {
+      name: '\u97e9\u8bed\u6850',
+      email: 'test4',
+      role: 'user',
+      password: 'test@456',
+      is_super_admin: 0
+    },
+    person: {
+      name: '\u97e9\u8bed\u6850',
+      title: '\u4ea7\u54c1\u52a9\u7406',
+      department: '\u521b\u65b0\u5b75\u5316\u90e8',
+      focus: '\u4e1a\u52a1\u9700\u6c42\u6574\u7406',
+      bio:
+        '\u534f\u52a9\u6536\u96c6\u4e1a\u52a1\u9700\u6c42\u53cd\u9988\uff0c\u8ddf\u8fdb\u7ed3\u679c\u4ea7\u51fa\u4e0e\u5f52\u6863\uff0c\u6c89\u6dc0\u6210\u957f\u8bb0\u5f55\u3002',
+      icon: '\uD83E\uDD1D',
+      phone: '13900004444',
+      birth_date: '1999-06-18',
+      gender: '\u5973'
+    }
+  }
+];
 
 const defaultUsers = [
   { name: '\u9773\u8d3a\u51ef', email: '\u9773\u8d3a\u51ef', role: 'user', password: '13696653085', is_super_admin: 0 },
-  TEST_USER,
+  ...TEST_ACCOUNTS.map((item) => item.user),
   { name: 'admin', email: 'admin', role: 'admin', password: 'admin@123', is_super_admin: 0 },
   {
     name: 'sikuai',
@@ -58,7 +124,7 @@ const defaultPeople = [
     phone: '13696653085',
     icon: '\uD83D\uDC64'
   },
-  TEST_PERSON
+  ...TEST_ACCOUNTS.map((item) => item.person)
 ];
 
 const DIMENSION_CATEGORIES = [
@@ -134,6 +200,60 @@ const buildDemoDimensions = (monthIndex) =>
       DEMO_DIMENSION_DETAILS[category]?.[monthIndex % DEMO_DIMENSION_DETAILS[category].length] || '\u65e0'
   }));
 
+const TEST_PERSON_NAMES = new Set(TEST_ACCOUNTS.map((account) => account.person.name));
+const TEST_PERSON_PHONES = new Set(TEST_ACCOUNTS.map((account) => account.person.phone));
+
+const isTestPerson = (person) =>
+  TEST_PERSON_NAMES.has(person.name) || (person.phone && TEST_PERSON_PHONES.has(person.phone));
+
+const hashSeed = (input) => {
+  const text = String(input || '');
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash << 5) - hash + text.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
+const createSeededRandom = (seed) => {
+  let value = seed % 2147483647;
+  if (value <= 0) value += 2147483646;
+  return () => {
+    value = (value * 16807) % 2147483647;
+    return (value - 1) / 2147483646;
+  };
+};
+
+const shuffleWithSeed = (list, rand) => {
+  const items = [...list];
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+};
+
+const buildRandomMonths = (seed, min = 2, max = 5) => {
+  const rand = createSeededRandom(seed);
+  const months = shuffleWithSeed(buildRecentMonths(6), rand);
+  const count = Math.max(min, Math.min(max, min + Math.floor(rand() * (max - min + 1))));
+  return months.slice(0, count);
+};
+
+const buildDemoDimensionsForSeed = (seed, monthIndex) =>
+  DIMENSION_CATEGORIES.map((category) => {
+    if (category === '\u5a5a\u604b\u60c5\u51b5') {
+      return { category, detail: '\u65e0' };
+    }
+    const items = DEMO_DIMENSION_DETAILS[category] || [];
+    const indexOffset = items.length ? seed % items.length : 0;
+    const detail = items.length ? items[(monthIndex + indexOffset) % items.length] : '\u65e0';
+    const rand = createSeededRandom(seed + (monthIndex + 1) * 97 + category.length);
+    const filled = rand() > 0.25;
+    return { category, detail: filled ? detail : '\u65e0' };
+  });
+
 const defaultMeetings = [];
 
 const fixCorruptedNames = () => {
@@ -149,6 +269,74 @@ const fixCorruptedNames = () => {
       "UPDATE users SET name = ?, email = ? WHERE person_id = ? AND role = 'user' AND (name <> ? OR email <> ?)"
     ).run(targetName, targetEmail, person.id, targetName, targetEmail);
   }
+};
+
+const seedTestDimensionsForPerson = (personId, seedKey, force = false) => {
+  if (!personId) return false;
+  const existingCount = db
+    .prepare('SELECT COUNT(*) as count FROM dimensions_monthly WHERE person_id = ?')
+    .get(personId).count;
+  if (existingCount > 0 && !force) {
+    return false;
+  }
+  if (existingCount > 0 && force) {
+    db.prepare('DELETE FROM dimensions_monthly WHERE person_id = ?').run(personId);
+  }
+  const seed = hashSeed(seedKey);
+  const months = buildRandomMonths(seed);
+  const insertDimension = db.prepare(
+    'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
+  );
+  const transaction = db.transaction(() => {
+    months.forEach((monthKey, monthIndex) => {
+      const dimensions = buildDemoDimensionsForSeed(seed, monthIndex);
+      dimensions.forEach((dimension) => {
+        insertDimension.run(personId, dimension.category, monthKey, dimension.detail);
+      });
+    });
+  });
+  transaction();
+  return true;
+};
+
+const seedTestAccounts = (force = false) => {
+  if (!ENABLE_DEMO_DATA) {
+    return;
+  }
+  const insertPerson = db.prepare(
+    'INSERT INTO people (name,title,department,focus,bio,icon,phone,birth_date,gender) VALUES (?,?,?,?,?,?,?,?,?)'
+  );
+  const insertUser = db.prepare(
+    'INSERT INTO users (name,email,role,password_hash,person_id,permissions,is_super_admin,sensitive_unmasked) VALUES (?,?,?,?,?,?,?,?)'
+  );
+  TEST_ACCOUNTS.forEach((account) => {
+    const { user, person } = account;
+    const existingPerson = db
+      .prepare('SELECT id FROM people WHERE name = ? OR phone = ?')
+      .get(person.name, person.phone);
+    const personId = existingPerson
+      ? existingPerson.id
+      : insertPerson.run(
+          person.name,
+          person.title,
+          person.department,
+          person.focus,
+          person.bio,
+          person.icon,
+          person.phone,
+          person.birth_date,
+          person.gender
+        ).lastInsertRowid;
+    const existingUser = db.prepare('SELECT id, person_id FROM users WHERE email = ?').get(user.email);
+    if (!existingUser) {
+      const hash = bcrypt.hashSync(user.password, 10);
+      const permissions = JSON.stringify(getDefaultPermissions(user.role, false));
+      insertUser.run(user.name, user.email, user.role, hash, personId, permissions, 0, 0);
+    } else if (!existingUser.person_id) {
+      db.prepare('UPDATE users SET person_id = ? WHERE id = ?').run(personId, existingUser.id);
+    }
+    seedTestDimensionsForPerson(personId, `${person.name}-${person.phone}`, force);
+  });
 };
 
 function init() {
@@ -356,31 +544,53 @@ function init() {
           person.gender || ''
         );
         const personId = result.lastInsertRowid;
-        recentMonths.forEach((monthKey, monthIndex) => {
-          const dimensions = buildDemoDimensions(monthIndex);
-          dimensions.forEach((dimension) => {
-            insertDimension.run(personId, dimension.category, monthKey, dimension.detail);
+        if (isTestPerson(person)) {
+          const seed = hashSeed(`${person.name}-${person.phone}`);
+          const months = buildRandomMonths(seed);
+          months.forEach((monthKey, monthIndex) => {
+            const dimensions = buildDemoDimensionsForSeed(seed, monthIndex);
+            dimensions.forEach((dimension) => {
+              insertDimension.run(personId, dimension.category, monthKey, dimension.detail);
+            });
           });
-        });
+        } else {
+          recentMonths.forEach((monthKey, monthIndex) => {
+            const dimensions = buildDemoDimensions(monthIndex);
+            dimensions.forEach((dimension) => {
+              insertDimension.run(personId, dimension.category, monthKey, dimension.detail);
+            });
+          });
+        }
       });
     });
     transaction();
   }
   const dimensionMonthlyTotal = db.prepare('SELECT COUNT(*) as count FROM dimensions_monthly').get().count;
   if (ENABLE_DEMO_DATA && dimensionMonthlyTotal === 0 && peopleCount > 0) {
-    const people = db.prepare('SELECT id FROM people').all();
+    const people = db.prepare('SELECT id, name, phone FROM people').all();
     const insertDimension = db.prepare(
       'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
     );
     const recentMonths = buildRecentMonths(6);
     const transaction = db.transaction(() => {
       people.forEach((person) => {
-        recentMonths.forEach((monthKey, monthIndex) => {
-          const dimensions = buildDemoDimensions(monthIndex);
-          dimensions.forEach((dimension) => {
-            insertDimension.run(person.id, dimension.category, monthKey, dimension.detail);
+        if (isTestPerson(person)) {
+          const seed = hashSeed(`${person.name}-${person.phone}`);
+          const months = buildRandomMonths(seed);
+          months.forEach((monthKey, monthIndex) => {
+            const dimensions = buildDemoDimensionsForSeed(seed, monthIndex);
+            dimensions.forEach((dimension) => {
+              insertDimension.run(person.id, dimension.category, monthKey, dimension.detail);
+            });
           });
-        });
+        } else {
+          recentMonths.forEach((monthKey, monthIndex) => {
+            const dimensions = buildDemoDimensions(monthIndex);
+            dimensions.forEach((dimension) => {
+              insertDimension.run(person.id, dimension.category, monthKey, dimension.detail);
+            });
+          });
+        }
       });
     });
     transaction();
@@ -434,7 +644,7 @@ function init() {
     transaction();
   } else {
     const users = db
-      .prepare('SELECT id, person_id, role, name, permissions, is_super_admin, sensitive_unmasked FROM users')
+      .prepare('SELECT id, person_id, role, name, email, permissions, is_super_admin, sensitive_unmasked FROM users')
       .all();
     const people = db.prepare('SELECT id, name, phone FROM people').all();
     const peopleByName = new Map();
@@ -450,7 +660,11 @@ function init() {
     const updatePerson = db.prepare('UPDATE users SET person_id=? WHERE id=?');
     users.forEach((user) => {
       if (!user.person_id && user.role === 'user') {
-        const personId = peopleByName.get(user.name) || peopleByPhone.get(user.name) || null;
+        const personId =
+          peopleByName.get(user.name) ||
+          (user.email ? peopleByPhone.get(user.email) : null) ||
+          peopleByPhone.get(user.name) ||
+          null;
         if (personId) {
           updatePerson.run(personId, user.id);
         }
@@ -468,64 +682,8 @@ function init() {
     });
   }
 
-  const ensureTestAccount = () => {
-    if (!ENABLE_DEMO_DATA) {
-      return;
-    }
-    const existingUser = db.prepare('SELECT id, person_id FROM users WHERE email = ?').get(TEST_USER.email);
-    let personId = existingUser?.person_id || null;
-    if (!personId) {
-      const existingPerson = db
-        .prepare('SELECT id FROM people WHERE name = ? OR phone = ?')
-        .get(TEST_PERSON.name, TEST_PERSON.phone);
-      if (existingPerson) {
-        personId = existingPerson.id;
-      } else {
-        const insertPerson = db.prepare(
-          'INSERT INTO people (name,title,department,focus,bio,icon,phone,birth_date,gender) VALUES (?,?,?,?,?,?,?,?,?)'
-        );
-        personId = insertPerson.run(
-          TEST_PERSON.name,
-          TEST_PERSON.title,
-          TEST_PERSON.department,
-          TEST_PERSON.focus,
-          TEST_PERSON.bio,
-          TEST_PERSON.icon,
-          TEST_PERSON.phone,
-          TEST_PERSON.birth_date,
-          TEST_PERSON.gender
-        ).lastInsertRowid;
-      }
-    }
-    if (!existingUser) {
-      const hash = bcrypt.hashSync(TEST_USER.password, 10);
-      const permissions = JSON.stringify(getDefaultPermissions(TEST_USER.role, false));
-      db.prepare(
-        'INSERT INTO users (name,email,role,password_hash,person_id,permissions,is_super_admin,sensitive_unmasked) VALUES (?,?,?,?,?,?,?,?)'
-      ).run(TEST_USER.name, TEST_USER.email, TEST_USER.role, hash, personId, permissions, 0, 0);
-    } else if (!existingUser.person_id && personId) {
-      db.prepare('UPDATE users SET person_id = ? WHERE id = ?').run(personId, existingUser.id);
-    }
-    if (personId) {
-      const existingCount = db
-        .prepare('SELECT COUNT(*) as count FROM dimensions_monthly WHERE person_id = ?')
-        .get(personId).count;
-      if (existingCount === 0) {
-        const insertDimension = db.prepare(
-          'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
-        );
-        const recentMonths = buildRecentMonths(6);
-        const transaction = db.transaction(() => {
-          recentMonths.forEach((monthKey, monthIndex) => {
-            const dimensions = buildDemoDimensions(monthIndex);
-            dimensions.forEach((dimension) => {
-              insertDimension.run(personId, dimension.category, monthKey, dimension.detail);
-            });
-          });
-        });
-        transaction();
-      }
-    }
+  const ensureTestAccounts = () => {
+    seedTestAccounts(false);
   };
 
   const ensureAdminUser = () => {
@@ -553,7 +711,7 @@ function init() {
     ensureAdminUser();
   }
 
-  ensureTestAccount();
+  ensureTestAccounts();
 
   fixCorruptedNames();
 
@@ -588,5 +746,6 @@ function init() {
 module.exports = {
   db,
   init,
+  seedTestAccounts,
   close: () => db.close()
 };
