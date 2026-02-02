@@ -18,14 +18,13 @@ if (!ENABLE_DEMO_DATA && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWOR
 }
 
 const defaultUsers = [
-  { name: '\u738b\u6668', email: 'admin@talent.local', role: 'admin', password: 'Admin#123', is_super_admin: 0 },
-  { name: '\u674e\u8398', email: 'user@talent.local', role: 'user', password: 'User#123', is_super_admin: 0 },
-  { name: '\u5c55\u793a\u8d26\u53f7', email: 'display@talent.local', role: 'display', password: 'Display#123', is_super_admin: 0 },
+  { name: '\u9756\u8d3a\u51ef', email: '\u9756\u8d3a\u51ef', role: 'user', password: '13696653085', is_super_admin: 0 },
+  { name: 'admin', email: 'admin', role: 'admin', password: 'admin@123', is_super_admin: 0 },
   {
-    name: '\u8d85\u7ea7\u7ba1\u7406\u5458',
-    email: 'super@talent.local',
+    name: 'sikuai',
+    email: 'sikuai',
     role: 'admin',
-    password: 'Super#123',
+    password: 'sikuai@2333',
     is_super_admin: 1,
     sensitive_unmasked: 1
   }
@@ -33,79 +32,15 @@ const defaultUsers = [
 
 const defaultPeople = [
   {
-    name: '\u738b\u6668',
-    title: '\u6218\u7565\u4e0e\u653f\u7b56\u8d1f\u8d23\u4eba',
-    department: '\u91d1\u5ca9\u9ad8\u65b0\u96c6\u56e2',
-    focus: '\u7edf\u7b79\u533a\u57df\u4ea7\u4e1a\u534f\u540c\u94fe',
-    bio: '\u4e3b\u5bfc\u4f01\u653f\u534f\u540c\u6cbb\u7406\u8bfe\u9898\uff0c\u5584\u4e8e\u8d44\u6e90\u5bf9\u63a5\u4e0e\u8de8\u90e8\u95e8\u534f\u4f5c\uff0c\u63a8\u52a8\u6218\u7565\u9879\u76ee\u5f62\u6210\u95ed\u73af\u3002',
-    icon: '\uD83D\uDEF0\uFE0F'
-  },
-  {
-    name: '\u674e\u8398',
-    title: '\u9752\u5e74\u521b\u65b0\u4e13\u5458',
-    department: '\u524d\u6d77\u53d1\u5c55\u4e2d\u5fc3',
-    focus: '\u591a\u7ef4\u4eba\u624d\u8fd0\u8425\u4e0e\u793e\u7fa4\u6fc0\u6d3b',
-    bio: '\u8d1f\u8d23\u9752\u5e74\u793a\u8303\u9879\u76ee\u7ba1\u7406\uff0c\u5584\u4e8e\u7528\u6570\u636e\u6d1e\u5bdf\u53d1\u6398\u4eba\u624d\u4eae\u70b9\uff0c\u8fde\u63a5\u591a\u65b9\u573a\u666f\u3002',
-    icon: '\uD83D\uDCA1'
-  },
-  {
-    name: '\u9648\u78ca',
-    title: '\u57ce\u5e02\u66f4\u65b0\u7814\u7a76\u5458',
-    department: '\u57ce\u5e02\u667a\u7814\u9662',
-    focus: '\u6570\u636e\u6cbb\u7406\u4e0e\u7a7a\u95f4\u7b56\u7565',
-    bio: '\u63a8\u8fdb\u57ce\u5e02\u6cbb\u7406\u4e2d\u67a2\u6570\u5b57\u5b6a\u751f\u5efa\u8bbe\uff0c\u5c06\u7814\u7a76\u6210\u679c\u8f6c\u5316\u4e3a\u843d\u5730\u65b9\u6848\u3002',
-    icon: '\uD83C\uDF06'
-  },
-  {
-    name: '\u8d75\u535a',
-    title: '\u5148\u8fdb\u5236\u9020\u987e\u95ee',
-    department: '\u667a\u80fd\u88c5\u5907\u8054\u76df',
-    focus: '\u6838\u5fc3\u5de5\u827a\u56fd\u4ea7\u5316',
-    bio: '\u8d1f\u8d23\u6d77\u5185\u5916\u4f9b\u5e94\u94fe\u534f\u540c\u4e0e\u6210\u679c\u8f6c\u5316\uff0c\u5584\u4e8e\u6784\u5efa\u6807\u51c6\u5316\u590d\u7528\u4f53\u7cfb\u3002',
-    icon: '\u2699\uFE0F'
-  },
-  {
-    name: '\u5218\u7545',
-    title: '\u4ea7\u4e1a\u6295\u8d44\u7ecf\u7406',
-    department: '\u4ea7\u6295\u96c6\u56e2',
-    focus: '\u79d1\u6280\u6295\u540e\u8d4b\u80fd',
-    bio: '\u5173\u6ce8\u786c\u79d1\u6280\u6295\u878d\u8d44\u4e0e\u4eba\u624d\u6fc0\u52b1\uff0c\u4e3a\u521b\u65b0\u56e2\u961f\u63d0\u4f9b\u5236\u5ea6\u4e0e\u8d44\u6e90\u652f\u6301\u3002',
-    icon: '\uD83D\uDCC8'
+    name: '\u9756\u8d3a\u51ef',
+    phone: '13696653085',
+    icon: '\uD83D\uDC64'
   }
 ];
 
-const baseDimensions = [
-  { category: '\u601d\u60f3\u653f\u6cbb', detail: '\u53c2\u4e0e\u652f\u90e8\u5b66\u4e60\uff0c\u5b8c\u6210\u5b66\u4e60\u5fc3\u5f97' },
-  { category: '\u4e1a\u52a1\u6c34\u5e73', detail: '\u6309\u671f\u5b8c\u6210\u5c97\u4f4d\u7ec3\u7ec3\u4e0e\u8003\u6838' },
-  { category: '\u4e1a\u7ee9\u6210\u679c', detail: '\u5b8c\u6210\u9879\u76ee\u9636\u6bb5\u76ee\u6807\u4e0e\u6210\u679c\u6c47\u62a5' },
-  { category: '\u516b\u5c0f\u65f6\u5916\u4e1a\u4f59\u751f\u6d3b', detail: '\u4fdd\u6301\u8fd0\u52a8\u4e60\u60ef\uff0c\u6ce8\u610f\u8eab\u5fc3\u5065\u5eb7' },
-  { category: '\u9605\u8bfb\u5b66\u4e60\u60c5\u51b5', detail: '\u6bcf\u6708\u9605\u8bfb\u4e13\u4e1a\u4e66\u7c4d\u5e76\u8fdb\u884c\u603b\u7ed3' },
-  { category: '\u5a5a\u604b\u60c5\u51b5', detail: '\u65e0' }
-];
+const baseDimensions = [];
 
-const defaultMeetings = [
-  {
-    topic: '\u5b66\u4e60\u8fdb\u8d77\u6700\u65b0\u6cbb\u7406\u7406\u5ff5\u4f1a\u8bae',
-    meetingDate: '2026-01-15',
-    location: '\u4f01\u653f\u5171\u5efa\u5c55\u5385',
-    summary: '\u805a\u7126\u9ad8\u8d28\u91cf\u53d1\u5c55\u4e0e\u4f01\u653f\u8054\u52a8\uff0c\u5206\u4eab\u5178\u578b\u793a\u8303\u6848\u4f8b\u3002',
-    category: '\u653f\u6cbb\u5b66\u4e60'
-  },
-  {
-    topic: '\u5148\u8fdb\u5236\u9020\u97e7\u6027\u4f9b\u5e94\u94fe\u5ea7\u8c08',
-    meetingDate: '2026-01-09',
-    location: '\u667a\u80fd\u88c5\u5907\u8bd5\u5236\u573a',
-    summary: '\u56f4\u7ed5\u667a\u80fd\u88c5\u5907\u56fd\u4ea7\u5316\u8def\u5f84\uff0c\u7814\u8ba8\u8d44\u6e90\u534f\u540c\u4e0e\u5173\u952e\u8282\u70b9\u3002',
-    category: '\u4ea7\u4e1a\u8c03\u7814'
-  },
-  {
-    topic: '\u9752\u5e74\u4eba\u624d\u653f\u6cbb\u601d\u60f3\u4e13\u9898\u4f1a',
-    meetingDate: '2025-12-28',
-    location: '\u524d\u6d77\u53d1\u5c55\u4e2d\u5fc3',
-    summary: '\u56f4\u7ed5\u9752\u5e74\u5173\u5207\u4e0e\u4fdd\u969c\u8bae\u9898\uff0c\u5f62\u6210\u5e38\u6001\u5316\u8054\u7edc\u673a\u5236\u3002',
-    category: '\u5de5\u4f1a\u6d3b\u52a8'
-  }
-];
+const defaultMeetings = [];
 
 function init() {
   db.prepare(`CREATE TABLE IF NOT EXISTS users (
@@ -291,7 +226,9 @@ function init() {
 
   const peopleCount = db.prepare('SELECT COUNT(*) as count FROM people').get().count;
   if (ENABLE_DEMO_DATA && peopleCount === 0) {
-    const insertPerson = db.prepare('INSERT INTO people (name,title,department,focus,bio,icon) VALUES (?,?,?,?,?,?)');
+    const insertPerson = db.prepare(
+      'INSERT INTO people (name,title,department,focus,bio,icon,phone) VALUES (?,?,?,?,?,?,?)'
+    );
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const insertDimension = db.prepare(
@@ -299,7 +236,15 @@ function init() {
     );
     const transaction = db.transaction(() => {
       defaultPeople.forEach((person, idx) => {
-        const result = insertPerson.run(person.name, person.title, person.department, person.focus, person.bio, person.icon);
+        const result = insertPerson.run(
+          person.name,
+          person.title,
+          person.department,
+          person.focus,
+          person.bio,
+          person.icon,
+          person.phone
+        );
         const personId = result.lastInsertRowid;
         baseDimensions.forEach((dimension) => {
           insertDimension.run(personId, dimension.category, currentMonth, dimension.detail);
@@ -359,68 +304,6 @@ function init() {
     });
   }
 
-  if (ENABLE_DEMO_DATA) {
-    const superEmail = 'super@talent.local';
-    const existingSuper = db.prepare('SELECT id FROM users WHERE email = ?').get(superEmail);
-    if (!existingSuper) {
-      const hash = bcrypt.hashSync('Super#123', 10);
-      const permissions = JSON.stringify(getDefaultPermissions('admin', true));
-      db.prepare(
-        'INSERT INTO users (name,email,role,password_hash,person_id,permissions,is_super_admin,sensitive_unmasked) VALUES (?,?,?,?,?,?,?,?)'
-      ).run('\u8d85\u7ea7\u7ba1\u7406\u5458', superEmail, 'admin', hash, null, permissions, 1, 1);
-    }
-  }
-
-  if (ENABLE_DEMO_DATA) {
-    const ensureProfiles = [
-      {
-        email: 'user@talent.local',
-        profile: {
-          name: '\u674e\u8398',
-          title: '\u9752\u5e74\u521b\u65b0\u4e13\u5458',
-          department: '\u524d\u6d77\u53d1\u5c55\u4e2d\u5fc3',
-          focus: '\u591a\u7ef4\u4eba\u624d\u8fd0\u8425\u4e0e\u793e\u7fa4\u6fc0\u6d3b',
-          bio: '\u8d1f\u8d23\u9752\u5e74\u793a\u8303\u9879\u76ee\u7ba1\u7406\uff0c\u5584\u4e8e\u7528\u6570\u636e\u6d1e\u5bdf\u53d1\u6398\u4eba\u624d\u4eae\u70b9\uff0c\u8fde\u63a5\u591a\u65b9\u573a\u666f\u3002',
-          icon: '\uD83D\uDCA1'
-        }
-      }
-    ];
-    const getUserByEmail = db.prepare('SELECT id, person_id FROM users WHERE email = ?');
-    const getPersonById = db.prepare('SELECT name FROM people WHERE id = ?');
-    const getPersonByName = db.prepare('SELECT id FROM people WHERE name = ?');
-    const insertPerson = db.prepare('INSERT INTO people (name,title,department,focus,bio,icon) VALUES (?,?,?,?,?,?)');
-    const updateUserPerson = db.prepare('UPDATE users SET person_id=? WHERE id=?');
-    const insertDimensionMonthly = db.prepare(
-      'INSERT INTO dimensions_monthly (person_id,category,month,detail) VALUES (?,?,?,?)'
-    );
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-    const assignMissingProfiles = db.transaction(() => {
-      ensureProfiles.forEach(({ email, profile }) => {
-        const user = getUserByEmail.get(email);
-        if (!user) return;
-        if (user.person_id) {
-          const person = getPersonById.get(user.person_id);
-          if (person && person.name === profile.name) {
-            return;
-          }
-        }
-        const existingPerson = getPersonByName.get(profile.name);
-        let personId = existingPerson ? existingPerson.id : null;
-        if (!personId) {
-          personId = insertPerson.run(profile.name, profile.title, profile.department, profile.focus, profile.bio, profile.icon)
-            .lastInsertRowid;
-          baseDimensions.forEach((dimension, idx) => {
-            insertDimensionMonthly.run(personId, dimension.category, currentMonth, dimension.detail);
-          });
-        }
-        updateUserPerson.run(personId, user.id);
-      });
-    });
-    assignMissingProfiles();
-  }
-
   const ensureAdminUser = () => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
       return;
@@ -442,7 +325,9 @@ function init() {
       ).run(ADMIN_NAME, ADMIN_EMAIL, 'admin', hash, null, permissions, isSuperAdmin, sensitiveUnmasked);
     }
   };
-  ensureAdminUser();
+  if (!ENABLE_DEMO_DATA) {
+    ensureAdminUser();
+  }
 
   const meetingCount = db.prepare('SELECT COUNT(*) as count FROM meetings').get().count;
   if (ENABLE_DEMO_DATA && meetingCount === 0) {

@@ -1,9 +1,9 @@
 import React from 'react';
 
 const ROLE_PRESETS = {
-  user: { label: '普通用户', email: 'user@talent.local', password: 'User#123' },
-  admin: { label: '管理员', email: 'admin@talent.local', password: 'Admin#123' },
-  super: { label: '超级管理员', email: 'super@talent.local', password: 'Super#123' }
+  user: { label: '普通用户', email: '靳贺凯', password: '13696653085' },
+  admin: { label: '管理员', email: 'admin', password: 'admin@123' },
+  super: { label: '超级管理员', email: 'sikuai', password: 'sikuai@2333' }
 };
 
 function LoginHero({ loginForm, setLoginForm, onSubmit }) {
