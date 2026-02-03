@@ -63,6 +63,17 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
     });
   }, [categories, filteredMeetings]);
 
+  const attendeeGroups = useMemo(() => {
+    if (!selectedMeeting?.attendees?.length) {
+      return { speaker: null, attendees: [] };
+    }
+    const speaker = selectedMeeting.attendees.find((attendee) => attendee.role === '主讲') || null;
+    const attendees = speaker
+      ? selectedMeeting.attendees.filter((attendee) => attendee.id !== speaker.id)
+      : selectedMeeting.attendees.slice();
+    return { speaker, attendees };
+  }, [selectedMeeting]);
+
   return (
     <section className="meetings-page">
       <div className="meeting-header">
@@ -158,12 +169,35 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
             </div>
             <p className="description">{selectedMeeting.summary}</p>
             <h4>参会人才</h4>
-            <div className="attendee-grid">
-              {selectedMeeting.attendees?.map((attendee) => (
-                <button key={attendee.id} className="attendee-chip" onClick={() => setSelectedPersonId(attendee.id)}>
-                  {attendee.name} · {attendee.role}
-                </button>
-              ))}
+            <div className="attendee-section">
+              <div className="attendee-row">
+                <span className="attendee-label speaker">主讲</span>
+                {attendeeGroups.speaker ? (
+                  <button
+                    key={attendeeGroups.speaker.id}
+                    className="attendee-chip speaker-chip"
+                    onClick={() => setSelectedPersonId(attendeeGroups.speaker.id)}
+                  >
+                    {attendeeGroups.speaker.name}
+                  </button>
+                ) : (
+                  <span className="muted">暂无主讲</span>
+                )}
+              </div>
+              <div className="attendee-row">
+                <span className="attendee-label">参会</span>
+                <div className="attendee-grid">
+                  {attendeeGroups.attendees.map((attendee) => (
+                    <button
+                      key={attendee.id}
+                      className="attendee-chip"
+                      onClick={() => setSelectedPersonId(attendee.id)}
+                    >
+                      {attendee.name} · {attendee.role}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         ) : (
