@@ -114,7 +114,6 @@ function EvaluationPage({
           <div className="panel evaluation-form-panel">
             <div className="panel-head">
               <h3>新增评价</h3>
-              <p className="panel-subtitle">由领导填写季度/年度评价</p>
             </div>
             <form className="admin-form evaluation-form" onSubmit={handleSubmit}>
               <label>
