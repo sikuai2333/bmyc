@@ -42,10 +42,12 @@ function PersonalCenterPage({
   const [activeSection, setActiveSection] = useState('profile');
   const [form, setForm] = useState({
     name: '',
+    category: '',
     issuedDate: '',
     description: '',
     file: null
   });
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [growthForm, setGrowthForm] = useState({
     eventDate: '',
     title: '',
@@ -93,6 +95,7 @@ function PersonalCenterPage({
       const payload = new FormData();
       payload.append('personId', selectedPerson.id);
       payload.append('name', form.name.trim());
+      payload.append('category', form.category.trim());
       payload.append('issuedDate', form.issuedDate);
       payload.append('description', form.description.trim());
       if (form.file) {
@@ -102,7 +105,8 @@ function PersonalCenterPage({
         headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' }
       });
       setCertificates((prev) => [data, ...prev]);
-      setForm({ name: '', issuedDate: '', description: '', file: null });
+      setForm({ name: '', category: '', issuedDate: '', description: '', file: null });
+      setFileInputKey((prev) => prev + 1);
       setToast('证书已上传');
     } catch (error) {
       setToast(error.response?.data?.message || '上传失败');
@@ -429,7 +433,10 @@ function PersonalCenterPage({
                   {certificates.map((item) => (
                     <div key={item.id} className="certificate-card">
                       <div>
-                        <strong>{item.name}</strong>
+                        <div className="certificate-head">
+                          <strong>{item.name}</strong>
+                          {item.category && <span className="tag-pill">{item.category}</span>}
+                        </div>
                         <span>{item.issued_date || '未填写时间'}</span>
                         <p>{item.description || '暂无描述'}</p>
                       </div>
@@ -464,6 +471,11 @@ function PersonalCenterPage({
                     />
                     <div className="form-row">
                       <input
+                        placeholder="证书分类（可选）"
+                        value={form.category}
+                        onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
+                      />
+                      <input
                         type="date"
                         value={form.issuedDate}
                         onChange={(event) => setForm((prev) => ({ ...prev, issuedDate: event.target.value }))}
@@ -471,6 +483,7 @@ function PersonalCenterPage({
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
+                        key={fileInputKey}
                         onChange={(event) => setForm((prev) => ({ ...prev, file: event.target.files?.[0] || null }))}
                       />
                     </div>

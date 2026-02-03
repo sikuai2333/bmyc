@@ -165,7 +165,7 @@ function LoginHero({
                 checked={rememberAccount}
                 onChange={(event) => setRememberAccount(event.target.checked)}
               />
-              记住账户密码
+              记住账号
             </label>
             <div className="assist-links">
               <button className="text-link" type="button" onClick={onRegister}>

@@ -69,7 +69,7 @@ function GrowthPage({
   };
 
   return (
-    <section className="module-page">
+    <section className="module-page growth-page">
       <aside className="talent-sidebar">
         <div className="talent-filters">
           <div className="panel-subtitle">人员筛选</div>

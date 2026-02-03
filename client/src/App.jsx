@@ -81,8 +81,13 @@ const createEmptyDimensions = () =>
 const NAV_ITEMS = [
   { label: '大屏总览', path: '/' },
   { label: '档案清单', path: '/talent' },
-  { label: '评价管理', path: '/evaluations', requiresPermission: 'evaluations.edit' },
-  { label: '成长轨迹', path: '/growth' },
+  { label: '评价管理', path: '/evaluations', requiresPermission: 'evaluations.view' },
+  {
+    label: '成长轨迹',
+    path: '/growth',
+    requiresAnyPermission: ['growth.view.all', 'growth.edit.self', 'growth.edit.all']
+  },
+  { label: '证书管理', path: '/certificates', requiresPermission: 'certificates.view' },
   { label: '会议活动', path: '/meetings' },
   { label: '管理后台', path: '/profile', restricted: true }
 ];
@@ -225,6 +230,10 @@ function AppShell() {
   const canManageUsers = hasPerm('users.manage') || hasPerm('permissions.manage');
 
   const canManagePermissions = hasPerm('permissions.manage');
+  const canViewGrowth =
+    hasPerm('growth.view.all') || hasPerm('growth.edit.self') || hasPerm('growth.edit.all');
+  const canViewCertificates = hasPerm('certificates.view');
+  const canViewEvaluations = hasPerm('evaluations.view');
 
   const roleLabel = user
 
@@ -402,7 +411,7 @@ function AppShell() {
     }
     const fetchExtras = async () => {
       const requests = {
-        evaluations: hasPerm('evaluations.view')
+        evaluations: canViewEvaluations
           ? axios.get(`${API_BASE}/evaluations`, {
               ...authHeaders,
               params: { personId: selectedPersonId }
@@ -981,11 +990,14 @@ function AppShell() {
           </div>
 
           <nav className="global-nav">
-            {NAV_ITEMS.filter(
-              (item) =>
-                (item.path !== '/profile' || isAdmin) &&
-                (!item.requiresPermission || hasPerm(item.requiresPermission))
-            ).map((item) => (
+            {NAV_ITEMS.filter((item) => {
+              if (item.path === '/profile' && !isAdmin) return false;
+              if (item.requiresPermission && !hasPerm(item.requiresPermission)) return false;
+              if (item.requiresAnyPermission && !item.requiresAnyPermission.some((perm) => hasPerm(perm))) {
+                return false;
+              }
+              return true;
+            }).map((item) => (
               <button
                 key={item.path}
                 className={`nav-link ${
@@ -1186,7 +1198,7 @@ function AppShell() {
 
               element={
 
-                hasPerm('evaluations.view') ? (
+                canViewEvaluations ? (
                   <EvaluationPage
                     people={people}
                     selectedPerson={selectedPerson}
@@ -1212,27 +1224,21 @@ function AppShell() {
 
               element={
 
-                <GrowthPage
-
-                  people={people}
-
-                  selectedPerson={selectedPerson}
-
-                  setSelectedPersonId={setSelectedPersonId}
-
-                  growthEvents={growthEvents}
-
-                  setGrowthEvents={setGrowthEvents}
-
-                  canEditGrowth={canEditGrowth}
-
-                  apiBase={API_BASE}
-
-                  authHeaders={authHeaders}
-
-                  setToast={setToast}
-
-                />
+                canViewGrowth ? (
+                  <GrowthPage
+                    people={people}
+                    selectedPerson={selectedPerson}
+                    setSelectedPersonId={setSelectedPersonId}
+                    growthEvents={growthEvents}
+                    setGrowthEvents={setGrowthEvents}
+                    canEditGrowth={canEditGrowth}
+                    apiBase={API_BASE}
+                    authHeaders={authHeaders}
+                    setToast={setToast}
+                  />
+                ) : (
+                  <Navigate to="/" replace />
+                )
 
               }
 
@@ -1244,27 +1250,21 @@ function AppShell() {
 
               element={
 
-                <CertificatesPage
-
-                  people={people}
-
-                  selectedPerson={selectedPerson}
-
-                  setSelectedPersonId={setSelectedPersonId}
-
-                  certificates={certificates}
-
-                  setCertificates={setCertificates}
-
-                  canManageCertificates={canManageCertificates}
-
-                  apiBase={API_BASE}
-
-                  authHeaders={authHeaders}
-
-                  setToast={setToast}
-
-                />
+                canViewCertificates ? (
+                  <CertificatesPage
+                    people={people}
+                    selectedPerson={selectedPerson}
+                    setSelectedPersonId={setSelectedPersonId}
+                    certificates={certificates}
+                    setCertificates={setCertificates}
+                    canManageCertificates={canManageCertificates}
+                    apiBase={API_BASE}
+                    authHeaders={authHeaders}
+                    setToast={setToast}
+                  />
+                ) : (
+                  <Navigate to="/" replace />
+                )
 
               }
 

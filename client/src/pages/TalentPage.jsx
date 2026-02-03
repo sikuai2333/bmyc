@@ -210,38 +210,15 @@ function TalentPage({
 
           
 
-          <div className="filter-tags">
-
-            <span>当前条件：</span>
-
-            <div>
-
-              <span className="filter-tag">{department}</span>
-
-              {search && <span className="filter-tag">{'\u5173\u952e\u8bcd\uff1a'}{search}</span>}
-
-            </div>
-
-            <button
-
-              className="ghost-button slim"
-
-              onClick={() => {
-
-                setSearch('');
-
-                setDepartment('全部');
-
-
-              }}
-
-            >
-
-              重置
-
-            </button>
-
-          </div>
+          <button
+            className="ghost-button slim"
+            onClick={() => {
+              setSearch('');
+              setDepartment('全部');
+            }}
+          >
+            重置
+          </button>
 
         </div>
 
@@ -383,17 +360,20 @@ function TalentPage({
               </div>
               <div className="meeting-panel">
                 <h5>{'\u53c2\u4f1a\u4f1a\u8bae'}</h5>
-                {relatedMeetings.length === 0 && (
-                  <p className="muted">{'\u6682\u65e0\u53c2\u4f1a\u8bb0\u5f55\u3002'}</p>
-                )}
-                {relatedMeetings.map((meeting) => (
-                  <div key={meeting.id} className="meeting-chip">
-                    <p className="name">{meeting.topic}</p>
-                    <p className="meta">
-                      {meeting.meetingDate} {'\u00b7'} {meeting.location}
-                    </p>
-                  </div>
-                ))}
+                <div className="meeting-list-scroll">
+                  {relatedMeetings.length === 0 ? (
+                    <p className="muted">{'\u6682\u65e0\u53c2\u4f1a\u8bb0\u5f55\u3002'}</p>
+                  ) : (
+                    relatedMeetings.map((meeting) => (
+                      <div key={meeting.id} className="meeting-chip">
+                        <p className="name">{meeting.topic}</p>
+                        <p className="meta">
+                          {meeting.meetingDate} {'\u00b7'} {meeting.location}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </>
           ) : (

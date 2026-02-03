@@ -85,7 +85,8 @@ function AdminPage({
     location: '',
     summary: '',
     category: MEETING_CATEGORY_TAGS[0],
-    attendeeIds: []
+    attendeeIds: [],
+    speakerIds: []
   });
   const [meetingFilter, setMeetingFilter] = useState('全部');
   const [permissionCatalog, setPermissionCatalog] = useState([]);
@@ -118,12 +119,6 @@ function AdminPage({
     };
     fetchPermissions();
   }, [canManagePermissions, activePanel, apiBase, authHeaders, setToast]);
-
-  useEffect(() => {
-    if (!permissionTargetId && users.length) {
-      setPermissionTargetId(users[0].id);
-    }
-  }, [permissionTargetId, users]);
 
   useEffect(() => {
     if (!permissionTargetId) return;
@@ -193,6 +188,19 @@ function AdminPage({
       account.name.includes(accountSearch) || account.email.includes(accountSearch)
     );
   }, [visibleUsers, accountSearch]);
+
+  useEffect(() => {
+    if (!permissionTargetId && visibleUsers.length) {
+      setPermissionTargetId(visibleUsers[0].id);
+    }
+  }, [permissionTargetId, visibleUsers]);
+
+  useEffect(() => {
+    if (!permissionTargetId) return;
+    if (!visibleUsers.some((account) => account.id === permissionTargetId)) {
+      setPermissionTargetId(visibleUsers[0]?.id || null);
+    }
+  }, [permissionTargetId, visibleUsers]);
 
   const resetPersonAccountForm = () => {
     setPersonAccountForm({
@@ -463,21 +471,47 @@ function AdminPage({
   const toggleAttendee = (personId) => {
     setMeetingForm((prev) => {
       const exists = prev.attendeeIds.includes(personId);
+      const nextAttendeeIds = exists
+        ? prev.attendeeIds.filter((eid) => eid !== personId)
+        : [...prev.attendeeIds, personId];
+      const nextSpeakerIds = exists
+        ? prev.speakerIds.filter((eid) => eid !== personId)
+        : prev.speakerIds;
       return {
         ...prev,
-        attendeeIds: exists
-          ? prev.attendeeIds.filter((eid) => eid !== personId)
-          : [...prev.attendeeIds, personId]
+        attendeeIds: nextAttendeeIds,
+        speakerIds: nextSpeakerIds
+      };
+    });
+  };
+
+  const toggleSpeaker = (personId) => {
+    setMeetingForm((prev) => {
+      const isSpeaker = prev.speakerIds.includes(personId);
+      const nextSpeakerIds = isSpeaker
+        ? prev.speakerIds.filter((eid) => eid !== personId)
+        : [...prev.speakerIds, personId];
+      const nextAttendeeIds = prev.attendeeIds.includes(personId)
+        ? prev.attendeeIds
+        : [...prev.attendeeIds, personId];
+      return {
+        ...prev,
+        attendeeIds: nextAttendeeIds,
+        speakerIds: nextSpeakerIds
       };
     });
   };
 
   const clearAttendees = () => {
-    setMeetingForm((prev) => ({ ...prev, attendeeIds: [] }));
+    setMeetingForm((prev) => ({ ...prev, attendeeIds: [], speakerIds: [] }));
   };
 
   const selectAllAttendees = () => {
-    setMeetingForm((prev) => ({ ...prev, attendeeIds: people.map((person) => person.id) }));
+    setMeetingForm((prev) => ({
+      ...prev,
+      attendeeIds: people.map((person) => person.id),
+      speakerIds: prev.speakerIds
+    }));
   };
 
   const handleMeetingSubmit = async (event) => {
@@ -495,7 +529,7 @@ function AdminPage({
         category: meetingForm.category,
         attendees: meetingForm.attendeeIds.map((personId) => ({
           personId,
-          role: '参会'
+          role: meetingForm.speakerIds.includes(personId) ? '主讲' : '参会'
         }))
       };
       const { data } = await axios.post(`${apiBase}/meetings`, payload, authHeaders);
@@ -506,7 +540,8 @@ function AdminPage({
         location: '',
         summary: '',
         category: meetingForm.category,
-        attendeeIds: []
+        attendeeIds: [],
+        speakerIds: []
       });
       triggerDataRefresh();
       setToast('会议已创建');
@@ -734,7 +769,7 @@ function AdminPage({
                   <div className="permission-users">
                     <h4>选择账号</h4>
                     <div className="admin-list scrollable">
-                      {users.map((account) => (
+                      {visibleUsers.map((account) => (
                         <button
                           key={account.id}
                           className={`admin-list-item ${permissionTargetId === account.id ? 'active' : ''}`}
@@ -871,7 +906,25 @@ function AdminPage({
                       </label>
                     ))}
                   </div>
-                  {attendeeSummary.length === 0 && <p className="muted">尚未选择参会人员。</p>}
+                  <div className="speaker-selector">
+                    <p className="panel-subtitle">选择主讲（可多选）</p>
+                    {attendeeSummary.length === 0 ? (
+                      <p className="muted">请先选择参会人员。</p>
+                    ) : (
+                      <div className="meeting-tags">
+                        {attendeeSummary.map((person) => (
+                          <button
+                            key={person.id}
+                            type="button"
+                            className={`tag-pill ${meetingForm.speakerIds.includes(person.id) ? 'active' : ''}`}
+                            onClick={() => toggleSpeaker(person.id)}
+                          >
+                            {person.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <button className="primary-button" type="submit">
                   保存会议

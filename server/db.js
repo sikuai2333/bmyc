@@ -562,6 +562,7 @@ function init() {
       person_id INTEGER NOT NULL,
       name TEXT NOT NULL,
       issued_date TEXT,
+      category TEXT,
       file_path TEXT,
       description TEXT,
       uploaded_by INTEGER,
@@ -569,6 +570,12 @@ function init() {
       FOREIGN KEY(person_id) REFERENCES people(id),
       FOREIGN KEY(uploaded_by) REFERENCES users(id)
     )`).run();
+
+  const certificateColumns = db.prepare('PRAGMA table_info(certificates)').all();
+  const hasCertificateCategory = certificateColumns.some((column) => column.name === 'category');
+  if (!hasCertificateCategory) {
+    db.prepare("ALTER TABLE certificates ADD COLUMN category TEXT DEFAULT ''").run();
+  }
 
   db.prepare(`CREATE TABLE IF NOT EXISTS audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

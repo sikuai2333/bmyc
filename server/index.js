@@ -2380,7 +2380,7 @@ app.get('/api/certificates', authenticate, requirePermission('certificates.view'
 
 app.post('/api/certificates', authenticate, upload.single('file'), (req, res) => {
 
-  const { personId, name, issuedDate, description } = req.body;
+  const { personId, name, issuedDate, description, category } = req.body;
 
   if (!personId || !name) {
 
@@ -2398,7 +2398,7 @@ app.post('/api/certificates', authenticate, upload.single('file'), (req, res) =>
 
   const insert = db.prepare(
 
-    'INSERT INTO certificates (person_id, name, issued_date, file_path, description, uploaded_by) VALUES (?,?,?,?,?,?)'
+    'INSERT INTO certificates (person_id, name, issued_date, category, file_path, description, uploaded_by) VALUES (?,?,?,?,?,?,?)'
 
   );
 
@@ -2409,6 +2409,8 @@ app.post('/api/certificates', authenticate, upload.single('file'), (req, res) =>
     name,
 
     issuedDate || null,
+
+    category || '',
 
     filePath,
 
@@ -2548,7 +2550,7 @@ app.get('/api/export/people', authenticate, requirePermission('export.excel'), a
 
   const growthStmt = db.prepare('SELECT event_date,title,description,category FROM growth_events WHERE person_id = ?');
 
-  const certStmt = db.prepare('SELECT name,issued_date,description,file_path FROM certificates WHERE person_id = ?');
+  const certStmt = db.prepare('SELECT name,issued_date,category,description,file_path FROM certificates WHERE person_id = ?');
 
   const exportTime = new Date().toLocaleString('zh-CN', { hour12: false });
   const totalColumns = Math.max(7, DIMENSION_CATEGORIES.length + 1);
@@ -2721,11 +2723,12 @@ app.get('/api/export/people', authenticate, requirePermission('export.excel'), a
     applySectionStyle(certHeader);
     rowCursor += 1;
 
-    const certHead = worksheet.addRow(['证书名称', '颁发时间', '描述', '附件路径']);
+    const certHead = worksheet.addRow(['证书名称', '分类', '颁发时间', '描述', '附件路径']);
     certHead.eachCell((cell) => applyHeaderStyle(cell));
     certStmt.all(person.id).forEach((cert) => {
       const row = worksheet.addRow([
         cert.name,
+        cert.category || '',
         cert.issued_date || '',
         cert.description || '',
         cert.file_path || ''

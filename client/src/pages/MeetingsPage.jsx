@@ -1,9 +1,12 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 
+import { useNavigate } from 'react-router-dom';
+
 const CATEGORY_COLORS = ['#4b8dff', '#5de0c4', '#ff9fce', '#f6bf4f', '#6f7bff', '#7dd3fc'];
 
 function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSelectedPersonId }) {
   const [selectedCategory, setSelectedCategory] = useState('全部');
+  const navigate = useNavigate();
 
   const categories = useMemo(() => {
     const set = new Set();
@@ -65,13 +68,11 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
 
   const attendeeGroups = useMemo(() => {
     if (!selectedMeeting?.attendees?.length) {
-      return { speaker: null, attendees: [] };
+      return { speakers: [], attendees: [] };
     }
-    const speaker = selectedMeeting.attendees.find((attendee) => attendee.role === '主讲') || null;
-    const attendees = speaker
-      ? selectedMeeting.attendees.filter((attendee) => attendee.id !== speaker.id)
-      : selectedMeeting.attendees.slice();
-    return { speaker, attendees };
+    const speakers = selectedMeeting.attendees.filter((attendee) => attendee.role === '主讲');
+    const attendees = selectedMeeting.attendees.filter((attendee) => attendee.role !== '主讲');
+    return { speakers, attendees };
   }, [selectedMeeting]);
 
   return (
@@ -172,14 +173,19 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
             <div className="attendee-section">
               <div className="attendee-row">
                 <span className="attendee-label speaker">主讲</span>
-                {attendeeGroups.speaker ? (
-                  <button
-                    key={attendeeGroups.speaker.id}
-                    className="attendee-chip speaker-chip"
-                    onClick={() => setSelectedPersonId(attendeeGroups.speaker.id)}
-                  >
-                    {attendeeGroups.speaker.name}
-                  </button>
+                {attendeeGroups.speakers.length ? (
+                  attendeeGroups.speakers.map((speaker) => (
+                    <button
+                      key={speaker.id}
+                      className="attendee-chip speaker-chip"
+                      onClick={() => {
+                        setSelectedPersonId(speaker.id);
+                        navigate('/talent');
+                      }}
+                    >
+                      {speaker.name}
+                    </button>
+                  ))
                 ) : (
                   <span className="muted">暂无主讲</span>
                 )}
@@ -191,7 +197,10 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
                     <button
                       key={attendee.id}
                       className="attendee-chip"
-                      onClick={() => setSelectedPersonId(attendee.id)}
+                      onClick={() => {
+                        setSelectedPersonId(attendee.id);
+                        navigate('/talent');
+                      }}
                     >
                       {attendee.name} · {attendee.role}
                     </button>
