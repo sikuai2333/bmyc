@@ -308,6 +308,14 @@ const defaultMeetings = [
   }
 ];
 
+const RESET_MEETINGS = (process.env.RESET_MEETINGS ?? 'false').toLowerCase() === 'true';
+const EXCLUDED_SPEAKER_NAMES = new Set(['靳贺凯']);
+
+const pickSpeakerCandidate = (people = []) =>
+  people.find((person) => person?.name && !EXCLUDED_SPEAKER_NAMES.has(person.name))?.id ||
+  people.find((person) => person?.id)?.id ||
+  null;
+
 const fixCorruptedNames = () => {
   const targetName = '\u9773\u8d3a\u51ef';
   const targetPhone = '13696653085';
@@ -784,12 +792,16 @@ function init() {
   fixCorruptedNames();
 
   const meetingCount = db.prepare('SELECT COUNT(*) as count FROM meetings').get().count;
-  if (ENABLE_DEMO_DATA && meetingCount === 0) {
+  if (ENABLE_DEMO_DATA && (meetingCount === 0 || RESET_MEETINGS)) {
     const insertMeeting = db.prepare(
       'INSERT INTO meetings (topic, meetingDate, location, summary, category) VALUES (?,?,?,?,?)'
     );
     const insertAttendee = db.prepare('INSERT INTO meeting_attendees (meeting_id, person_id, role) VALUES (?,?,?)');
     const transaction = db.transaction(() => {
+      if (RESET_MEETINGS && meetingCount > 0) {
+        db.prepare('DELETE FROM meeting_attendees').run();
+        db.prepare('DELETE FROM meetings').run();
+      }
       defaultMeetings.forEach((meeting, idx) => {
         const result = insertMeeting.run(
           meeting.topic,
@@ -799,15 +811,51 @@ function init() {
           meeting.category || '\u653f\u6cbb\u5b66\u4e60'
         );
         const meetingId = result.lastInsertRowid;
-        const personIds = db.prepare('SELECT id FROM people').all();
-        personIds.forEach((person, pIdx) => {
-          if ((idx + pIdx) % 2 === 0) {
-            insertAttendee.run(meetingId, person.id, pIdx === 0 ? '\u4e3b\u8bb2' : '\u53c2\u4f1a');
+        const people = db.prepare('SELECT id, name FROM people').all();
+        const speakerId = pickSpeakerCandidate(people);
+        people.forEach((person, pIdx) => {
+          const shouldAttend = person.id === speakerId || (idx + pIdx) % 2 === 0;
+          if (!shouldAttend) {
+            return;
           }
+          const role = person.id === speakerId ? '\u4e3b\u8bb2' : '\u53c2\u4f1a';
+          insertAttendee.run(meetingId, person.id, role);
         });
       });
     });
     transaction();
+  }
+
+  if (ENABLE_DEMO_DATA) {
+    const targetName = '靳贺凯';
+    const target = db.prepare('SELECT id FROM people WHERE name = ?').get(targetName);
+    if (target) {
+      db.prepare("UPDATE meeting_attendees SET role = '\u53c2\u4f1a' WHERE person_id = ? AND role = '\u4e3b\u8bb2'")
+        .run(target.id);
+    }
+    const meetingIds = db.prepare('SELECT id FROM meetings').all();
+    const findSpeaker = db.prepare(
+      "SELECT person_id FROM meeting_attendees WHERE meeting_id = ? AND role = '\u4e3b\u8bb2' LIMIT 1"
+    );
+    const findAltSpeaker = db.prepare(
+      'SELECT ma.person_id FROM meeting_attendees ma JOIN people p ON p.id = ma.person_id WHERE ma.meeting_id = ? AND p.name <> ? LIMIT 1'
+    );
+    const findAny = db.prepare('SELECT person_id FROM meeting_attendees WHERE meeting_id = ? LIMIT 1');
+    const updateSpeaker = db.prepare(
+      "UPDATE meeting_attendees SET role = '\u4e3b\u8bb2' WHERE meeting_id = ? AND person_id = ?"
+    );
+    meetingIds.forEach((meeting) => {
+      if (findSpeaker.get(meeting.id)) {
+        return;
+      }
+      const candidate =
+        (target ? findAltSpeaker.get(meeting.id, targetName)?.person_id : null) ||
+        findAny.get(meeting.id)?.person_id ||
+        null;
+      if (candidate) {
+        updateSpeaker.run(meeting.id, candidate);
+      }
+    });
   }
 }
 
