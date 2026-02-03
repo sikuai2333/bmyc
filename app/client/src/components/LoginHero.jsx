@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 
 const UserIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -40,6 +40,7 @@ function LoginHero({
   demoAccountKey,
   onDemoSelect
 }) {
+  const [agreementOpen, setAgreementOpen] = useState('');
   const accountHint = accountStatus.message || '';
   const passwordHint = passwordStatus.message || '建议至少 6 位，区分大小写';
   const accountClass = accountStatus.status === 'invalid' ? 'invalid' : accountStatus.status === 'valid' ? 'valid' : '';
@@ -174,16 +175,24 @@ function LoginHero({
             </button>
           </div>
 
-          <label className="privacy-row">
-            <input
-              type="checkbox"
-              checked={acceptPrivacy}
-              onChange={(event) => setAcceptPrivacy(event.target.checked)}
-            />
-            <span>
-              我已阅读并同意《档案保密协议》《隐私协议》
-            </span>
-          </label>
+          <div className="privacy-row">
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={acceptPrivacy}
+                onChange={(event) => setAcceptPrivacy(event.target.checked)}
+              />
+              <span>我已阅读并同意</span>
+            </label>
+            <div className="privacy-links">
+              <button type="button" className="text-link" onClick={() => setAgreementOpen('confidential')}>
+                《档案保密协议》
+              </button>
+              <button type="button" className="text-link" onClick={() => setAgreementOpen('privacy')}>
+                《隐私协议》
+              </button>
+            </div>
+          </div>
 
           <div className="login-divider">
             <span>第三方登录</span>
@@ -204,15 +213,80 @@ function LoginHero({
           <p className="login-security">建议在 HTTPS 环境下使用，传输自动加密。</p>
         </div>
       </div>
-
       <footer className="login-footer">
         <span>© 2026 金岩高新人才成长APP</span>
         <a className="footer-link" href="https://www.grkaolin.com/" target="_blank" rel="noreferrer">
           企业官网
         </a>
       </footer>
+
+      {agreementOpen && (
+        <div className="modal-backdrop" onClick={() => setAgreementOpen('')}>
+          <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <h3>{agreementOpen === 'confidential' ? '档案保密协议' : '隐私协议'}</h3>
+                <p className="panel-subtitle">更新日期：2026-02-03</p>
+              </div>
+              <button className="modal-close" onClick={() => setAgreementOpen('')}>
+                关闭
+              </button>
+            </div>
+            {agreementOpen === 'confidential' ? (
+              <div className="agreement-content">
+                <p>为保障人才档案信息安全与合规使用，平台用户需遵守本协议。</p>
+                <h4>一、保密信息范围</h4>
+                <p>包括但不限于：个人身份信息、联系方式、六维画像、评价记录、成长轨迹、证书材料、操作日志等。</p>
+                <h4>二、使用原则</h4>
+                <ul>
+                  <li>仅在履行岗位职责、获得授权的情况下查阅或处理信息。</li>
+                  <li>遵循最小必要原则，不得超范围获取或传播。</li>
+                  <li>对敏感信息应优先使用脱敏视图。</li>
+                </ul>
+                <h4>三、用户义务</h4>
+                <ul>
+                  <li>不得擅自复制、外传、截图或向第三方披露。</li>
+                  <li>发现异常访问、泄露风险应及时反馈管理员。</li>
+                </ul>
+                <h4>四、责任与处理</h4>
+                <p>违反本协议将依据公司制度及相关法律法规处理。</p>
+                <h4>五、生效方式</h4>
+                <p>勾选同意即视为接受本协议内容。</p>
+              </div>
+            ) : (
+              <div className="agreement-content">
+                <p>本协议说明平台对个人信息的收集、使用、存储与保护方式。</p>
+                <h4>一、收集的信息类型</h4>
+                <ul>
+                  <li>账号信息：姓名、手机号、登录凭证。</li>
+                  <li>档案信息：六维画像、评价、成长轨迹、证书与附件。</li>
+                  <li>使用日志：登录记录、操作日志等安全审计信息。</li>
+                </ul>
+                <h4>二、使用目的</h4>
+                <ul>
+                  <li>完成人才档案管理、评价与成长跟踪。</li>
+                  <li>进行统计分析与管理决策支持。</li>
+                  <li>保障系统安全与合规审计。</li>
+                </ul>
+                <h4>三、存储与安全</h4>
+                <p>平台采取合理安全措施（权限控制、脱敏展示、日志审计等）保护信息安全。</p>
+                <h4>四、共享与披露</h4>
+                <p>未经授权不向无关第三方提供；依法配合监管要求。</p>
+                <h4>五、个人权利</h4>
+                <p>可通过管理员申请查询、更正或删除个人信息。</p>
+                <h4>六、生效方式</h4>
+                <p>勾选同意即视为接受本协议内容。</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 
 export default LoginHero;
+
+
+
+

@@ -658,6 +658,37 @@ button:disabled {
 .privacy-row {
   padding: 8px 0;
   border-top: 1px dashed rgba(121, 140, 180, 0.3);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.privacy-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.agreement-content {
+  font-size: 13px;
+  color: #2b3862;
+  line-height: 1.7;
+}
+
+.agreement-content h4 {
+  margin: 16px 0 6px;
+  font-size: 14px;
+  color: #14295c;
+}
+
+.agreement-content ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.agreement-content li {
+  margin-bottom: 6px;
 }
 
 .login-divider {
