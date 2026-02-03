@@ -35,7 +35,10 @@ function LoginHero({
   setAcceptPrivacy,
   onResetPassword,
   onRegister,
-  onThirdLogin
+  onThirdLogin,
+  demoAccounts,
+  demoAccountKey,
+  onDemoSelect
 }) {
   const accountHint = accountStatus.message || '';
   const passwordHint = passwordStatus.message || '建议至少 6 位，区分大小写';
@@ -90,6 +93,19 @@ function LoginHero({
           </div>
 
           <form className="login-form" onSubmit={onSubmit}>
+            <label className="input-field">
+              <span>演示账号</span>
+              <div className="input-group">
+                <select value={demoAccountKey} onChange={(event) => onDemoSelect(event.target.value)}>
+                  <option value="">选择内置账号</option>
+                  {demoAccounts.map((account) => (
+                    <option key={account.key} value={account.key}>
+                      {account.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
             <label className="input-field">
               <span>姓名 / 手机号</span>
               <div className={`input-group ${accountClass}`}>

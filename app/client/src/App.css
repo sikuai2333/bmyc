@@ -555,6 +555,17 @@ button:disabled {
   color: #10204b;
 }
 
+.input-group select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  flex: 1;
+  color: #10204b;
+  width: 100%;
+  appearance: none;
+}
+
 .input-icon {
   display: flex;
   align-items: center;

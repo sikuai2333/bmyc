@@ -123,6 +123,7 @@ function AppShell() {
     email: '',
     password: ''
   });
+  const [demoAccountKey, setDemoAccountKey] = useState('');
   const [rememberAccount, setRememberAccount] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
@@ -580,6 +581,25 @@ function AppShell() {
     }
     return { status: 'invalid', valid: false, message: '请输入正确的姓名或手机号' };
   }, [loginForm.email]);
+
+  const demoAccounts = useMemo(
+    () => [
+      { key: 'super', label: '超级管理员', email: 'sikuai', password: 'sikuai@2333' },
+      { key: 'admin', label: '管理员', email: 'admin', password: 'admin@123' },
+      { key: 'display', label: '展示账户', email: 'display', password: 'display@123' },
+      { key: 'user', label: '普通用户', email: 'test', password: 'test@123' }
+    ],
+    []
+  );
+
+  const handleDemoAccountSelect = (key) => {
+    setDemoAccountKey(key);
+    const target = demoAccounts.find((account) => account.key === key);
+    if (!target) return;
+    setLoginForm({ email: target.email, password: target.password });
+    setAcceptPrivacy(true);
+    setLoginError('');
+  };
 
   const passwordStatus = useMemo(() => {
     const value = loginForm.password;
@@ -1071,6 +1091,9 @@ function AppShell() {
           onResetPassword={handleResetPassword}
           onRegister={handleRegister}
           onThirdLogin={handleThirdLogin}
+          demoAccounts={demoAccounts}
+          demoAccountKey={demoAccountKey}
+          onDemoSelect={handleDemoAccountSelect}
         />
 
       ) : (

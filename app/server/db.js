@@ -106,6 +106,7 @@ const TEST_ACCOUNTS = [
 
 const defaultUsers = [
   { name: '\u9773\u8d3a\u51ef', email: '\u9773\u8d3a\u51ef', role: 'user', password: '13696653085', is_super_admin: 0 },
+  { name: '\u5c55\u793a\u8d26\u6237', email: 'display', role: 'display', password: 'display@123', is_super_admin: 0 },
   ...TEST_ACCOUNTS.map((item) => item.user),
   { name: 'admin', email: 'admin', role: 'admin', password: 'admin@123', is_super_admin: 0 },
   {
@@ -339,6 +340,21 @@ const seedTestAccounts = (force = false) => {
     }
     seedTestDimensionsForPerson(personId, `${person.name}-${person.phone}`, force);
   });
+};
+
+const ensureDisplayAccount = () => {
+  if (!ENABLE_DEMO_DATA) {
+    return;
+  }
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get('display');
+  if (existing) {
+    return;
+  }
+  const hash = bcrypt.hashSync('display@123', 10);
+  const permissions = JSON.stringify(getDefaultPermissions('display', false));
+  db.prepare(
+    'INSERT INTO users (name,email,role,password_hash,person_id,permissions,is_super_admin,sensitive_unmasked) VALUES (?,?,?,?,?,?,?,?)'
+  ).run('\u5c55\u793a\u8d26\u6237', 'display', 'display', hash, null, permissions, 0, 0);
 };
 
 function init() {
@@ -714,6 +730,7 @@ function init() {
   }
 
   ensureTestAccounts();
+  ensureDisplayAccount();
 
   fixCorruptedNames();
 
