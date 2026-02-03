@@ -1,51 +1,69 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# === 配置区（按需修改） ===
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-API_PORT="18400"
-WEB_PORT="18080"
-API_BASE="http://81.69.255.29:${API_PORT}/api"
-CLIENT_ORIGIN="http://81.69.255.29:${WEB_PORT}"
-JWT_SECRET="请替换强随机字符串"
-ENABLE_DEMO_DATA="false"
+# === Config (edit as needed) ===
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "${SCRIPT_DIR}/app/package.json" ]; then
+  APP_DIR="${SCRIPT_DIR}/app"
+else
+  APP_DIR="${SCRIPT_DIR}"
+fi
 
-# === 执行区 ===
+API_HOST="${API_HOST:-81.69.255.29}"
+API_PORT="${API_PORT:-18400}"
+WEB_PORT="${WEB_PORT:-18080}"
+API_BASE="http://${API_HOST}:${API_PORT}/api"
+CLIENT_ORIGIN="http://${API_HOST}:${WEB_PORT}"
+JWT_SECRET="${JWT_SECRET:-CHANGE_ME}"
+ENABLE_DEMO_DATA="${ENABLE_DEMO_DATA:-false}"
+DB_DIR="${APP_DIR}/data"
+DB_PATH="${DB_PATH:-${DB_DIR}/bainyingcai.db}"
+
+# === Run ===
 cd "${APP_DIR}"
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "未找到 node，请先安装 Node.js 20+"
+  echo "Node.js not found. Please install Node.js 20+."
+  exit 1
+fi
+
+if [[ "${JWT_SECRET}" == "CHANGE_ME" ]]; then
+  echo "JWT_SECRET is not set. Export JWT_SECRET or edit start.sh."
   exit 1
 fi
 
 if ! command -v pm2 >/dev/null 2>&1; then
-  echo "未找到 pm2，正在全局安装..."
+  echo "pm2 not found. Installing globally..."
   npm i -g pm2
 fi
 
-echo "安装后端依赖..."
+echo "Installing backend deps..."
 npm install
 
-echo "安装前端依赖..."
+echo "Installing frontend deps..."
 npm --prefix client install
 
-echo "构建前端..."
-VITE_API_BASE="${API_BASE}" npm run build
+echo "Building frontend..."
+VITE_API_BASE="${API_BASE}" npm --prefix client run build
 
-echo "启动/重启后端..."
+echo "Preparing data directory..."
+mkdir -p "${DB_DIR}/uploads"
+
+echo "Starting/restarting backend..."
 pm2 delete talent-api >/dev/null 2>&1 || true
 PORT="${API_PORT}" \
 CLIENT_ORIGIN="${CLIENT_ORIGIN}" \
 JWT_SECRET="${JWT_SECRET}" \
 ENABLE_DEMO_DATA="${ENABLE_DEMO_DATA}" \
+DB_PATH="${DB_PATH}" \
 pm2 start server/index.js --name talent-api
 
-echo "启动/重启前端..."
+echo "Starting/restarting frontend..."
 pm2 delete talent-web >/dev/null 2>&1 || true
 pm2 serve client/dist "${WEB_PORT}" --name talent-web --spa
 
 pm2 save
 
-echo "启动完成："
-echo "前端：${CLIENT_ORIGIN}"
-echo "后端：${API_BASE}"
+echo "Done."
+echo "Web: ${CLIENT_ORIGIN}"
+echo "API: ${API_BASE}"
