@@ -4,8 +4,6 @@ const CATEGORY_COLORS = ['#4b8dff', '#5de0c4', '#ff9fce', '#f6bf4f', '#6f7bff', 
 
 function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSelectedPersonId }) {
   const [selectedCategory, setSelectedCategory] = useState('全部');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
 
   const categories = useMemo(() => {
     const set = new Set();
@@ -27,15 +25,9 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
       if (selectedCategory !== '全部' && meeting.category !== selectedCategory) {
         return false;
       }
-      if (startDate && meeting.meetingDate < startDate) {
-        return false;
-      }
-      if (endDate && meeting.meetingDate > endDate) {
-        return false;
-      }
       return true;
     });
-  }, [sortedMeetings, selectedCategory, startDate, endDate]);
+  }, [sortedMeetings, selectedCategory]);
 
   useEffect(() => {
     if (!filteredMeetings.length) {
@@ -70,12 +62,6 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
       };
     });
   }, [categories, filteredMeetings]);
-
-  const resetFilters = () => {
-    setSelectedCategory('全部');
-    setStartDate('');
-    setEndDate('');
-  };
 
   return (
     <section className="meetings-page">
@@ -123,25 +109,6 @@ function MeetingsPage({ meetings, selectedMeeting, setSelectedMeetingId, setSele
                   {category}
                 </button>
               ))}
-            </div>
-          </div>
-          <div className="meeting-filter-row">
-            <span className="filter-label">日期范围</span>
-            <div className="meeting-date-range">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
-              />
-              <span className="range-separator">至</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
-              />
-              <button type="button" className="ghost-button slim" onClick={resetFilters}>
-                清空筛选
-              </button>
             </div>
           </div>
           <div className="meeting-category-list">
