@@ -48,7 +48,7 @@ function DashboardPage({
 
 
   completionInsights,
-  personDimensionStats,
+  dimensionInsights,
 
 
 
@@ -151,16 +151,16 @@ function DashboardPage({
 
 
 
-    if (!personDimensionStats || personDimensionStats.length === 0) return [];
+    if (!dimensionInsights || dimensionInsights.length === 0) return [];
 
 
 
-    const total = personDimensionStats.reduce((sum, item) => sum + (item.count || 0), 0);
+    const total = dimensionInsights.reduce((sum, item) => sum + (item.count || 0), 0);
     if (!total) return [];
 
 
 
-    return personDimensionStats.map((item, idx) => ({
+    return dimensionInsights.map((item, idx) => ({
 
 
 
@@ -184,7 +184,7 @@ function DashboardPage({
 
 
 
-  }, [personDimensionStats]);
+  }, [dimensionInsights]);
 
 
 
@@ -896,6 +896,7 @@ function DashboardPage({
 
 
 export default DashboardPage;
+
 
 
 

@@ -1131,7 +1131,7 @@ function AppShell() {
                   meetings={meetings}
 
                   completionInsights={completionInsights}
-                  personDimensionStats={personDimensionStats}
+                  dimensionInsights={insights}
 
                   trendingPeople={trendingPeople}
 
@@ -1406,5 +1406,6 @@ function AppShell() {
 
 
 export default App;
+
 
 
