@@ -41,6 +41,7 @@ function AdminPage({
   canManageUsers,
   canManagePermissions,
   hasPerm,
+  isSuperAdmin,
   setToast,
   authHeaders,
   apiBase,
@@ -169,15 +170,22 @@ function AdminPage({
     [people, meetingForm.attendeeIds]
   );
 
+  const isSuperAccount = (account) =>
+    Boolean(account?.isSuperAdmin || account?.is_super_admin === 1 || account?.is_super_admin === true);
+
   const visibleUsers = useMemo(() => {
+    let result = users;
     if (accountFilter === 'linked') {
-      return users.filter((account) => account.personId);
+      result = users.filter((account) => account.personId);
     }
     if (accountFilter === 'system') {
-      return users.filter((account) => !account.personId);
+      result = users.filter((account) => !account.personId);
     }
-    return users;
-  }, [accountFilter, users]);
+    if (!isSuperAdmin) {
+      result = result.filter((account) => !isSuperAccount(account));
+    }
+    return result;
+  }, [accountFilter, users, isSuperAdmin]);
 
   const filteredUsers = useMemo(() => {
     if (!accountSearch.trim()) return visibleUsers;
@@ -674,7 +682,7 @@ function AdminPage({
                   </span>
                   <span>{account.email}</span>
                   <span>
-                    {canManageUsers && !account.isSuperAdmin ? (
+                    {canManageUsers && !isSuperAccount(account) ? (
                       <select
                         value={account.role}
                         onChange={(event) => handleUserRoleChange(account.id, event.target.value)}
@@ -684,7 +692,7 @@ function AdminPage({
                         <option value="display">展示专用</option>
                       </select>
                     ) : (
-                      account.isSuperAdmin
+                      isSuperAccount(account)
                         ? '超级管理员'
                         : ROLE_LABELS[account.role] || account.role
                     )}
@@ -701,7 +709,7 @@ function AdminPage({
                         重置密码
                       </button>
                     )}
-                    {canManageUsers && !account.isSuperAdmin && (
+                    {canManageUsers && !isSuperAccount(account) && (
                       <button className="ghost-button slim" onClick={() => handleDeleteUser(account.id)}>
                         删除
                       </button>
@@ -736,7 +744,7 @@ function AdminPage({
                             <strong>{account.name}</strong>
                             <p>
                               {account.email} ·{' '}
-                              {account.isSuperAdmin
+                              {isSuperAccount(account)
                                 ? '超级管理员'
                                 : ROLE_LABELS[account.role] || account.role}
                             </p>
