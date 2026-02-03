@@ -263,7 +263,50 @@ const buildDemoDimensionsForSeed = (seed, monthIndex) =>
     return { category, detail: detail || '\u65e0' };
   });
 
-const defaultMeetings = [];
+const defaultMeetings = [
+  {
+    topic: '民主生活会',
+    meetingDate: '2025-12-20',
+    location: '总部党建会议室',
+    summary: '围绕年度组织生活会要求，开展批评与自我批评。',
+    category: '政治学习'
+  },
+  {
+    topic: '意识形态专题学习会',
+    meetingDate: '2025-11-18',
+    location: '第一会议室',
+    summary: '解读最新政策精神，强调正确舆论导向。',
+    category: '政治学习'
+  },
+  {
+    topic: '青年人才座谈会',
+    meetingDate: '2025-10-25',
+    location: '创新中心路演厅',
+    summary: '围绕成长通道与能力提升，收集青年人才建议。',
+    category: '人才发展'
+  },
+  {
+    topic: '八小时外兴趣社群交流',
+    meetingDate: '2025-10-12',
+    location: '职工活动室',
+    summary: '分享兴趣社群成果与活动计划。',
+    category: '八小时外活动'
+  },
+  {
+    topic: '志愿服务实践活动',
+    meetingDate: '2025-09-28',
+    location: '市民服务中心',
+    summary: '组织参与志愿服务，形成社会责任实践记录。',
+    category: '八小时外活动'
+  },
+  {
+    topic: '政策解读与合规宣贯会',
+    meetingDate: '2025-09-05',
+    location: '报告厅',
+    summary: '围绕合规要求与风险提示进行宣贯。',
+    category: '政治学习'
+  }
+];
 
 const fixCorruptedNames = () => {
   const targetName = '\u9773\u8d3a\u51ef';
