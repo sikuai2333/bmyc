@@ -638,6 +638,12 @@ button:disabled {
   color: var(--color-muted);
 }
 
+.assist-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .checkbox-row,
 .privacy-row {
   display: flex;

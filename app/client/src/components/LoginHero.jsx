@@ -155,9 +155,6 @@ function LoginHero({
               <button className="primary-button" type="submit" disabled={loginLoading || isLocked}>
                 {loginLoading ? '登录中...' : '登录'}
               </button>
-              <button className="ghost-button slim" type="button" onClick={onResetPassword}>
-                重置密码
-              </button>
             </div>
           </form>
 
@@ -168,11 +165,16 @@ function LoginHero({
                 checked={rememberAccount}
                 onChange={(event) => setRememberAccount(event.target.checked)}
               />
-              记住账号
+              记住账户密码
             </label>
-            <button className="text-link" type="button" onClick={onRegister}>
-              英才账号注册
-            </button>
+            <div className="assist-links">
+              <button className="text-link" type="button" onClick={onRegister}>
+                英才账号注册
+              </button>
+              <button className="text-link" type="button" onClick={onResetPassword}>
+                重置密码
+              </button>
+            </div>
           </div>
 
           <div className="privacy-row">
