@@ -1,4 +1,5 @@
-﻿const path = require('path');
+﻿const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcryptjs');
 const Database = require('better-sqlite3');
 const dotenv = require('dotenv');
@@ -7,6 +8,11 @@ const { getDefaultPermissions, normalizePermissions } = require('./permissions')
 dotenv.config();
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'bainyingcai.db');
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
 const db = new Database(dbPath);
 const ENABLE_DEMO_DATA = (process.env.ENABLE_DEMO_DATA ?? 'true').toLowerCase() !== 'false';
 const ADMIN_NAME = process.env.ADMIN_NAME || '系统管理员';
@@ -768,3 +774,4 @@ module.exports = {
   seedTestAccounts,
   close: () => db.close()
 };
+
