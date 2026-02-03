@@ -57,7 +57,7 @@ function EvaluationPage({
   };
 
   return (
-    <section className="module-page">
+    <section className="module-page evaluation-page">
       <aside className="talent-sidebar">
         <div className="talent-filters">
           <div className="panel-subtitle">人员筛选</div>
@@ -87,7 +87,7 @@ function EvaluationPage({
       </aside>
 
       <div className="module-detail">
-        <div className="panel">
+        <div className="panel evaluation-panel">
           <div className="panel-head">
             <h3>评价记录</h3>
             <p className="panel-subtitle">{selectedPerson ? selectedPerson.name : '请选择人员'}</p>
@@ -111,12 +111,12 @@ function EvaluationPage({
         </div>
 
         {canEditEvaluations && (
-          <div className="panel">
+          <div className="panel evaluation-form-panel">
             <div className="panel-head">
               <h3>新增评价</h3>
               <p className="panel-subtitle">由领导填写季度/年度评价</p>
             </div>
-            <form className="admin-form" onSubmit={handleSubmit}>
+            <form className="admin-form evaluation-form" onSubmit={handleSubmit}>
               <label>
                 评价类型
                 <select

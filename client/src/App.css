@@ -2505,6 +2505,93 @@ button:disabled {
   gap: 16px;
 }
 
+.evaluation-page {
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 0;
+  max-height: calc(100vh - 180px);
+  height: calc(100vh - 180px);
+  overflow: hidden;
+}
+
+.evaluation-page .talent-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.evaluation-page .talent-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.evaluation-page .talent-list-scroll {
+  max-height: none;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.evaluation-page .module-detail {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.evaluation-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.evaluation-panel .evaluation-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.evaluation-form-panel {
+  flex: 0 0 auto;
+}
+
+.evaluation-form {
+  display: grid;
+  gap: 12px;
+}
+
+.evaluation-form label {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  color: #4a5b88;
+}
+
+.evaluation-form select,
+.evaluation-form input,
+.evaluation-form textarea {
+  width: 100%;
+  color: #0f1d46;
+}
+
+.evaluation-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.evaluation-form .primary-button {
+  margin-top: 4px;
+}
+
+.evaluation-panel .panel-head,
+.evaluation-form-panel .panel-head {
+  flex: 0 0 auto;
+}
+
 .evaluation-list,
 .growth-timeline,
 .certificate-list {
@@ -2816,6 +2903,18 @@ button:disabled {
 
   .docs-row {
     grid-template-columns: 1fr;
+  }
+
+  .evaluation-page {
+    height: auto;
+    max-height: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .evaluation-form label {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
   }
 }
  
