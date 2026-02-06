@@ -40,22 +40,6 @@ export default function Dashboard() {
     ]
   }, [people, meetings, insights])
 
-  const completionSummary = useMemo(() => {
-    const sorted = completionInsights
-      .slice()
-      .sort((a, b) => a.month.localeCompare(b.month))
-    const latest = sorted[sorted.length - 1]
-    const total = completionInsights.reduce((sum, item) => sum + (item.count || 0), 0)
-    const coveredCategories = insights.filter((item) => item.count > 0).length
-    return {
-      latestMonth: latest?.month || '—',
-      latestCount: latest?.count || 0,
-      total,
-      coveredCategories,
-      pendingCategories: DIMENSION_CATEGORIES.length - coveredCategories
-    }
-  }, [completionInsights, insights])
-
   const trendData = useMemo(() => {
     const meetingMap = new Map<string, number>()
     meetings.forEach((meeting) => {
@@ -131,56 +115,25 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card card-hover p-5">
-          <h3 className="text-base font-semibold text-slate-800">运营摘要</h3>
-          <p className="text-xs text-slate-500">以最近月份为核心，快速了解画像覆盖进度</p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-md border border-slate-100 p-4">
-              <p className="text-xs text-slate-500">最新画像月份</p>
-              <p className="mt-2 text-lg font-semibold text-slate-800">{completionSummary.latestMonth}</p>
-              <p className="mt-2 text-xs text-slate-500">本月完成 {completionSummary.latestCount} 条</p>
-            </div>
-            <div className="rounded-md border border-slate-100 p-4">
-              <p className="text-xs text-slate-500">近 6 个月完成</p>
-              <p className="mt-2 text-lg font-semibold text-slate-800">{completionSummary.total}</p>
-              <p className="mt-2 text-xs text-slate-500">
-                覆盖 {completionSummary.coveredCategories} / {DIMENSION_CATEGORIES.length} 维度
-              </p>
-            </div>
-            <div className="rounded-md border border-slate-100 p-4">
-              <p className="text-xs text-slate-500">待补充维度</p>
-              <p className="mt-2 text-lg font-semibold text-slate-800">{completionSummary.pendingCategories}</p>
-              <p className="mt-2 text-xs text-slate-500">建议优先补齐短板指标</p>
-            </div>
-            <div className="rounded-md border border-slate-100 p-4">
-              <p className="text-xs text-slate-500">会议总量</p>
-              <p className="mt-2 text-lg font-semibold text-slate-800">{meetings.length}</p>
-              <p className="mt-2 text-xs text-slate-500">近月会议活动持续跟踪</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="card card-hover p-5">
-          <h3 className="text-base font-semibold text-slate-800">维度覆盖进度</h3>
-          <p className="text-xs text-slate-500">按维度统计画像条目占比</p>
-          <div className="mt-4 space-y-3">
-            {dimensionCoverage.map((row) => (
-              <div key={row.category}>
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>{row.category}</span>
-                  <span>{row.count} 条</span>
-                </div>
-                <div className="mt-2 h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-2 rounded-full bg-blue-600"
-                    style={{ width: `${row.ratio}%` }}
-                  />
-                </div>
+      <div className="card card-hover p-5">
+        <h3 className="text-base font-semibold text-slate-800">维度覆盖进度</h3>
+        <p className="text-xs text-slate-500">按维度统计画像条目占比</p>
+        <div className="mt-4 space-y-3">
+          {dimensionCoverage.map((row) => (
+            <div key={row.category}>
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>{row.category}</span>
+                <span>{row.count} 条</span>
               </div>
-            ))}
-            {dimensionCoverage.length === 0 && <p className="text-xs text-slate-400">暂无维度统计</p>}
-          </div>
+              <div className="mt-2 h-2 rounded-full bg-slate-100">
+                <div
+                  className="h-2 rounded-full bg-blue-600"
+                  style={{ width: `${row.ratio}%` }}
+                />
+              </div>
+            </div>
+          ))}
+          {dimensionCoverage.length === 0 && <p className="text-xs text-slate-400">暂无维度统计</p>}
         </div>
       </div>
 

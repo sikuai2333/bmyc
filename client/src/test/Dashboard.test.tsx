@@ -37,7 +37,6 @@ describe('Dashboard', () => {
     )
 
     expect(screen.getByText('数据总览')).toBeInTheDocument()
-    expect(screen.getByText('运营摘要')).toBeInTheDocument()
     expect(screen.getByText('重点关注人才')).toBeInTheDocument()
     expect(screen.getByText('最新会议动态')).toBeInTheDocument()
     expect(screen.getByText('李宁')).toBeInTheDocument()

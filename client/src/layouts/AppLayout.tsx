@@ -17,7 +17,7 @@ export function AppLayout() {
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
       />
-      <div className={`pt-16 ${sidebarOffset}`}>
+      <div className={`pt-16 transition-all duration-200 ease-out ${sidebarOffset}`}>
         <main
           className={`mx-auto w-full max-w-content ${
             isMobile ? 'px-4 pt-5 content-safe' : 'px-6 pt-6 pb-8'

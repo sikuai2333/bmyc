@@ -10,7 +10,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
 
   return (
     <aside
-      className={`hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:flex-col lg:bg-slate-800 lg:text-slate-100 ${widthClass}`}
+      className={`hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:flex-col lg:bg-slate-800 lg:text-slate-100 transition-all duration-200 ease-out ${widthClass}`}
     >
       <div
         className={`flex h-16 items-center gap-3 border-b border-slate-700/60 ${
