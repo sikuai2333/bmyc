@@ -138,7 +138,7 @@ export default function ArchiveList() {
               {filtered.map((person) => (
                 <tr
                   key={person.id}
-                  className={`h-12 border-b border-slate-100 hover:bg-slate-50 ${
+                  className={`h-12 border-b border-slate-100 hover:bg-slate-50 odd:bg-white even:bg-slate-100 ${
                     selectedPerson?.id === person.id ? 'bg-slate-50' : ''
                   }`}
                 >
