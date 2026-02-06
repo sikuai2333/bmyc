@@ -36,7 +36,7 @@ export function PersonSelector({
         value={search}
         onChange={(event) => setSearch(event.target.value)}
       />
-      <div className="space-y-2 max-h-96 overflow-auto">
+      <div className="space-y-2 max-h-96 overflow-auto striped-list">
         {filteredPeople.map((person) => (
           <button
             key={person.id}

@@ -118,7 +118,7 @@ export default function Meetings() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card p-5 space-y-3">
+        <div className="card p-5 space-y-3 striped-list">
           {filteredMeetings.length === 0 && <p className="text-sm text-slate-500">暂无会议记录。</p>}
           {filteredMeetings.map((meeting) => (
             <button

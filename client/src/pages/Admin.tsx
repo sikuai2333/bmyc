@@ -585,7 +585,7 @@ export default function Admin() {
           </div>
           <div className="card p-5">
             <h3 className="text-base font-semibold text-slate-800">会议列表</h3>
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-3 striped-list">
               {meetingList.map((meeting: Meeting) => (
                 <div key={meeting.id} className="flex items-start justify-between gap-3 rounded-md border border-slate-100 p-4">
                   <div>
@@ -663,7 +663,7 @@ export default function Admin() {
           {hasPerm('logs.view') && (
             <div className="card p-4">
               <h3 className="text-base font-semibold text-slate-800">操作日志</h3>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-2 striped-list">
                 {logItems.length === 0 && <p className="text-sm text-slate-500">暂无日志记录。</p>}
                 {logItems.map((item) => (
                   <div key={item.id} className="rounded-md border border-slate-100 p-3">

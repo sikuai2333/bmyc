@@ -50,6 +50,14 @@
   .table-header {
     @apply bg-slate-100 text-slate-600 font-medium;
   }
+
+  .striped-list > *:nth-child(odd) {
+    @apply bg-white;
+  }
+
+  .striped-list > *:nth-child(even) {
+    @apply bg-slate-100;
+  }
 }
 
 .content-safe {
@@ -135,6 +143,14 @@ html[data-theme='dark'] .card {
 html[data-theme='dark'] .table-header {
   background-color: #0f172a;
   color: #cbd5f5;
+}
+
+html[data-theme='dark'] .striped-list > *:nth-child(odd) {
+  background-color: #0f172a;
+}
+
+html[data-theme='dark'] .striped-list > *:nth-child(even) {
+  background-color: #111827;
 }
 
 html[data-theme='dark'] .icon-btn {

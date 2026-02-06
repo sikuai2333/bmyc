@@ -134,11 +134,11 @@ export default function ArchiveList() {
                 <th className="px-4 py-3 font-medium">操作</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="striped-list">
               {filtered.map((person) => (
                 <tr
                   key={person.id}
-                  className={`h-12 border-b border-slate-100 hover:bg-slate-50 odd:bg-white even:bg-slate-100 ${
+                  className={`h-12 border-b border-slate-100 hover:bg-slate-50 ${
                     selectedPerson?.id === person.id ? 'bg-slate-50' : ''
                   }`}
                 >
