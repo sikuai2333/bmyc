@@ -115,30 +115,12 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="card card-hover p-5">
-        <h3 className="text-base font-semibold text-slate-800">维度覆盖进度</h3>
-        <p className="text-xs text-slate-500">按维度统计画像条目占比</p>
-        <div className="mt-4 space-y-3">
-          {dimensionCoverage.map((row) => (
-            <div key={row.category}>
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>{row.category}</span>
-                <span>{row.count} 条</span>
-              </div>
-              <div className="mt-2 h-2 rounded-full bg-slate-100">
-                <div
-                  className="h-2 rounded-full bg-blue-600"
-                  style={{ width: `${row.ratio}%` }}
-                />
-              </div>
-            </div>
-          ))}
-          {dimensionCoverage.length === 0 && <p className="text-xs text-slate-400">暂无维度统计</p>}
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <ChartCard title="趋势概览" subtitle="画像完成与会议活动" className="lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-10">
+        <ChartCard
+          title="趋势概览"
+          subtitle="画像完成与会议活动"
+          className="lg:col-span-6"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData} margin={{ left: 8, right: 8, top: 12, bottom: 0 }}>
               <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" strokeWidth={0.5} />
@@ -160,6 +142,32 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </ChartCard>
 
+        <div className="card card-hover p-5 lg:col-span-4">
+          <h3 className="text-base font-semibold text-slate-800">维度覆盖进度</h3>
+          <p className="text-xs text-slate-500">按维度统计画像条目占比</p>
+          <div className="mt-4 space-y-3">
+            {dimensionCoverage.map((row) => (
+              <div key={row.category}>
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>{row.category}</span>
+                  <span>{row.count} 条</span>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-slate-100">
+                  <div
+                    className="h-2 rounded-full bg-blue-600"
+                    style={{ width: `${row.ratio}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+            {dimensionCoverage.length === 0 && (
+              <p className="text-xs text-slate-400">暂无维度统计</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
         <div className="card card-hover p-5">
           <h3 className="text-base font-semibold text-slate-800">重点关注人才</h3>
           <p className="text-xs text-slate-500">画像更新频次较高的人员</p>
@@ -188,50 +196,50 @@ export default function Dashboard() {
             {loading && <p className="text-xs text-slate-400">正在加载...</p>}
           </div>
         </div>
-      </div>
 
-      <div className="card card-hover p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-semibold text-slate-800">最新会议动态</h3>
-            <p className="text-xs text-slate-500">优先展示最近 4 条会议记录</p>
-          </div>
-          <Button
-            type="link"
-            className="px-0"
-            onClick={() => {
-              setSelectedMeetingId(null)
-              navigate('/meetings')
-            }}
-          >
-            查看全部
-          </Button>
-        </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {recentMeetings.map((meeting) => (
-            <button
-              key={meeting.id}
-              type="button"
-              className="rounded-md border border-slate-100 p-4 text-left transition hover:border-slate-200"
+        <div className="card card-hover p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-slate-800">最新会议动态</h3>
+              <p className="text-xs text-slate-500">优先展示最近 4 条会议记录</p>
+            </div>
+            <Button
+              type="link"
+              className="px-0"
               onClick={() => {
-                setSelectedMeetingId(meeting.id)
+                setSelectedMeetingId(null)
                 navigate('/meetings')
               }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-800">{meeting.topic}</p>
-                  <p className="text-xs text-slate-500">
-                    {meeting.meetingDate} · {meeting.location || '地点待定'}
-                  </p>
+              查看全部
+            </Button>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {recentMeetings.map((meeting) => (
+              <button
+                key={meeting.id}
+                type="button"
+                className="rounded-md border border-slate-100 p-4 text-left transition hover:border-slate-200"
+                onClick={() => {
+                  setSelectedMeetingId(meeting.id)
+                  navigate('/meetings')
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">{meeting.topic}</p>
+                    <p className="text-xs text-slate-500">
+                      {meeting.meetingDate} · {meeting.location || '地点待定'}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-cyan-50 px-2 py-1 text-xs text-cyan-700">
+                    {meeting.category || '会议'}
+                  </span>
                 </div>
-                <span className="rounded-full bg-cyan-50 px-2 py-1 text-xs text-cyan-700">
-                  {meeting.category || '会议'}
-                </span>
-              </div>
-            </button>
-          ))}
-          {recentMeetings.length === 0 && <p className="text-xs text-slate-400">暂无会议记录</p>}
+              </button>
+            ))}
+            {recentMeetings.length === 0 && <p className="text-xs text-slate-400">暂无会议记录</p>}
+          </div>
         </div>
       </div>
     </div>
