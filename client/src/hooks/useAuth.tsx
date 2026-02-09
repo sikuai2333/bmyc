@@ -2,7 +2,8 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { LoginPayload, User } from '../types/auth'
 import { sampleUser } from '../data/sample'
-import { api, setAuthToken } from '../utils/api'
+import { setAuthToken } from '../utils/api'
+import { login as loginService } from '../services/auth'
 import { sanitizeInput } from '../utils/sanitize'
 
 interface AuthContextValue {
@@ -93,12 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // TODO: replace with real API call to /api/login when backend is wired.
-    const response = await api.post('/login', {
-      email: account,
-      password
-    })
-    const nextToken = response.data?.token as string
-    const nextUser = response.data?.user as User
+    const response = await loginService({ account, password })
+    const nextToken = response?.token as string
+    const nextUser = response?.user as User
     const mode = payload.remember ? 'local' : 'session'
     const storage = resolveStorage(mode)
     setStorageMode(mode)

@@ -9,7 +9,14 @@ import {
 } from 'react'
 import { DIMENSION_CATEGORIES } from '../constants'
 import { useAuth } from './useAuth'
-import { api } from '../utils/api'
+import { updateSensitiveView } from '../services/profile'
+import { fetchPeople, updatePerson, updatePersonDimensions, fetchMonthlyDimensions } from '../services/people'
+import { fetchMeetings } from '../services/meetings'
+import { fetchDimensionInsights, fetchCompletionInsights } from '../services/insights'
+import { fetchEvaluations } from '../services/evaluations'
+import { fetchGrowth } from '../services/growth'
+import { fetchCertificates } from '../services/certificates'
+import { fetchUsers } from '../services/users'
 import type { Certificate, Evaluation, GrowthEvent, Meeting, Person } from '../types/archive'
 import type { Permission } from '../types/auth'
 import { hasAnyPermission, hasPermission } from '../utils/permissions'
@@ -201,7 +208,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const toggleSensitiveView = async () => {
     if (!user) return
     const nextValue = !sensitiveUnmasked
-    await api.put('/profile/sensitive', { sensitiveUnmasked: nextValue })
+    await updateSensitiveView(nextValue)
     updateUser({ ...user, sensitiveUnmasked: nextValue })
   }
 
@@ -226,22 +233,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       try {
         const canViewDimensionInsights = hasPerm('dimensions.view.all')
-        const [peopleRes, meetingRes, insightRes, completionRes] = await Promise.all([
-          api.get('/personnel'),
-          api.get('/meetings'),
-          canViewDimensionInsights
-            ? api.get('/insights/dimensions')
-            : Promise.resolve({ data: [] }),
-          canViewDimensionInsights
-            ? api.get('/insights/completions', { params: { months: 6 } })
-            : Promise.resolve({ data: [] })
+        const [peopleData, meetingData, insightData, completionData] = await Promise.all([
+          fetchPeople(),
+          fetchMeetings(),
+          canViewDimensionInsights ? fetchDimensionInsights() : Promise.resolve([]),
+          canViewDimensionInsights ? fetchCompletionInsights({ months: 6 }) : Promise.resolve([])
         ])
-        const peopleData = peopleRes.data || []
-        const meetingData = meetingRes.data || []
-        setPeople(peopleData)
-        setMeetings(meetingData)
-        setInsights(insightRes.data || [])
-        setCompletionInsights(completionRes.data || [])
+        setPeople(peopleData || [])
+        setMeetings(meetingData || [])
+        setInsights(insightData || [])
+        setCompletionInsights(completionData || [])
 
         if (!selectedPersonId || !peopleData.some((item: Person) => item.id === selectedPersonId)) {
           const preferredId =
@@ -299,17 +300,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const fetchDetails = async () => {
       const requests = {
         evaluations: canViewEvaluations
-          ? api.get('/evaluations', { params: { personId: selectedPersonId } })
-          : Promise.resolve({ data: [] }),
+          ? fetchEvaluations(selectedPersonId)
+          : Promise.resolve([]),
         growth: canViewGrowth
-          ? api.get('/growth', { params: { personId: selectedPersonId } })
-          : Promise.resolve({ data: [] }),
+          ? fetchGrowth(selectedPersonId)
+          : Promise.resolve([]),
         certificates: canViewCertificates
-          ? api.get('/certificates', { params: { personId: selectedPersonId } })
-          : Promise.resolve({ data: [] }),
-        dimensions: api.get(`/personnel/${selectedPersonId}/dimensions/monthly`, {
-          params: { months: 6 }
-        })
+          ? fetchCertificates(selectedPersonId)
+          : Promise.resolve([]),
+        dimensions: fetchMonthlyDimensions(selectedPersonId, { months: 6 })
       }
 
       try {
@@ -319,10 +318,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           requests.certificates,
           requests.dimensions
         ])
-        setEvaluations(evalRes.data || [])
-        setGrowthEvents(growthRes.data || [])
-        setCertificates(certRes.data || [])
-        setDimensionMonthlyRows(dimensionRes?.data?.rows || [])
+        setEvaluations(evalRes || [])
+        setGrowthEvents(growthRes || [])
+        setCertificates(certRes || [])
+        setDimensionMonthlyRows(dimensionRes?.rows || [])
       } catch {
         setEvaluations([])
         setGrowthEvents([])
@@ -341,9 +340,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
     const fetchDimensionMonth = async () => {
       try {
-        const { data } = await api.get(`/personnel/${selectedPersonId}/dimensions/monthly`, {
-          params: { month: dimensionMonth }
-        })
+        const data = await fetchMonthlyDimensions(selectedPersonId, { month: dimensionMonth })
         const row = data?.rows?.find((item: MonthlyDimensionRow) => item.month === dimensionMonth)
         if (row?.dimensions?.length) {
           setDimensionDrafts(row.dimensions.map((dimension) => ({ ...dimension })))
@@ -362,15 +359,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setUsers([])
       return
     }
-    const fetchUsers = async () => {
+    const loadUsers = async () => {
       try {
-        const { data } = await api.get('/users')
+        const data = await fetchUsers()
         setUsers(data || [])
       } catch {
         setUsers([])
       }
     }
-    fetchUsers()
+    loadUsers()
   }, [token, canManageUsers, dataVersion])
 
   const updateDimensionDraft = (idx: number, key: 'detail', value: string) => {
@@ -381,7 +378,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const saveProfile = async () => {
     if (!selectedPerson) return null
-    const { data } = await api.put(`/personnel/${selectedPerson.id}`, draftProfile)
+    const data = await updatePerson(selectedPerson.id, draftProfile)
     setPeople((prev) => prev.map((person) => (person.id === data.id ? { ...person, ...data } : person)))
     return data as Person
   }
@@ -393,7 +390,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       category,
       detail: detail && String(detail).trim() ? String(detail).trim() : '无'
     }))
-    const { data } = await api.put(`/personnel/${selectedPerson.id}/dimensions`, {
+    const data = await updatePersonDimensions(selectedPerson.id, {
       dimensions: payload,
       month: targetMonth
     })

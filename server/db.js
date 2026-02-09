@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const Database = require('better-sqlite3');
 const dotenv = require('dotenv');
 const { getDefaultPermissions, normalizePermissions } = require('./permissions');
+const { DIMENSION_CATEGORIES } = require('./config/constants');
 
 dotenv.config();
 
@@ -132,15 +133,6 @@ const defaultPeople = [
     icon: '\uD83D\uDC64'
   },
   ...TEST_ACCOUNTS.map((item) => item.person)
-];
-
-const DIMENSION_CATEGORIES = [
-  '\u601d\u60f3\u653f\u6cbb',
-  '\u4e1a\u52a1\u6c34\u5e73',
-  '\u4e1a\u7ee9\u6210\u679c',
-  '\u516b\u5c0f\u65f6\u5916\u4e1a\u4f59\u751f\u6d3b',
-  '\u9605\u8bfb\u5b66\u4e60\u60c5\u51b5',
-  '\u5a5a\u604b\u60c5\u51b5'
 ];
 
 const DEMO_DIMENSION_DETAILS = {
@@ -415,7 +407,16 @@ const ensureDisplayAccount = () => {
 };
 
 function init() {
-  db.prepare(`CREATE TABLE IF NOT EXISTS users (
+  db.prepare(`CREATE TABLE IF NOT EXISTS schema_migrations (
+      id TEXT PRIMARY KEY,
+      applied_at TEXT DEFAULT (datetime('now'))
+    )`).run();
+  const appliedMigrations = new Set(
+    db.prepare('SELECT id FROM schema_migrations').all().map((row) => row.id)
+  );
+
+  if (!appliedMigrations.has('001_base')) {
+    db.prepare(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
@@ -602,6 +603,9 @@ function init() {
       FOREIGN KEY(meeting_id) REFERENCES meetings(id),
       FOREIGN KEY(person_id) REFERENCES people(id)
     )`).run();
+
+  db.prepare('INSERT INTO schema_migrations (id) VALUES (?)').run('001_base');
+  }
 
   const peopleCount = db.prepare('SELECT COUNT(*) as count FROM people').get().count;
   if (ENABLE_DEMO_DATA && peopleCount === 0) {

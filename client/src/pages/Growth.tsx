@@ -4,7 +4,7 @@ import { EmptyState } from '../components/EmptyState'
 import { PersonSelector } from '../components/PersonSelector'
 import { SectionHeader } from '../components/SectionHeader'
 import { useAppData } from '../hooks/useAppData'
-import { api } from '../utils/api'
+import { createGrowth, deleteGrowth } from '../services/growth'
 
 export default function Growth() {
   const {
@@ -35,7 +35,7 @@ export default function Growth() {
     }
     try {
       setSaving(true)
-      await api.post('/growth', {
+      await createGrowth({
         personId: selectedPerson.id,
         eventDate: values.eventDate,
         title: values.title.trim(),
@@ -55,7 +55,7 @@ export default function Growth() {
   const handleDelete = async (id: number) => {
     if (!window.confirm('确认删除该成长事件？')) return
     try {
-      await api.delete(`/growth/${id}`)
+      await deleteGrowth(id)
       message.success('成长事件已删除')
       refreshAll()
     } catch (err: any) {

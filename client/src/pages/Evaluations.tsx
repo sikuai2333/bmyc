@@ -5,7 +5,7 @@ import { PersonSelector } from '../components/PersonSelector'
 import { SectionHeader } from '../components/SectionHeader'
 import { EVALUATION_TYPES } from '../constants'
 import { useAppData } from '../hooks/useAppData'
-import { api } from '../utils/api'
+import { createEvaluation } from '../services/evaluations'
 
 export default function Evaluations() {
   const {
@@ -27,7 +27,7 @@ export default function Evaluations() {
     }
     try {
       setSaving(true)
-      await api.post('/evaluations', {
+      await createEvaluation({
         personId: selectedPerson.id,
         type: values.type,
         period: values.period.trim(),

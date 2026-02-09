@@ -17,7 +17,16 @@ import type { ColumnsType } from 'antd/es/table'
 import { DEFAULT_ICON, MEETING_CATEGORY_TAGS } from '../constants'
 import { SectionHeader } from '../components/SectionHeader'
 import { useAppData } from '../hooks/useAppData'
-import { api } from '../utils/api'
+import {
+  fetchLogs,
+  fetchPermissions,
+  createUser,
+  updateUser,
+  deleteUser
+} from '../services/users'
+import { createPerson, deletePerson } from '../services/people'
+import { exportPeople, importExcel } from '../services/importExport'
+import { createMeeting, deleteMeeting } from '../services/meetings'
 import { generateNumericPassword } from '../utils/password'
 import type { Person, Meeting } from '../types/archive'
 import type { Permission } from '../types/auth'
@@ -92,28 +101,28 @@ export default function Admin() {
 
   useEffect(() => {
     if (!canManagePermissions || activeTab !== 'permissions') return
-    const fetchPermissions = async () => {
+    const loadPermissions = async () => {
       try {
-        const { data } = await api.get('/permissions')
+        const data = await fetchPermissions()
         setPermissionCatalog(data || [])
       } catch (err: any) {
         message.error(err?.response?.data?.message || '加载权限清单失败')
       }
     }
-    fetchPermissions()
+    loadPermissions()
   }, [activeTab, canManagePermissions])
 
   useEffect(() => {
     if (activeTab !== 'ops' || !hasPerm('logs.view')) return
-    const fetchLogs = async () => {
+    const loadLogs = async () => {
       try {
-        const { data } = await api.get('/logs')
+        const data = await fetchLogs()
         setLogItems(data || [])
       } catch (err: any) {
         message.error(err?.response?.data?.message || '加载日志失败')
       }
     }
-    fetchLogs()
+    loadLogs()
   }, [activeTab, hasPerm])
 
   useEffect(() => {
@@ -160,7 +169,7 @@ export default function Admin() {
         gender: values.gender || '',
         phone: values.phone || ''
       }
-      const { data: createdPerson } = await api.post('/personnel', personPayload)
+      const createdPerson = await createPerson(personPayload)
       const password = values.password?.trim() || generateNumericPassword()
       const userPayload = {
         name: values.name.trim(),
@@ -170,7 +179,7 @@ export default function Admin() {
         personId: createdPerson.id,
         sensitiveUnmasked: false
       }
-      const { data: createdUser } = await api.post('/users', userPayload)
+      const createdUser = await createUser(userPayload)
       setLastCredential({ name: createdUser.name, email: createdUser.email, password })
       setSelectedPersonId(createdPerson.id)
       message.success('人才档案与账号已创建')
@@ -183,7 +192,7 @@ export default function Admin() {
   const handleDeletePerson = async (id: number) => {
     if (!window.confirm('确认删除该人才及其档案吗？')) return
     try {
-      await api.delete(`/personnel/${id}`)
+      await deletePerson(id)
       message.success('人才已删除')
       refreshAll()
     } catch (err: any) {
@@ -202,7 +211,7 @@ export default function Admin() {
         personId: null,
         sensitiveUnmasked: values.role === 'admin' ? values.sensitiveUnmasked : false
       }
-      const { data: createdUser } = await api.post('/users', userPayload)
+      const createdUser = await createUser(userPayload)
       setSystemCredential({ name: createdUser.name, email: createdUser.email, password })
       message.success('系统账号已创建')
       refreshAll()
@@ -213,7 +222,7 @@ export default function Admin() {
 
   const handleUserRoleChange = async (id: number, role: string) => {
     try {
-      await api.put(`/users/${id}`, { role })
+      await updateUser(id, { role })
       message.success('账号角色已更新')
       refreshAll()
     } catch (err: any) {
@@ -227,7 +236,7 @@ export default function Admin() {
     if (!target) return
     const nextPassword = values.password?.trim() || generateNumericPassword()
     try {
-      await api.put(`/users/${target.id}`, { password: nextPassword })
+      await updateUser(target.id, { password: nextPassword })
       setResetCredential({ name: target.name, email: target.email, password: nextPassword })
       message.success('密码已重置')
       refreshAll()
@@ -239,7 +248,7 @@ export default function Admin() {
   const handleDeleteUser = async (id: number) => {
     if (!window.confirm('确认删除该账号？')) return
     try {
-      await api.delete(`/users/${id}`)
+      await deleteUser(id)
       message.success('账号已删除')
       refreshAll()
     } catch (err: any) {
@@ -259,7 +268,7 @@ export default function Admin() {
       return
     }
     try {
-      await api.put(`/users/${permissionTargetId}`, {
+      await updateUser(permissionTargetId, {
         permissions: permissionDraft,
         sensitiveUnmasked: sensitiveDraft
       })
@@ -274,7 +283,7 @@ export default function Admin() {
     try {
       setExporting(true)
       const params = onlySelected && selectedPerson ? { personId: selectedPerson.id } : {}
-      const response = await api.get('/export/people', { params, responseType: 'blob' })
+      const response = await exportPeople(params)
       const url = window.URL.createObjectURL(response.data)
       const link = document.createElement('a')
       link.href = url
@@ -297,10 +306,7 @@ export default function Admin() {
       setImporting(true)
       const payload = new FormData()
       payload.append('file', importFile)
-      const requestImport = async (allowCreate: boolean) =>
-        api.post(`/import/excel?allowCreate=${allowCreate ? 1 : 0}`, payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+      const requestImport = async (allowCreate: boolean) => importExcel(payload, allowCreate)
 
       const { data } = await requestImport(false)
       if (data.needsConfirm && data.pendingNames?.length) {
@@ -349,7 +355,7 @@ export default function Admin() {
       }))
     }
     try {
-      await api.post('/meetings', payload)
+      await createMeeting(payload)
       message.success('会议已创建')
       meetingForm.resetFields(['topic', 'meetingDate', 'location', 'summary', 'attendeeIds', 'speakerIds'])
       refreshAll()
@@ -361,7 +367,7 @@ export default function Admin() {
   const handleDeleteMeeting = async (id: number) => {
     if (!window.confirm('确认删除该会议？')) return
     try {
-      await api.delete(`/meetings/${id}`)
+      await deleteMeeting(id)
       message.success('会议已删除')
       refreshAll()
     } catch (err: any) {

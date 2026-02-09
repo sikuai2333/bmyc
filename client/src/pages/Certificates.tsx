@@ -5,7 +5,7 @@ import { EmptyState } from '../components/EmptyState'
 import { PersonSelector } from '../components/PersonSelector'
 import { SectionHeader } from '../components/SectionHeader'
 import { useAppData } from '../hooks/useAppData'
-import { api } from '../utils/api'
+import { createCertificate, deleteCertificate, fetchCertificateFile } from '../services/certificates'
 import { ALLOWED_CERT_TYPES, isFileValid, MAX_UPLOAD_SIZE_MB } from '../utils/file'
 
 export default function Certificates() {
@@ -67,9 +67,7 @@ export default function Certificates() {
       if (file) {
         payload.append('file', file as File)
       }
-      await api.post('/certificates', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      await createCertificate(payload)
       message.success('证书已上传')
       form.resetFields()
       setFileList([])
@@ -84,7 +82,7 @@ export default function Certificates() {
   const handleDelete = async (id: number) => {
     if (!window.confirm('确认删除该证书？')) return
     try {
-      await api.delete(`/certificates/${id}`)
+      await deleteCertificate(id)
       message.success('证书已删除')
       refreshAll()
     } catch (err: any) {
@@ -94,7 +92,7 @@ export default function Certificates() {
 
   const handleDownload = async (id: number, name?: string) => {
     try {
-      const response = await api.get(`/certificates/${id}/file`, { responseType: 'blob' })
+      const response = await fetchCertificateFile(id)
       const url = window.URL.createObjectURL(response.data)
       const link = document.createElement('a')
       link.href = url
