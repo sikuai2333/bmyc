@@ -1,6 +1,15 @@
 import { Button } from 'antd'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  AimOutlined,
+  BarChartOutlined,
+  CalendarOutlined,
+  FireOutlined,
+  RocketOutlined,
+  StarOutlined,
+  TeamOutlined
+} from '@ant-design/icons'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartCard } from '../components/ChartCard'
 import { MetricCard } from '../components/MetricCard'
@@ -95,6 +104,16 @@ export default function Dashboard() {
     [meetings]
   )
 
+  const topPeople = useMemo(() => trendingPeople.slice(0, 3), [trendingPeople])
+  const topMeetings = useMemo(() => recentMeetings.slice(0, 3), [recentMeetings])
+  const topDimensions = useMemo(() => dimensionCoverage.slice(0, 3), [dimensionCoverage])
+  const overviewIcons = [
+    <TeamOutlined key="people" />,
+    <BarChartOutlined key="dimensions" />,
+    <CalendarOutlined key="meetings" />,
+    <AimOutlined key="coverage" />
+  ]
+
   return (
     <div className="dashboard-surface space-y-6">
       <SectionHeader
@@ -115,6 +134,162 @@ export default function Dashboard() {
           </Button>
         </div>
       ) : null}
+
+      <div className="dashboard-showcase">
+        <div className="dashboard-variant dashboard-variant-a">
+          <div className="variant-a-hero">
+            <div className="variant-a-title">
+              <span className="variant-kicker">大屏速览</span>
+              <h3>数据指挥舱</h3>
+              <p>关键指标 · 重点人才 · 会议节奏</p>
+            </div>
+            <div className="variant-a-chips">
+              {overview.map((metric, index) => (
+                <div className="variant-chip" key={metric.label}>
+                  <span className={`variant-chip-icon variant-chip-icon-${index + 1}`}>
+                    {overviewIcons[index]}
+                  </span>
+                  <div>
+                    <p className="variant-chip-label">{metric.label}</p>
+                    <p className="variant-chip-value">
+                      {metric.value}
+                      {metric.unit}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="variant-a-focus">
+            <h4>
+              <StarOutlined /> 重点关注
+            </h4>
+            <div className="variant-a-list">
+              {topPeople.map((person) => (
+                <button
+                  key={person.id}
+                  type="button"
+                  className="variant-a-item"
+                  onClick={() => {
+                    setSelectedPersonId(person.id)
+                    navigate('/archives')
+                  }}
+                >
+                  <span className="variant-a-name">{person.name}</span>
+                  <span className="variant-a-meta">
+                    {person.department || '—'} · {person.dimensionMonthCount || 0} 月
+                  </span>
+                </button>
+              ))}
+              {topPeople.length === 0 && <p className="variant-empty">暂无重点人员</p>}
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-variant dashboard-variant-b">
+          <div className="variant-b-poster">
+            <span className="variant-b-badge">
+              <FireOutlined /> 热门动态
+            </span>
+            <h3>月度趋势快照</h3>
+            <p>聚焦会议节奏与画像更新热度</p>
+            <div className="variant-b-stats">
+              <div>
+                <span>入库英才</span>
+                <strong>{people.length}</strong>
+              </div>
+              <div>
+                <span>画像条目</span>
+                <strong>{overview[1]?.value}</strong>
+              </div>
+              <div>
+                <span>会议次数</span>
+                <strong>{meetings.length}</strong>
+              </div>
+            </div>
+          </div>
+          <div className="variant-b-side">
+            <div className="variant-b-card">
+              <h4>
+                <RocketOutlined /> 最新会议
+              </h4>
+              {topMeetings.map((meeting) => (
+                <button
+                  key={meeting.id}
+                  type="button"
+                  className="variant-b-item"
+                  onClick={() => {
+                    setSelectedMeetingId(meeting.id)
+                    navigate('/meetings')
+                  }}
+                >
+                  <span>{meeting.topic}</span>
+                  <em>{meeting.meetingDate}</em>
+                </button>
+              ))}
+              {topMeetings.length === 0 && <p className="variant-empty">暂无会议记录</p>}
+            </div>
+            <div className="variant-b-card">
+              <h4>
+                <AimOutlined /> 维度热度
+              </h4>
+              {topDimensions.map((row) => (
+                <div key={row.category} className="variant-b-progress">
+                  <span>{row.category}</span>
+                  <div>
+                    <i style={{ width: `${row.ratio}%` }} />
+                  </div>
+                </div>
+              ))}
+              {topDimensions.length === 0 && <p className="variant-empty">暂无维度统计</p>}
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-variant dashboard-variant-c">
+          <div className="variant-c-grid">
+            <div className="variant-note variant-note-main">
+              <span className="variant-kicker">今日提示</span>
+              <h3>档案画像看板</h3>
+              <p>把关键指标写进工作节奏，让成长看得见。</p>
+            </div>
+            <div className="variant-note variant-note-metric">
+              <h4>英才规模</h4>
+              <p className="variant-note-value">
+                {people.length} 人
+              </p>
+              <p>覆盖率：{overview[3]?.value}</p>
+            </div>
+            <div className="variant-note variant-note-metric">
+              <h4>画像更新</h4>
+              <p className="variant-note-value">
+                {overview[1]?.value} 条
+              </p>
+              <p>会议：{meetings.length} 场</p>
+            </div>
+            <div className="variant-note variant-note-list">
+              <h4>本月关注</h4>
+              {topPeople.map((person) => (
+                <div key={person.id} className="variant-note-row">
+                  <span>{person.name}</span>
+                  <em>{person.dimensionMonthCount || 0} 月</em>
+                </div>
+              ))}
+              {topPeople.length === 0 && <p className="variant-empty">暂无重点人员</p>}
+            </div>
+            <div className="variant-note variant-note-list">
+              <h4>会议纪要</h4>
+              {topMeetings.map((meeting) => (
+                <div key={meeting.id} className="variant-note-row">
+                  <span>{meeting.topic}</span>
+                  <em>{meeting.meetingDate}</em>
+                </div>
+              ))}
+              {topMeetings.length === 0 && <p className="variant-empty">暂无会议记录</p>}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {overview.map((metric, index) => (

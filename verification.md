@@ -228,3 +228,22 @@
 ## 佐证
 
 - 详见 `.codex/testing.md` 的完整命令输出。
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 验证结论
+
+- 后端测试（`npm --prefix app run test`）通过。
+- 前端构建（`npm --prefix app run build`）通过。
+
+## 风险与警告
+
+- 构建产物存在单个 chunk > 500 kB 的体积告警。
+
+## 佐证
+
+- 详见 `.codex/testing.md` 的完整命令输出。

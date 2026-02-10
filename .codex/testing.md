@@ -340,6 +340,96 @@ stderr | src/test/ArchiveList.test.tsx > ArchiveList > renders list and masks se
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 ```
 
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app run test`：通过
+2. `npm --prefix app run build`：通过（存在体积告警）
+
+## npm --prefix app run test 输出
+
+```
+> bainyingcai-dashboard@1.0.0 test
+> npm run test:server
+
+> bainyingcai-dashboard@1.0.0 test:server
+> node --test server/__tests__
+
+TAP version 13
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+# 人才档案服务已启动: http://localhost:0
+# Subtest: bootstrap admin and import datasets
+ok 1 - bootstrap admin and import datasets
+  ---
+  duration_ms: 203.2437
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1721.8275
+```
+
+## npm --prefix app run build 输出
+
+```
+> bainyingcai-dashboard@1.0.0 build
+> npm --prefix client run build
+
+> client@0.0.0 build
+> vite build
+
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 3739 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                            0.68 kB │ gzip:   0.43 kB
+dist/assets/Login-BeUxL8n7.css             4.57 kB │ gzip:   1.46 kB
+dist/assets/index-qf2SL4QT.css            35.47 kB │ gzip:   7.58 kB
+dist/assets/useLocale-CBDkrXBE.js          0.36 kB │ gzip:   0.27 kB
+dist/assets/SectionHeader-3oyolGoZ.js      0.36 kB │ gzip:   0.23 kB
+dist/assets/fade-Deyqfy-0.js               0.45 kB │ gzip:   0.28 kB
+dist/assets/CheckOutlined-CZbMvcRh.js      0.48 kB │ gzip:   0.38 kB
+dist/assets/NotFound-DlXTn4Pq.js           0.59 kB │ gzip:   0.42 kB
+dist/assets/NoAccess-BvIbWH4_.js           0.59 kB │ gzip:   0.42 kB
+dist/assets/DownloadOutlined-BF2oQL3p.js   1.17 kB │ gzip:   0.61 kB
+dist/assets/PersonSelector-umnkTeFj.js     1.42 kB │ gzip:   0.75 kB
+dist/assets/index-vR8BzeZ8.js              1.95 kB │ gzip:   0.82 kB
+dist/assets/Evaluations-B4sSGfbg.js        3.13 kB │ gzip:   1.42 kB
+dist/assets/Growth-BNlHQhUq.js             3.54 kB │ gzip:   1.51 kB
+dist/assets/ReadingZone-B0je3CVM.js        4.42 kB │ gzip:   1.79 kB
+dist/assets/Login-DtnZx3x_.js              4.50 kB │ gzip:   1.75 kB
+dist/assets/Meetings-BHmAcFH_.js           4.66 kB │ gzip:   1.77 kB
+dist/assets/Certificates-BoOtpyqf.js       5.47 kB │ gzip:   2.29 kB
+dist/assets/format-BdHpIm3S.js             6.97 kB │ gzip:   2.79 kB
+dist/assets/ArchiveList-CPyj5dPI.js        9.33 kB │ gzip:   3.23 kB
+dist/assets/readingZone-p9_H5PRd.js       28.34 kB │ gzip:   9.52 kB
+dist/assets/index-BS1GqnY9.js             40.73 kB │ gzip:  14.66 kB
+dist/assets/index-Dbe5oB7Y.js             51.04 kB │ gzip:  17.60 kB
+dist/assets/index-28fdiQCf.js             51.12 kB │ gzip:  15.25 kB
+dist/assets/index-DXSIW_Ud.js             76.53 kB │ gzip:  25.34 kB
+dist/assets/Admin-BA_j6h8a.js            262.36 kB │ gzip:  81.32 kB
+dist/assets/Dashboard-C3Q19Z5V.js        358.22 kB │ gzip: 107.72 kB
+dist/assets/index-BgVkmWT0.js            607.40 kB │ gzip: 203.85 kB
+✓ built in 16.20s
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```
+
 ## npm --prefix app/client run build 输出
 
 ```
