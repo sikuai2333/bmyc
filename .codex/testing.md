@@ -94,6 +94,89 @@ dist/assets/index-B0NcA0r-.js            605.75 kB │ gzip: 203.28 kB
 ## 执行命令与结果
 
 1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
+
+## npm --prefix app/client run test -- --run 输出（摘要）
+
+```
+Test Files  11 passed (11)
+Tests       11 passed (11)
+```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app run test`：通过
+2. `npm --prefix app run build`：通过（存在体积告警）
+
+## npm --prefix app run test 输出
+
+```
+> bainyingcai-dashboard@1.0.0 test
+> npm run test:server
+
+> bainyingcai-dashboard@1.0.0 test:server
+> node --test server/__tests__
+
+TAP version 13
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+# 人才档案服务已启动: http://localhost:0
+# Subtest: bootstrap admin and import datasets
+ok 1 - bootstrap admin and import datasets
+  ---
+  duration_ms: 212.7848
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1614.9608
+```
+
+## npm --prefix app run build 输出
+
+```
+> bainyingcai-dashboard@1.0.0 build
+> npm --prefix client run build
+
+> client@0.0.0 build
+> vite build
+
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 3739 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                           0.68 kB │ gzip:   0.42 kB
+dist/assets/index-TQl5onwK.css           38.29 kB │ gzip:   7.96 kB
+dist/assets/Dashboard-BAj65nIK.js       364.31 kB │ gzip: 109.08 kB
+dist/assets/index-rFU-srWg.js           607.81 kB │ gzip: 203.95 kB
+✓ built in 14.70s
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
 2. `npm --prefix app run test`：通过
 3. `npm --prefix app run build`：通过（存在体积告警）
 

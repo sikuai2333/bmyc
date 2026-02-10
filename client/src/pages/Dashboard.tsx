@@ -34,31 +34,32 @@ export default function Dashboard() {
     refreshAll,
     setSelectedPersonId,
     setSelectedMeetingId,
-    selectedPerson,
-    evaluations,
-    growthEvents,
-    certificates,
-    dimensionMonthlyRows,
-    dimensionMonth,
-    canViewEvaluations,
-    canViewGrowth,
-    canViewCertificates,
     hasPerm
   } = useAppData()
 
+  const totalDimensionMonths = useMemo(
+    () => people.reduce((sum, person) => sum + (person.dimensionMonthCount || 0), 0),
+    [people]
+  )
+
+  const coveredCategories = useMemo(
+    () => insights.filter((item) => item.count > 0).length,
+    [insights]
+  )
+
+  const coverageRate = useMemo(() => {
+    if (!DIMENSION_CATEGORIES.length) return '—'
+    return `${Math.round((coveredCategories / DIMENSION_CATEGORIES.length) * 100)}%`
+  }, [coveredCategories])
+
   const overview = useMemo(() => {
-    const totalDimensions = people.reduce((sum, person) => sum + (person.dimensionMonthCount || 0), 0)
-    const coveredCategories = insights.filter((item) => item.count > 0).length
-    const coverage = insights.length
-      ? `${Math.round((coveredCategories / DIMENSION_CATEGORIES.length) * 100)}%`
-      : '—'
     return [
       { label: '入库英才', value: people.length, unit: '人' },
-      { label: '月度画像', value: totalDimensions, unit: '条' },
+      { label: '月度画像', value: totalDimensionMonths, unit: '条' },
       { label: '政治思想会议', value: meetings.length, unit: '场' },
-      { label: '维度覆盖率', value: coverage, unit: '' }
+      { label: '维度覆盖率', value: coverageRate, unit: '' }
     ]
-  }, [people, meetings, insights])
+  }, [people.length, meetings.length, totalDimensionMonths, coverageRate])
 
   const departmentCount = useMemo(() => {
     const departments = new Set(
@@ -68,6 +69,24 @@ export default function Dashboard() {
     )
     return departments.size
   }, [people])
+
+  const topDepartments = useMemo(() => {
+    const map = new Map<string, number>()
+    people.forEach((person) => {
+      const department = (person.department || '').trim()
+      if (!department) return
+      map.set(department, (map.get(department) || 0) + 1)
+    })
+    return Array.from(map.entries())
+      .map(([department, count]) => ({ department, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3)
+  }, [people])
+
+  const averageDimensionMonths = useMemo(() => {
+    if (!people.length) return '—'
+    return (totalDimensionMonths / people.length).toFixed(1)
+  }, [people.length, totalDimensionMonths])
 
   const activePeopleCount = useMemo(
     () => people.filter((person) => (person.dimensionMonthCount || 0) > 0).length,
@@ -133,6 +152,13 @@ export default function Dashboard() {
     }).sort((a, b) => b.count - a.count)
   }, [insights])
 
+  const completionTrend = useMemo(
+    () => completionInsights.slice().sort((a, b) => a.month.localeCompare(b.month)),
+    [completionInsights]
+  )
+
+  const recentCompletions = useMemo(() => completionTrend.slice(-3), [completionTrend])
+
   const trendingPeople = useMemo(
     () =>
       people
@@ -187,6 +213,30 @@ export default function Dashboard() {
     return meetings.filter((meeting) => new Date(meeting.meetingDate) >= threshold).length
   }, [meetings])
 
+  const meetingsLast7Days = useMemo(() => {
+    const threshold = new Date()
+    threshold.setDate(threshold.getDate() - 7)
+    return meetings.filter((meeting) => new Date(meeting.meetingDate) >= threshold).length
+  }, [meetings])
+
+  const upcomingMeetings = useMemo(() => {
+    const now = new Date()
+    return meetings
+      .slice()
+      .filter((meeting) => new Date(meeting.meetingDate) >= now)
+      .sort((a, b) => new Date(a.meetingDate).getTime() - new Date(b.meetingDate).getTime())
+      .slice(0, 2)
+  }, [meetings])
+
+  const activityMeetings = useMemo(
+    () =>
+      meetings
+        .slice()
+        .sort((a, b) => new Date(b.meetingDate).getTime() - new Date(a.meetingDate).getTime())
+        .slice(0, 6),
+    [meetings]
+  )
+
   const avgAttendees = useMemo(() => {
     const stats = meetings.reduce(
       (acc, meeting) => {
@@ -203,25 +253,12 @@ export default function Dashboard() {
     return Math.round(stats.total / stats.count)
   }, [meetings])
 
+  const totalAttendance = useMemo(
+    () => meetings.reduce((sum, meeting) => sum + (meeting.attendees?.length || 0), 0),
+    [meetings]
+  )
+
   const topMeetingCategory = meetingCategories[0]?.category || '—'
-
-  const currentDimensionRow = useMemo(() => {
-    if (!dimensionMonth) return null
-    return dimensionMonthlyRows.find((row) => row.month === dimensionMonth) || null
-  }, [dimensionMonthlyRows, dimensionMonth])
-
-  const dimensionFilledCount = useMemo(() => {
-    if (!currentDimensionRow) return 0
-    return currentDimensionRow.dimensions.filter((dimension) => dimension.detail && dimension.detail !== '无').length
-  }, [currentDimensionRow])
-
-  const dimensionProgress = DIMENSION_CATEGORIES.length
-    ? Math.round((dimensionFilledCount / DIMENSION_CATEGORIES.length) * 100)
-    : 0
-
-  const latestEvaluations = useMemo(() => evaluations.slice(0, 2), [evaluations])
-  const latestGrowth = useMemo(() => growthEvents.slice(0, 3), [growthEvents])
-  const latestCertificates = useMemo(() => certificates.slice(0, 2), [certificates])
 
   return (
     <div className="dashboard-surface space-y-6">
@@ -267,6 +304,37 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="variant-a-summary">
+              <div>
+                <h4>运营简报</h4>
+                <div className="variant-a-summary-list">
+                  <div>
+                    <span>维度覆盖率</span>
+                    <strong>{coverageRate}</strong>
+                  </div>
+                  <div>
+                    <span>平均画像月数</span>
+                    <strong>{averageDimensionMonths}</strong>
+                  </div>
+                  <div>
+                    <span>部门Top</span>
+                    <strong>{topDepartments[0]?.department || '—'}</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="variant-a-mini">
+                <span>近三月画像完成</span>
+                <div className="variant-a-mini-bars">
+                  {recentCompletions.map((item) => (
+                    <div key={item.month}>
+                      <i style={{ height: `${Math.min(100, item.count * 8 + 20)}%` }} />
+                      <em>{item.month.slice(5)}</em>
+                    </div>
+                  ))}
+                  {recentCompletions.length === 0 && <p className="variant-empty">暂无趋势数据</p>}
+                </div>
+              </div>
             </div>
           </div>
           <div className="variant-a-panels">
@@ -331,6 +399,10 @@ export default function Dashboard() {
                 <span>主流分类</span>
                 <strong>{topMeetingCategory}</strong>
               </div>
+              <div>
+                <span>协同人次</span>
+                <strong>{totalAttendance}</strong>
+              </div>
             </div>
             <div className="variant-b-tags">
               {meetingCategories.slice(0, 3).map((row) => (
@@ -339,6 +411,19 @@ export default function Dashboard() {
                 </span>
               ))}
               {meetingCategories.length === 0 && <span className="variant-empty">暂无分类</span>}
+            </div>
+            <div className="variant-b-highlights">
+              <h4>近期提醒</h4>
+              {upcomingMeetings.map((meeting) => (
+                <div key={meeting.id} className="variant-b-highlight">
+                  <div>
+                    <strong>{meeting.topic}</strong>
+                    <span>{meeting.location || '地点待定'}</span>
+                  </div>
+                  <em>{meeting.meetingDate}</em>
+                </div>
+              ))}
+              {upcomingMeetings.length === 0 && <p className="variant-empty">暂无待办会议</p>}
             </div>
           </div>
           <div className="variant-b-side">
@@ -382,76 +467,61 @@ export default function Dashboard() {
         <div className="dashboard-variant dashboard-variant-c">
           <div className="variant-c-grid">
             <div className="variant-note variant-note-main">
-              <span className="variant-kicker">个人画像</span>
-              <h3>{selectedPerson ? selectedPerson.name : '暂无选中人才'}</h3>
-              <p>
-                {selectedPerson
-                  ? `${selectedPerson.department || '未分配部门'} · ${selectedPerson.title || '职务待补充'}`
-                  : '请在档案清单中选择人员'}
-              </p>
+              <span className="variant-kicker">近期活动</span>
+              <h3>会议活动总览</h3>
+              <p>聚焦最近一段时间的会议安排与协同动态。</p>
               <div className="variant-note-tags">
-                <span>{selectedPerson?.focus ? `关注方向：${selectedPerson.focus}` : '关注方向待补充'}</span>
-                <span>{selectedPerson?.latestDimensionMonth ? `最新画像：${selectedPerson.latestDimensionMonth}` : '暂无画像月份'}</span>
+                <span>近 7 天会议：{meetingsLast7Days} 场</span>
+                <span>待办会议：{upcomingMeetings.length} 场</span>
+                <span>累计会议：{meetings.length} 场</span>
               </div>
             </div>
             <div className="variant-note variant-note-metric">
-              <h4>六维画像完成度</h4>
-              <p className="variant-note-value">
-                {dimensionFilledCount}/{DIMENSION_CATEGORIES.length}
-              </p>
-              <div className="variant-note-progress">
-                <span>最新月份 {currentDimensionRow?.month || '—'}</span>
-                <div>
-                  <i style={{ width: `${dimensionProgress}%` }} />
-                </div>
-              </div>
-            </div>
-            <div className="variant-note variant-note-list">
-              <h4>近期评价</h4>
-              {!canViewEvaluations && <p className="variant-empty">暂无权限查看评价</p>}
-              {canViewEvaluations &&
-                latestEvaluations.map((item) => (
-                  <div key={item.id} className="variant-note-row">
-                    <span>{item.type === 'quarterly' ? '季度评价' : item.type === 'annual' ? '年度评估' : '婚恋补充'}</span>
-                    <em>{item.period}</em>
-                  </div>
-                ))}
-              {canViewEvaluations && latestEvaluations.length === 0 && (
-                <p className="variant-empty">暂无评价记录</p>
-              )}
-            </div>
-            <div className="variant-note variant-note-list">
-              <h4>成长轨迹</h4>
-              {!canViewGrowth && <p className="variant-empty">暂无权限查看成长</p>}
-              {canViewGrowth &&
-                latestGrowth.map((item) => (
-                  <div key={item.id} className="variant-note-row">
-                    <span>{item.title}</span>
-                    <em>{item.event_date}</em>
-                  </div>
-                ))}
-              {canViewGrowth && latestGrowth.length === 0 && (
-                <p className="variant-empty">暂无成长记录</p>
-              )}
-            </div>
-            <div className="variant-note variant-note-list">
-              <h4>证书概览</h4>
-              {!canViewCertificates && <p className="variant-empty">暂无权限查看证书</p>}
-              {canViewCertificates && (
+              <h4>下一场会议</h4>
+              {upcomingMeetings[0] ? (
                 <>
-                  <div className="variant-note-row">
-                    <span>证书数量</span>
-                    <em>{certificates.length} 份</em>
-                  </div>
-                  {latestCertificates.map((item) => (
-                    <div key={item.id} className="variant-note-row">
-                      <span>{item.name}</span>
-                      <em>{item.issued_date || item.uploaded_at || '待补充日期'}</em>
-                    </div>
-                  ))}
-                  {latestCertificates.length === 0 && <p className="variant-empty">暂无证书记录</p>}
+                  <p className="variant-note-value">{upcomingMeetings[0].topic}</p>
+                  <p>{upcomingMeetings[0].meetingDate}</p>
+                  <p>{upcomingMeetings[0].location || '地点待定'}</p>
                 </>
+              ) : (
+                <p className="variant-empty">暂无待办会议</p>
               )}
+            </div>
+            <div className="variant-note variant-note-list">
+              <h4>最新会议</h4>
+              {activityMeetings.map((meeting) => (
+                <div key={meeting.id} className="variant-note-row">
+                  <span>{meeting.topic}</span>
+                  <em>{meeting.meetingDate}</em>
+                </div>
+              ))}
+              {activityMeetings.length === 0 && <p className="variant-empty">暂无会议记录</p>}
+            </div>
+            <div className="variant-note variant-note-list">
+              <h4>会议摘要</h4>
+              {activityMeetings
+                .filter((meeting) => meeting.summary)
+                .slice(0, 3)
+                .map((meeting) => (
+                  <div key={meeting.id} className="variant-note-row">
+                    <span>{meeting.summary}</span>
+                    <em>{meeting.category || '会议'}</em>
+                  </div>
+                ))}
+              {activityMeetings.filter((meeting) => meeting.summary).length === 0 && (
+                <p className="variant-empty">暂无会议摘要</p>
+              )}
+            </div>
+            <div className="variant-note variant-note-list">
+              <h4>参会概况</h4>
+              {activityMeetings.slice(0, 3).map((meeting) => (
+                <div key={meeting.id} className="variant-note-row">
+                  <span>{meeting.topic}</span>
+                  <em>{meeting.attendees?.length ? `${meeting.attendees.length} 人参会` : '待补充参会'}</em>
+                </div>
+              ))}
+              {activityMeetings.length === 0 && <p className="variant-empty">暂无参会信息</p>}
             </div>
           </div>
         </div>
