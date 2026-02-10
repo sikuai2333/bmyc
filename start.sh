@@ -3,12 +3,30 @@ set -euo pipefail
 
 # === Config (edit as needed) ===
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "${SCRIPT_DIR}/package.json" ]; then
-  APP_DIR="${SCRIPT_DIR}"
-elif [ -f "${SCRIPT_DIR}/app/package.json" ]; then
-  APP_DIR="${SCRIPT_DIR}/app"
-else
-  echo "Cannot locate app/package.json. Please run start.sh from the project root or app directory."
+APP_DIR="${APP_DIR:-}"
+if [[ -z "${APP_DIR}" ]]; then
+  if [ -f "${SCRIPT_DIR}/package.json" ]; then
+    APP_DIR="${SCRIPT_DIR}"
+  elif [ -f "${SCRIPT_DIR}/app/package.json" ]; then
+    APP_DIR="${SCRIPT_DIR}/app"
+  elif [ -f "${SCRIPT_DIR}/client/package.json" ] && [ -f "${SCRIPT_DIR}/server/index.js" ]; then
+    APP_DIR="${SCRIPT_DIR}"
+  else
+    for candidate in "${SCRIPT_DIR}"/*; do
+      if [ -d "${candidate}" ] && [ -f "${candidate}/package.json" ] && [ -f "${candidate}/server/index.js" ]; then
+        APP_DIR="${candidate}"
+        break
+      fi
+      if [ -d "${candidate}" ] && [ -f "${candidate}/app/package.json" ] && [ -f "${candidate}/app/server/index.js" ]; then
+        APP_DIR="${candidate}/app"
+        break
+      fi
+    done
+  fi
+fi
+
+if [[ -z "${APP_DIR}" ]]; then
+  echo "Cannot locate project directory. Set APP_DIR or run start.sh from the project root."
   exit 1
 fi
 
@@ -52,8 +70,17 @@ if ! command -v pm2 >/dev/null 2>&1; then
   npm i -g pm2
 fi
 
-echo "Installing backend deps..."
-npm install
+if [ -f "package.json" ]; then
+  echo "Installing backend deps..."
+  npm install
+else
+  if [ -d "node_modules" ]; then
+    echo "package.json missing; skipping backend npm install (node_modules already present)."
+  else
+    echo "package.json missing and node_modules not found. Please copy package.json or set APP_DIR to the repo root."
+    exit 1
+  fi
+fi
 
 echo "Installing frontend deps..."
 npm --prefix client install
