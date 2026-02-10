@@ -19,7 +19,7 @@ function createApp() {
   if (NODE_ENV === 'production') {
     const distPath = path.join(__dirname, '..', 'client', 'dist');
     app.use(express.static(distPath));
-    app.get('*', (_, res) => res.sendFile(path.join(distPath, 'index.html')));
+    app.get('/*', (_, res) => res.sendFile(path.join(distPath, 'index.html')));
   }
 
   return app;
