@@ -25,6 +25,9 @@ export default function ArchiveList() {
   } =
     useAppData()
   const [query, setQuery] = useState('')
+  const canOpenAdmin = Boolean(
+    user && (hasPermission(user, 'users.manage') || hasPermission(user, 'permissions.manage'))
+  )
 
   const filtered = useMemo(() => {
     const keyword = query.trim()
@@ -292,28 +295,48 @@ export default function ArchiveList() {
                     {filtered.map((person) => (
                       <tr
                         key={person.id}
-                        className={`h-12 border-b border-slate-100 hover:bg-slate-50 ${
+                        onClick={() => setSelectedPersonId(person.id)}
+                        className={`h-12 border-b border-slate-100 hover:bg-slate-50 cursor-pointer ${
                           selectedPerson?.id === person.id ? 'bg-slate-50' : ''
                         }`}
                       >
-                        <td className="px-4 py-3 text-slate-800">
-                          <button type="button" onClick={() => setSelectedPersonId(person.id)}>
-                            {person.name}
-                          </button>
-                        </td>
+                        <td className="px-4 py-3 text-slate-800">{person.name}</td>
                         <td className="px-4 py-3 text-slate-600">{person.department || '—'}</td>
                         <td className="px-4 py-3 text-slate-600">{person.title || '—'}</td>
                         <td className="px-4 py-3 text-slate-600">{formatDate(person.birth_date ?? '')}</td>
                         <td className="px-4 py-3 text-slate-600">{person.dimensionMonthCount || 0}</td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
-                            <button type="button" className="icon-btn" title="请在管理后台编辑" disabled>
+                            <button
+                              type="button"
+                              className="icon-btn"
+                              title={canOpenAdmin ? '进入管理后台编辑' : '请在管理后台编辑'}
+                              disabled={!canOpenAdmin}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                if (!canOpenAdmin) return
+                                setSelectedPersonId(person.id)
+                                navigate(`/admin?editPersonId=${person.id}`)
+                              }}
+                            >
                               <EditOutlined />
                             </button>
-                            <button type="button" className="icon-btn" title="请在管理后台删除" disabled>
+                            <button
+                              type="button"
+                              className="icon-btn"
+                              title="请在管理后台删除"
+                              disabled
+                              onClick={(event) => event.stopPropagation()}
+                            >
                               <DeleteOutlined />
                             </button>
-                            <button type="button" className="icon-btn" title="请在管理后台导出" disabled>
+                            <button
+                              type="button"
+                              className="icon-btn"
+                              title="请在管理后台导出"
+                              disabled
+                              onClick={(event) => event.stopPropagation()}
+                            >
                               <DownloadOutlined />
                             </button>
                           </div>

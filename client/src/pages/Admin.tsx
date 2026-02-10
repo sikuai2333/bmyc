@@ -13,6 +13,7 @@
 } from 'antd'
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons'
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { ColumnsType } from 'antd/es/table'
 import { DEFAULT_ICON, MEETING_CATEGORY_TAGS, READING_CATEGORIES } from '../constants'
 import { SectionHeader } from '../components/SectionHeader'
@@ -110,6 +111,7 @@ export default function Admin() {
   const [resetForm] = Form.useForm()
   const [meetingForm] = Form.useForm()
   const [readingForm] = Form.useForm()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const loadReadingItems = async () => {
     try {
@@ -129,6 +131,21 @@ export default function Admin() {
       setSelectedPersonId(people[0].id)
     }
   }, [people, selectedPerson, setSelectedPersonId])
+
+  useEffect(() => {
+    const editPersonId = searchParams.get('editPersonId')
+    if (!editPersonId) return
+    const parsedId = Number(editPersonId)
+    if (!Number.isFinite(parsedId)) return
+    const target = people.find((person) => person.id === parsedId)
+    if (!target) return
+    setSelectedPersonId(parsedId)
+    setActiveTab('people')
+    setEditOpen(true)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('editPersonId')
+    setSearchParams(nextParams, { replace: true })
+  }, [people, searchParams, setSearchParams, setSelectedPersonId])
 
   useEffect(() => {
     if (!canManagePermissions || activeTab !== 'permissions') return
