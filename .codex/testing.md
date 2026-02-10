@@ -314,3 +314,131 @@ dist/assets/index-COQALoRf.js            605.72 kB │ gzip: 203.27 kB
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
 ```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
+2. `npm --prefix app/client run build`：通过（存在体积告警）
+
+## npm --prefix app/client run test -- --run 输出
+
+```
+> client@0.0.0 test
+> vitest --run
+
+ RUN  v2.1.9  C:/Users/sikuai/Downloads/SOLO开发/百名英才档案管理/app/client
+
+ ✓ src/test/Login.test.tsx (1 test) 276ms
+ ✓ src/test/Admin.test.tsx (1 test) 109ms
+ ✓ src/test/NoAccess.test.tsx (1 test) 224ms
+ ✓ src/test/NotFound.test.tsx (1 test) 238ms
+ ✓ src/test/Meetings.test.tsx (1 test) 319ms
+   ✓ Meetings > renders meeting list and handles selection 318ms
+ ✓ src/test/Certificates.test.tsx (1 test) 621ms
+   ✓ Certificates > renders certificate list 619ms
+ ✓ src/test/Dashboard.test.tsx (1 test) 214ms
+ ✓ src/test/Growth.test.tsx (1 test) 1072ms
+   ✓ Growth > submits growth form 1070ms
+ ✓ src/test/Evaluations.test.tsx (1 test) 1349ms
+   ✓ Evaluations > submits evaluation form 1347ms
+ ✓ src/test/AppLayout.test.tsx (1 test) 212ms
+ ✓ src/test/ArchiveList.test.tsx (1 test) 313ms
+   ✓ ArchiveList > renders list and masks sensitive fields by default 311ms
+
+ Test Files  11 passed (11)
+      Tests  11 passed (11)
+   Start at  11:31:32
+   Duration  10.41s (transform 1.78s, setup 6.11s, collect 41.98s, tests 4.95s, environment 18.14s, prepare 3.04s)
+
+stderr | src/test/Login.test.tsx > Login > submits login form
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/Admin.test.tsx > Admin > renders admin dashboard tabs
+Warning: Received `true` for a non-boolean attribute `danger`.
+
+If you want to write it to the DOM, pass a string instead: danger="true" or danger={value.toString()}.
+    at button
+    at Button (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\test\Admin.test.tsx:10:21)
+    at div
+    at td
+    at tr
+    at tbody
+    at table
+    at Table (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\test\Admin.test.tsx:55:20)
+    at div
+    at div
+    at div
+    at Tabs (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\test\Admin.test.tsx:89:19)
+    at div
+    at Admin (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\pages\Admin.tsx:62:59)
+    at Router (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/Dashboard.test.tsx > Dashboard > renders overview metrics and trending list
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+```
+
+## npm --prefix app/client run build 输出
+
+```
+> client@0.0.0 build
+> vite build
+
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 3739 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                            0.68 kB │ gzip:   0.42 kB
+dist/assets/Login-BeUxL8n7.css             4.57 kB │ gzip:   1.46 kB
+dist/assets/index-DiOzEkVT.css            21.25 kB │ gzip:   4.85 kB
+dist/assets/useLocale-IZYy7iUe.js          0.36 kB │ gzip:   0.26 kB
+dist/assets/SectionHeader-_4lvEkIT.js      0.36 kB │ gzip:   0.23 kB
+dist/assets/fade-DwrvmJPf.js               0.45 kB │ gzip:   0.28 kB
+dist/assets/CheckOutlined-CZxKrZMQ.js      0.48 kB │ gzip:   0.37 kB
+dist/assets/NotFound-DDZ0T4Ye.js           0.59 kB │ gzip:   0.42 kB
+dist/assets/NoAccess-C6mwOxZ4.js           0.59 kB │ gzip:   0.42 kB
+dist/assets/DownloadOutlined-CbpLo6ZV.js   1.17 kB │ gzip:   0.61 kB
+dist/assets/PersonSelector-5hujuYpi.js     1.42 kB │ gzip:   0.75 kB
+dist/assets/index-DYWQWOCO.js              1.95 kB │ gzip:   0.81 kB
+dist/assets/Evaluations-Bw6FBc49.js        3.13 kB │ gzip:   1.42 kB
+dist/assets/Growth-3_AlIVbv.js             3.54 kB │ gzip:   1.51 kB
+dist/assets/ReadingZone-mutwT4lh.js        4.42 kB │ gzip:   1.80 kB
+dist/assets/Meetings-BARA41pY.js           4.66 kB │ gzip:   1.77 kB
+dist/assets/Login-DlUKbMfH.js              5.15 kB │ gzip:   1.98 kB
+dist/assets/Certificates-DUR4Nspv.js       5.47 kB │ gzip:   2.29 kB
+dist/assets/format-hOQtUqaD.js             6.96 kB │ gzip:   2.79 kB
+dist/assets/ArchiveList-BY1CHqT6.js        9.33 kB │ gzip:   3.23 kB
+dist/assets/readingZone-BJQq_mVB.js       28.34 kB │ gzip:   9.52 kB
+dist/assets/index-IX9Ia7d9.js             40.73 kB │ gzip:  14.66 kB
+dist/assets/index-BXocnMX7.js             51.04 kB │ gzip:  17.60 kB
+dist/assets/index-CbLB227h.js             51.12 kB │ gzip:  15.25 kB
+dist/assets/index-CaYXfAEU.js             76.53 kB │ gzip:  25.35 kB
+dist/assets/Admin-BIupawQI.js            262.36 kB │ gzip:  81.33 kB
+dist/assets/Dashboard-D3HeikAC.js        348.53 kB │ gzip: 104.52 kB
+dist/assets/index-DRqgMnMh.js            605.75 kB │ gzip: 203.28 kB
+✓ built in 15.69s
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```

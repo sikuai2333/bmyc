@@ -92,6 +92,9 @@ const readStoredAuth = () => {
   }
 
   const mode = localToken ? 'local' : sessionToken ? 'session' : null
+  if (storedToken && storedUser) {
+    setAuthToken(storedToken)
+  }
   return { token: storedToken, user: storedUser, mode }
 }
 
