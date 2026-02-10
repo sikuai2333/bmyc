@@ -155,3 +155,162 @@ ok 1 - bootstrap admin and import datasets
  Test Files  11 passed (11)
       Tests  11 passed (11)
 ```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
+2. `npm --prefix app/client run build`：通过（存在体积告警）
+
+## npm --prefix app/client run test -- --run 输出
+
+```
+> client@0.0.0 test
+> vitest --run
+
+ RUN  v2.1.9  C:/Users/sikuai/Downloads/SOLO开发/百名英才档案管理/app/client
+
+ ✓ src/test/Login.test.tsx (1 test) 284ms
+ ✓ src/test/Admin.test.tsx (1 test) 132ms
+ ✓ src/test/NotFound.test.tsx (1 test) 248ms
+ ✓ src/test/NoAccess.test.tsx (1 test) 250ms
+ ✓ src/test/Meetings.test.tsx (1 test) 365ms
+   ✓ Meetings > renders meeting list and handles selection 363ms
+ ✓ src/test/Certificates.test.tsx (1 test) 644ms
+   ✓ Certificates > renders certificate list 643ms
+ ✓ src/test/Dashboard.test.tsx (1 test) 221ms
+ ✓ src/test/Growth.test.tsx (1 test) 1109ms
+   ✓ Growth > submits growth form 1108ms
+ ✓ src/test/Evaluations.test.tsx (1 test) 1394ms
+   ✓ Evaluations > submits evaluation form 1392ms
+ ✓ src/test/AppLayout.test.tsx (1 test) 200ms
+ ✓ src/test/ArchiveList.test.tsx (1 test) 282ms
+
+ Test Files  11 passed (11)
+      Tests  11 passed (11)
+   Start at  11:24:37
+   Duration  10.55s (transform 1.92s, setup 5.95s, collect 42.50s, tests 5.13s, environment 18.35s, prepare 3.02s)
+
+stderr | src/test/Login.test.tsx > Login > submits login form
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/Admin.test.tsx > Admin > renders admin dashboard tabs
+Warning: Received `true` for a non-boolean attribute `danger`.
+
+If you want to write it to the DOM, pass a string instead: danger="true" or danger={value.toString()}.
+    at button
+    at Button (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\test\Admin.test.tsx:10:21)
+    at div
+    at td
+    at tr
+    at tbody
+    at table
+    at Table (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\test\Admin.test.tsx:55:20)
+    at div
+    at div
+    at div
+    at Tabs (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\test\Admin.test.tsx:89:19)
+    at div
+    at Admin (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\src\pages\Admin.tsx:62:59)
+    at Router (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app\client\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/NotFound.test.tsx > NotFound > renders not found message
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/NoAccess.test.tsx > NoAccess > renders no access message
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/Meetings.test.tsx > Meetings > renders meeting list and handles selection
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/Certificates.test.tsx > Certificates > renders certificate list
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/Dashboard.test.tsx > Dashboard > renders overview metrics and trending list
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+
+stderr | src/test/Growth.test.tsx > Growth > submits growth form
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/Evaluations.test.tsx > Evaluations > submits evaluation form
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/AppLayout.test.tsx > AppLayout > renders mobile tab bar when media query matches
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/test/ArchiveList.test.tsx > ArchiveList > renders list and masks sensitive fields by default
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+```
+
+## npm --prefix app/client run build 输出
+
+```
+> client@0.0.0 build
+> vite build
+
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 3739 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                            0.68 kB │ gzip:   0.42 kB
+dist/assets/Login-BeUxL8n7.css             4.57 kB │ gzip:   1.46 kB
+dist/assets/index-DiOzEkVT.css            21.25 kB │ gzip:   4.85 kB
+dist/assets/useLocale-hzG3FblQ.js          0.36 kB │ gzip:   0.27 kB
+dist/assets/SectionHeader-DpcxMyA8.js      0.36 kB │ gzip:   0.23 kB
+dist/assets/fade-CByLOzVz.js               0.45 kB │ gzip:   0.28 kB
+dist/assets/CheckOutlined-CUpKNlVd.js      0.48 kB │ gzip:   0.38 kB
+dist/assets/NotFound-PPT1m4j8.js           0.59 kB │ gzip:   0.42 kB
+dist/assets/NoAccess-CpO2f401.js           0.59 kB │ gzip:   0.42 kB
+dist/assets/DownloadOutlined-Pz72UvFv.js   1.17 kB │ gzip:   0.61 kB
+dist/assets/PersonSelector-BJSdLRWH.js     1.42 kB │ gzip:   0.75 kB
+dist/assets/index-Dn6gMvXl.js              1.95 kB │ gzip:   0.82 kB
+dist/assets/Evaluations-BJUvGdho.js        3.13 kB │ gzip:   1.42 kB
+dist/assets/Growth-DiuGezs4.js             3.54 kB │ gzip:   1.51 kB
+dist/assets/ReadingZone-Dn0KzxWz.js        4.42 kB │ gzip:   1.79 kB
+dist/assets/Meetings-D564cQbT.js           4.66 kB │ gzip:   1.77 kB
+dist/assets/Login-BUteY_UZ.js              5.15 kB │ gzip:   1.98 kB
+dist/assets/Certificates-OG6sKcL8.js       5.47 kB │ gzip:   2.29 kB
+dist/assets/format-Boy12-dr.js             6.96 kB │ gzip:   2.79 kB
+dist/assets/ArchiveList-CwdXy3WN.js        9.33 kB │ gzip:   3.23 kB
+dist/assets/readingZone-B3UQBwXu.js       28.34 kB │ gzip:   9.52 kB
+dist/assets/index-izQGRwA5.js             40.73 kB │ gzip:  14.66 kB
+dist/assets/index-Bt1u05fd.js             51.04 kB │ gzip:  17.61 kB
+dist/assets/index-BVJ7shQc.js             51.12 kB │ gzip:  15.25 kB
+dist/assets/index-mmV3Xec5.js             76.53 kB │ gzip:  25.34 kB
+dist/assets/Admin-BdLb-JkG.js            262.36 kB │ gzip:  81.33 kB
+dist/assets/Dashboard-wMIPEPzu.js        348.53 kB │ gzip: 104.52 kB
+dist/assets/index-COQALoRf.js            605.72 kB │ gzip: 203.27 kB
+✓ built in 14.88s
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```
