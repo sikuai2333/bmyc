@@ -93,11 +93,11 @@ export default function Login() {
             <img
               className="brand-logo-image"
               src="https://www.grkaolin.com/static/upload/image/20220105/1641388610665472.png"
-              alt="金岩高新"
+              alt="金读岩创"
             />
             <div>
-              <h2>金岩高新人才成长APP</h2>
-              <p className="brand-slogan">专业、可信、可追溯的人才档案管理平台</p>
+              <h2>金读岩创・英才行</h2>
+              <p className="brand-slogan">专业、可信、可追溯的年轻干部管理平台</p>
             </div>
           </div>
           <div className="brand-visual">
@@ -220,7 +220,7 @@ export default function Login() {
       </div>
 
       <footer className="login-footer">
-        <span>© 2026 金岩高新人才成长APP</span>
+        <span>© 2026 金读岩创・英才行</span>
         <a className="footer-link" href="https://www.grkaolin.com/" target="_blank" rel="noreferrer">
           企业官网
         </a>

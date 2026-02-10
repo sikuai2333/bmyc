@@ -18,12 +18,12 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
         }`}
       >
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white font-semibold">
-          T
+          英
         </div>
         {!collapsed ? (
           <div>
-            <p className="text-sm font-semibold">百名英才档案</p>
-            <p className="text-xs text-slate-400">人才成长管理</p>
+            <p className="text-sm font-semibold">金读岩创・英才行</p>
+            <p className="text-xs text-slate-400">年轻干部管理平台</p>
           </div>
         ) : null}
       </div>
