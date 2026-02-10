@@ -33,8 +33,8 @@
 
   .topbar-title-pill {
     @apply relative inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-white;
-    background: linear-gradient(120deg, #1d4ed8 0%, #0ea5e9 55%, #22d3ee 100%);
-    box-shadow: 0 8px 18px rgba(14, 165, 233, 0.28);
+    background: var(--topbar-pill-bg, linear-gradient(120deg, #1d4ed8 0%, #0ea5e9 55%, #22d3ee 100%));
+    box-shadow: var(--topbar-pill-shadow, 0 8px 18px rgba(14, 165, 233, 0.28));
     isolation: isolate;
     overflow: hidden;
   }
@@ -66,14 +66,17 @@
   .metric-paper {
     position: relative;
     overflow: hidden;
-    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92)),
+    background-image: var(
+      --metric-paper-bg,
+      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92)),
       repeating-linear-gradient(
         90deg,
         rgba(15, 23, 42, 0.03),
         rgba(15, 23, 42, 0.03) 1px,
         transparent 1px,
         transparent 6px
-      );
+      )
+    );
     background-blend-mode: normal;
   }
 
@@ -86,7 +89,7 @@
     height: 180px;
     border-radius: 999px;
     background: radial-gradient(circle at 30% 30%, var(--paper-accent), transparent 70%);
-    opacity: 0.6;
+    opacity: var(--metric-glow-opacity, 0.6);
   }
 
   .metric-paper::after {
@@ -98,7 +101,7 @@
     height: 200px;
     border-radius: 32px;
     background: linear-gradient(135deg, var(--paper-edge), transparent 70%);
-    opacity: 0.35;
+    opacity: var(--metric-edge-opacity, 0.35);
     transform: rotate(-8deg);
   }
 
@@ -245,6 +248,99 @@ html[data-theme='dark'] .metric-paper::after {
 
 html[data-theme='dark'] .topbar-title-pill {
   box-shadow: 0 8px 18px rgba(56, 189, 248, 0.35);
+}
+
+html[data-visual='a'] {
+  --topbar-pill-bg: linear-gradient(120deg, #1d4ed8 0%, #0ea5e9 55%, #22d3ee 100%);
+  --topbar-pill-shadow: 0 8px 18px rgba(14, 165, 233, 0.28);
+  --metric-paper-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(15, 23, 42, 0.03),
+      rgba(15, 23, 42, 0.03) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  --metric-glow-opacity: 0.6;
+  --metric-edge-opacity: 0.35;
+}
+
+html[data-visual='b'] {
+  --topbar-pill-bg: linear-gradient(120deg, #312e81 0%, #7c3aed 45%, #f97316 100%);
+  --topbar-pill-shadow: 0 12px 24px rgba(99, 102, 241, 0.35);
+  --metric-paper-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.9)),
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.12), transparent 50%);
+  --metric-glow-opacity: 0.75;
+  --metric-edge-opacity: 0.45;
+}
+
+html[data-visual='b'] .metric-paper {
+  border-color: rgba(99, 102, 241, 0.18);
+  box-shadow: 0 18px 30px rgba(99, 102, 241, 0.12);
+}
+
+html[data-visual='b'] .metric-paper--blue {
+  --paper-accent: rgba(59, 130, 246, 0.32);
+  --paper-edge: rgba(29, 78, 216, 0.22);
+}
+
+html[data-visual='b'] .metric-paper--teal {
+  --paper-accent: rgba(14, 165, 233, 0.3);
+  --paper-edge: rgba(8, 145, 178, 0.2);
+}
+
+html[data-visual='b'] .metric-paper--amber {
+  --paper-accent: rgba(249, 115, 22, 0.28);
+  --paper-edge: rgba(234, 88, 12, 0.2);
+}
+
+html[data-visual='b'] .metric-paper--violet {
+  --paper-accent: rgba(168, 85, 247, 0.3);
+  --paper-edge: rgba(126, 34, 206, 0.22);
+}
+
+html[data-visual='c'] {
+  --topbar-pill-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --topbar-pill-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35),
+    0 6px 12px rgba(148, 163, 184, 0.25);
+  --metric-paper-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  --metric-glow-opacity: 0.4;
+  --metric-edge-opacity: 0.25;
+}
+
+html[data-visual='c'] .topbar-title-pill {
+  color: #0f172a;
+}
+
+html[data-visual='c'] .topbar-title-pill::after {
+  opacity: 0.08;
+}
+
+html[data-visual='c'] .metric-paper {
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 10px 24px rgba(148, 163, 184, 0.12);
+}
+
+html[data-visual='c'] .metric-paper--blue {
+  --paper-accent: rgba(59, 130, 246, 0.18);
+  --paper-edge: rgba(37, 99, 235, 0.14);
+}
+
+html[data-visual='c'] .metric-paper--teal {
+  --paper-accent: rgba(14, 165, 233, 0.18);
+  --paper-edge: rgba(8, 145, 178, 0.14);
+}
+
+html[data-visual='c'] .metric-paper--amber {
+  --paper-accent: rgba(245, 158, 11, 0.16);
+  --paper-edge: rgba(217, 119, 6, 0.14);
+}
+
+html[data-visual='c'] .metric-paper--violet {
+  --paper-accent: rgba(139, 92, 246, 0.16);
+  --paper-edge: rgba(109, 40, 217, 0.14);
 }
 
 html[data-theme='dark'] .table-header {

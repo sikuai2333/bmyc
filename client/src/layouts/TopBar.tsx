@@ -1,6 +1,7 @@
 import { Dropdown, message } from 'antd'
 import type { MenuProps } from 'antd'
 import {
+  BgColorsOutlined,
   DownOutlined,
   EyeOutlined,
   LogoutOutlined,
@@ -17,6 +18,12 @@ import { getRoleLabel } from '../types/auth'
 import { hasPermission } from '../utils/permissions'
 
 const THEME_STORAGE_KEY = 'talent_theme'
+const VISUAL_STORAGE_KEY = 'talent_visual'
+const VISUAL_OPTIONS = [
+  { key: 'a', label: '霓蓝' },
+  { key: 'b', label: '暮光' },
+  { key: 'c', label: '纸感' }
+]
 
 export function TopBar({
   sidebarCollapsed = false,
@@ -29,6 +36,7 @@ export function TopBar({
   const { toggleSensitiveView, sensitiveUnmasked } = useAppData()
   const roleLabel = getRoleLabel(user)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [visual, setVisual] = useState<'a' | 'b' | 'c'>('a')
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -46,6 +54,27 @@ export function TopBar({
     document.documentElement.dataset.theme = theme
     localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const saved = localStorage.getItem(VISUAL_STORAGE_KEY)
+    if (saved === 'a' || saved === 'b' || saved === 'c') {
+      setVisual(saved)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    document.documentElement.dataset.visual = visual
+    localStorage.setItem(VISUAL_STORAGE_KEY, visual)
+  }, [visual])
+
+  const currentVisual = VISUAL_OPTIONS.find((item) => item.key === visual) || VISUAL_OPTIONS[0]
+  const switchVisual = () => {
+    const index = VISUAL_OPTIONS.findIndex((item) => item.key === visual)
+    const next = VISUAL_OPTIONS[(index + 1) % VISUAL_OPTIONS.length]
+    setVisual(next.key as 'a' | 'b' | 'c')
+  }
 
   const items: MenuProps['items'] = [
     {
@@ -107,6 +136,16 @@ export function TopBar({
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label="切换视觉方案"
+            title={`当前方案：${currentVisual.label}`}
+            onClick={switchVisual}
+            className="flex h-9 items-center gap-2 rounded-md border border-slate-200 px-3 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800"
+          >
+            <BgColorsOutlined />
+            <span>{currentVisual.label}</span>
+          </button>
           <button
             type="button"
             aria-label="切换主题"
