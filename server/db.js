@@ -855,8 +855,28 @@ function init() {
     ensureAdminUser();
   }
 
+  const ensureAdminPermissions = () => {
+    const admins = db
+      .prepare('SELECT id, permissions, is_super_admin FROM users WHERE role = ?')
+      .all('admin');
+    if (!admins.length) return;
+    const updatePermissions = db.prepare('UPDATE users SET permissions = ? WHERE id = ?');
+    admins.forEach((admin) => {
+      if (admin.is_super_admin === 1) {
+        return;
+      }
+      const current = normalizePermissions(admin.permissions);
+      if (current.includes('users.manage')) {
+        return;
+      }
+      const next = Array.from(new Set([...current, 'users.manage']));
+      updatePermissions.run(JSON.stringify(next), admin.id);
+    });
+  };
+
   ensureTestAccounts();
   ensureDisplayAccount();
+  ensureAdminPermissions();
 
   fixCorruptedNames();
 

@@ -26,6 +26,20 @@
 
 ## 验证结论
 
+- 后端测试（`npm run test:server`）通过。
+
+## 佐证
+
+- 详见 `.codex/testing.md` 的完整命令输出。
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 验证结论
+
 - 前端测试（`npm --prefix app/client run test -- --run`）通过。
 - 前端构建（`npm --prefix app/client run build`）通过。
 

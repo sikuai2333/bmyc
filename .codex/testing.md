@@ -420,6 +420,42 @@ Tests       11 passed (11)
 
 ## 执行命令与结果
 
+1. `npm run test:server`：通过
+
+## npm run test:server 输出
+
+```
+> bainyingcai-dashboard@1.0.0 test:server
+> node --test server/__tests__
+
+TAP version 13
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+# 人才档案服务已启动: http://localhost:0
+# Subtest: bootstrap admin and import datasets
+ok 1 - bootstrap admin and import datasets
+  ---
+  duration_ms: 179.3611
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1394.3001
+```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
 1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
 2. `npm --prefix app/client run build`：通过（存在体积告警）
 

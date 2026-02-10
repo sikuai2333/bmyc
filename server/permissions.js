@@ -40,6 +40,7 @@ const DEFAULT_PERMISSIONS = {
     'certificates.upload',
     'certificates.delete',
     'sensitive.view',
+    'users.manage',
     'import.excel',
     'export.excel',
     'logs.view'
