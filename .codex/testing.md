@@ -85,3 +85,73 @@ You are using Node.js 20.18.0. Vite requires Node.js version 20.19+ or 22.12+. P
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
 ```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app run test:server`：通过
+
+## npm --prefix app run test:server 输出
+
+```
+> bainyingcai-dashboard@1.0.0 test:server
+> node --test server/__tests__
+
+TAP version 13
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+# [dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+# 人才档案服务已启动: http://localhost:0
+# Subtest: bootstrap admin and import datasets
+ok 1 - bootstrap admin and import datasets
+  ---
+  duration_ms: 257.5258
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2361.9495
+```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
+
+## npm --prefix app/client run test -- --run 输出
+
+```
+> client@0.0.0 test
+> vitest --run
+
+ RUN  v2.1.9  C:/Users/sikuai/Downloads/SOLO开发/百名英才档案管理/app/client
+
+ ✓ src/test/Login.test.tsx (1 test)
+ ✓ src/test/Admin.test.tsx (1 test)
+ ✓ src/test/NotFound.test.tsx (1 test)
+ ✓ src/test/NoAccess.test.tsx (1 test)
+ ✓ src/test/Meetings.test.tsx (1 test)
+ ✓ src/test/Certificates.test.tsx (1 test)
+ ✓ src/test/Growth.test.tsx (1 test)
+ ✓ src/test/Dashboard.test.tsx (1 test)
+ ✓ src/test/Evaluations.test.tsx (1 test)
+ ✓ src/test/AppLayout.test.tsx (1 test)
+ ✓ src/test/ArchiveList.test.tsx (1 test)
+
+ Test Files  11 passed (11)
+      Tests  11 passed (11)
+```

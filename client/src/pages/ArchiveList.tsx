@@ -79,12 +79,12 @@ export default function ArchiveList() {
     )
   }, [meetings, selectedPerson])
 
-  const profileCard = (
-    <div className="card p-5">
+  const renderProfileCard = (className = '', bodyClassName = '') => (
+    <div className={`card w-full p-5 ${className}`.trim()}>
       <h3 className="text-base font-semibold text-slate-800">人员档案详情</h3>
       <p className="text-xs text-slate-500">选择人员后查看基础档案与隐私信息</p>
       {selectedPerson ? (
-        <div className="mt-4 grid gap-4">
+        <div className={`mt-4 grid gap-4 ${bodyClassName}`.trim()}>
           <div>
             <p className="text-lg font-semibold text-slate-800">
               {selectedPerson.name}{' '}
@@ -259,14 +259,14 @@ export default function ArchiveList() {
             ))}
           </div>
 
-          {profileCard}
+          {renderProfileCard()}
           {dimensionCard}
           {meetingCard}
         </>
       ) : (
         <>
-          <div className="grid gap-6 lg:grid-cols-12">
-            <div className="card p-5 lg:col-span-5">
+          <div className="grid gap-6 lg:grid-cols-11 items-stretch">
+            <div className="card p-5 lg:col-span-6 lg:h-[620px] flex flex-col">
               <div className="flex flex-wrap items-center gap-3">
                 <Input
                   placeholder="搜索姓名、部门或职务"
@@ -324,7 +324,9 @@ export default function ArchiveList() {
                 </table>
               </div>
             </div>
-            <div className="lg:col-span-7">{profileCard}</div>
+            <div className="lg:col-span-5 flex">
+              {renderProfileCard('lg:h-[620px] flex flex-col', 'flex-1 overflow-auto')}
+            </div>
           </div>
 
           {dimensionCard}

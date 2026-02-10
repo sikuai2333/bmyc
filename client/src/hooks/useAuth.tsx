@@ -62,43 +62,65 @@ const demoAccounts: Array<{ account: string; password: string; user: User }> = [
 
 const DEMO_ENABLED = import.meta.env.VITE_ENABLE_DEMO === 'true'
 
+const readStoredAuth = () => {
+  if (typeof window === 'undefined') {
+    return { token: null, user: null, mode: null }
+  }
+  const localToken = localStorage.getItem(STORAGE_TOKEN_KEY)
+  const sessionToken = sessionStorage.getItem(STORAGE_TOKEN_KEY)
+  const storedToken = localToken || sessionToken
+  const storedUserText =
+    localStorage.getItem(STORAGE_USER_KEY) || sessionStorage.getItem(STORAGE_USER_KEY)
+  let storedUser: User | null = null
+
+  if (storedUserText) {
+    try {
+      storedUser = JSON.parse(storedUserText)
+    } catch {
+      localStorage.removeItem(STORAGE_TOKEN_KEY)
+      sessionStorage.removeItem(STORAGE_TOKEN_KEY)
+      localStorage.removeItem(STORAGE_USER_KEY)
+      sessionStorage.removeItem(STORAGE_USER_KEY)
+      return { token: null, user: null, mode: null }
+    }
+  }
+
+  if (storedToken && !storedUser) {
+    localStorage.removeItem(STORAGE_TOKEN_KEY)
+    sessionStorage.removeItem(STORAGE_TOKEN_KEY)
+    return { token: null, user: null, mode: null }
+  }
+
+  const mode = localToken ? 'local' : sessionToken ? 'session' : null
+  return { token: storedToken, user: storedUser, mode }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [storageMode, setStorageMode] = useState<'local' | 'session' | null>(null)
+  const initialAuth = readStoredAuth()
+  const [user, setUser] = useState<User | null>(initialAuth.user)
+  const [token, setToken] = useState<string | null>(initialAuth.token)
+  const [storageMode, setStorageMode] = useState<'local' | 'session' | null>(initialAuth.mode)
 
   const resolveStorage = (mode: 'local' | 'session' | null) =>
     mode === 'session' ? sessionStorage : localStorage
 
   useEffect(() => {
-    const localToken = localStorage.getItem(STORAGE_TOKEN_KEY)
-    const sessionToken = sessionStorage.getItem(STORAGE_TOKEN_KEY)
-    const storedToken = localToken || sessionToken
-    const storedUser =
-      localStorage.getItem(STORAGE_USER_KEY) || sessionStorage.getItem(STORAGE_USER_KEY)
-
-    if (storedToken && storedToken === 'demo-token' && !DEMO_ENABLED) {
+    if (typeof window === 'undefined') return
+    if (token && token === 'demo-token' && !DEMO_ENABLED) {
       localStorage.removeItem(STORAGE_TOKEN_KEY)
       sessionStorage.removeItem(STORAGE_TOKEN_KEY)
       localStorage.removeItem(STORAGE_USER_KEY)
       sessionStorage.removeItem(STORAGE_USER_KEY)
+      setToken(null)
+      setUser(null)
+      setStorageMode(null)
+      setAuthToken(null)
       return
     }
-
-    if (storedToken) {
-      setToken(storedToken)
-      setAuthToken(storedToken)
-      setStorageMode(localToken ? 'local' : 'session')
+    if (token) {
+      setAuthToken(token)
     }
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch {
-        localStorage.removeItem(STORAGE_USER_KEY)
-        sessionStorage.removeItem(STORAGE_USER_KEY)
-      }
-    }
-  }, [])
+  }, [token])
 
   const login = async (payload: LoginPayload) => {
     const account = sanitizeInput(payload.account.trim())
