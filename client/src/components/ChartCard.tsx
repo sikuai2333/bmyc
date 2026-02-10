@@ -14,8 +14,10 @@ export function ChartCard({
   return (
     <div className={`card card-hover p-5 ${className}`}>
       <div className="mb-4">
-        <h3 className="text-base font-semibold text-slate-800">{title}</h3>
-        {subtitle ? <p className="text-xs text-slate-500">{subtitle}</p> : null}
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{title}</p>
+        {subtitle ? (
+          <p className="mt-1 text-base font-semibold text-slate-800">{subtitle}</p>
+        ) : null}
       </div>
       <div className="h-72">{children}</div>
     </div>

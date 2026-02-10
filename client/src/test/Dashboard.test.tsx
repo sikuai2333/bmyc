@@ -47,8 +47,8 @@ describe('Dashboard', () => {
     )
 
     expect(screen.getByText('数据总览')).toBeInTheDocument()
-    expect(screen.getByText('重点关注人才')).toBeInTheDocument()
-    expect(screen.getByText('最新会议动态')).toBeInTheDocument()
+    expect(screen.getByText('画像活跃人才')).toBeInTheDocument()
+    expect(screen.getByText('会议动态')).toBeInTheDocument()
     expect(screen.getAllByText('李宁').length).toBeGreaterThan(0)
   })
 })

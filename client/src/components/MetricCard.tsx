@@ -3,10 +3,10 @@ import type { Metric } from '../types/dashboard'
 export function MetricCard({ metric, className = '' }: { metric: Metric; className?: string }) {
   return (
     <div className={`card card-hover p-5 ${className}`.trim()}>
-      <p className="text-sm text-slate-500">{metric.label}</p>
-      <div className="mt-3 flex items-end justify-between">
+      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{metric.label}</p>
+      <div className="mt-2 flex items-end justify-between">
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-semibold text-slate-800">{metric.value}</span>
+          <span className="text-3xl font-semibold text-slate-900">{metric.value}</span>
           {metric.unit ? <span className="text-sm text-slate-500">{metric.unit}</span> : null}
         </div>
         {metric.trend ? (

@@ -284,7 +284,7 @@ export default function Dashboard() {
     <div className="dashboard-surface space-y-6">
       <SectionHeader
         title="数据总览"
-        subtitle="核心指标与运行概况"
+        subtitle="关键指标与运营态势"
         action={
           <Button type="primary" className="h-11 md:h-10" disabled={!hasPerm('export.excel')}>
             导出报告
@@ -307,7 +307,7 @@ export default function Dashboard() {
             <div className="variant-a-title">
               <span className="variant-kicker">宏观视角</span>
               <h3>运营总览面板</h3>
-              <p>部门分布 · 画像活跃 · 金读推送</p>
+              <p>部门画像 · 活跃趋势 · 金读推送</p>
             </div>
             <div className="variant-a-chips">
               {globalStats.map((metric, index) => (
@@ -327,7 +327,7 @@ export default function Dashboard() {
             </div>
             <div className="variant-a-summary">
               <div>
-                <h4>运营简报</h4>
+                <h4>核心速览</h4>
                 <div className="variant-a-summary-list">
                   <div>
                     <span>维度覆盖率</span>
@@ -344,7 +344,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="variant-a-mini">
-                <span>近三月画像完成</span>
+                <span>近三月完成</span>
                 <div className="variant-a-mini-bars">
                   {recentCompletions.map((item) => (
                     <div key={item.month}>
@@ -405,7 +405,7 @@ export default function Dashboard() {
               <FireOutlined /> 会议协同
             </span>
             <h3>会议协同看板</h3>
-            <p>近 30 天会议节奏与参会结构</p>
+            <p>近 30 天会议节奏</p>
             <div className="variant-b-stats">
               <div>
                 <span>近 30 天会议</span>
@@ -433,7 +433,7 @@ export default function Dashboard() {
               {meetingCategories.length === 0 && <span className="variant-empty">暂无分类</span>}
             </div>
             <div className="variant-b-highlights">
-              <h4>近期提醒</h4>
+              <h4>近期安排</h4>
               {upcomingMeetings.map((meeting) => (
                 <div key={meeting.id} className="variant-b-highlight">
                   <div>
@@ -449,7 +449,7 @@ export default function Dashboard() {
           <div className="variant-b-side">
             <div className="variant-b-card">
               <h4>
-                <RocketOutlined /> 最新会议
+                <RocketOutlined /> 近期会议
               </h4>
               {topMeetings.map((meeting) => (
                 <button
@@ -560,8 +560,8 @@ export default function Dashboard() {
         </ChartCard>
 
         <div className="card card-hover p-5 lg:col-span-4">
-          <h3 className="text-base font-semibold text-slate-800">维度覆盖进度</h3>
-          <p className="text-xs text-slate-500">按维度统计画像条目占比</p>
+          <h3 className="text-base font-semibold text-slate-800">维度覆盖</h3>
+          <p className="text-xs text-slate-500">维度占比</p>
           <div className="mt-4 space-y-3">
             {dimensionCoverage.map((row) => (
               <div key={row.category}>
@@ -586,8 +586,8 @@ export default function Dashboard() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="card card-hover p-5">
-          <h3 className="text-base font-semibold text-slate-800">重点关注人才</h3>
-          <p className="text-xs text-slate-500">画像更新频次较高的人员</p>
+          <h3 className="text-base font-semibold text-slate-800">画像活跃人才</h3>
+          <p className="text-xs text-slate-500">更新频次靠前</p>
           <div className="mt-4 space-y-4">
             {trendingPeople.map((person) => (
               <button
@@ -617,8 +617,8 @@ export default function Dashboard() {
         <div className="card card-hover p-5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold text-slate-800">最新会议动态</h3>
-              <p className="text-xs text-slate-500">优先展示最近 4 条会议记录</p>
+              <h3 className="text-base font-semibold text-slate-800">会议动态</h3>
+              <p className="text-xs text-slate-500">最近 4 条</p>
             </div>
             <Button
               type="link"
