@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const Database = require('better-sqlite3');
 const dotenv = require('dotenv');
 const { getDefaultPermissions, normalizePermissions } = require('./permissions');
+const { DIMENSION_CATEGORIES, READING_CATEGORIES } = require('./config/constants');
 
 dotenv.config();
 
@@ -132,15 +133,6 @@ const defaultPeople = [
     icon: '\uD83D\uDC64'
   },
   ...TEST_ACCOUNTS.map((item) => item.person)
-];
-
-const DIMENSION_CATEGORIES = [
-  '\u601d\u60f3\u653f\u6cbb',
-  '\u4e1a\u52a1\u6c34\u5e73',
-  '\u4e1a\u7ee9\u6210\u679c',
-  '\u516b\u5c0f\u65f6\u5916\u4e1a\u4f59\u751f\u6d3b',
-  '\u9605\u8bfb\u5b66\u4e60\u60c5\u51b5',
-  '\u5a5a\u604b\u60c5\u51b5'
 ];
 
 const DEMO_DIMENSION_DETAILS = {
@@ -308,6 +300,45 @@ const defaultMeetings = [
   }
 ];
 
+const defaultReadingZoneItems = [
+  {
+    title: '青年干部成长手册（精要版）',
+    category: '电子书籍',
+    summary: '围绕岗位认知、协同方法与成长路径整理的速读手册，适合碎片化阅读。',
+    content:
+      '本手册聚焦青年干部常见场景：任务拆解、跨部门协同、复盘方法与个人成长路径。\n' +
+      '建议以 10-15 分钟完成一章阅读，并结合工作记录做简要沉淀。',
+    cover_url:
+      'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80',
+    source_url: 'https://www.grkaolin.com/',
+    read_minutes: 12
+  },
+  {
+    title: '产业前沿速递：2026 关键趋势',
+    category: '行业前沿资讯',
+    summary: '提炼产业政策、技术演进与组织变革的要点，便于快速了解方向。',
+    content:
+      '本期速递聚焦政策导向、智能化升级与协同创新实践。\n' +
+      '推荐先阅读“趋势摘要”，再根据工作需要深入相关小节。',
+    cover_url:
+      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80',
+    source_url: 'https://www.grkaolin.com/',
+    read_minutes: 8
+  },
+  {
+    title: '精品课程：组织力提升微课',
+    category: '精品课程',
+    summary: '以案例拆解的方式讲解组织力提升方法，适合移动端快速学习。',
+    content:
+      '课程包含三部分：目标共识、过程协同与结果复盘。\n' +
+      '可拆分为多个 5 分钟小节，帮助快速完成学习与回顾。',
+    cover_url:
+      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80',
+    source_url: 'https://www.grkaolin.com/',
+    read_minutes: 20
+  }
+];
+
 const RESET_MEETINGS = (process.env.RESET_MEETINGS ?? 'false').toLowerCase() === 'true';
 const EXCLUDED_SPEAKER_NAMES = new Set(['靳贺凯']);
 
@@ -415,7 +446,16 @@ const ensureDisplayAccount = () => {
 };
 
 function init() {
-  db.prepare(`CREATE TABLE IF NOT EXISTS users (
+  db.prepare(`CREATE TABLE IF NOT EXISTS schema_migrations (
+      id TEXT PRIMARY KEY,
+      applied_at TEXT DEFAULT (datetime('now'))
+    )`).run();
+  const appliedMigrations = new Set(
+    db.prepare('SELECT id FROM schema_migrations').all().map((row) => row.id)
+  );
+
+  if (!appliedMigrations.has('001_base')) {
+    db.prepare(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
@@ -602,6 +642,28 @@ function init() {
       FOREIGN KEY(meeting_id) REFERENCES meetings(id),
       FOREIGN KEY(person_id) REFERENCES people(id)
     )`).run();
+
+  db.prepare('INSERT INTO schema_migrations (id) VALUES (?)').run('001_base');
+  }
+
+  if (!appliedMigrations.has('002_reading_zone')) {
+    db.prepare(`CREATE TABLE IF NOT EXISTS reading_zone_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        category TEXT NOT NULL,
+        summary TEXT,
+        content TEXT,
+        cover_url TEXT,
+        source_url TEXT,
+        read_minutes INTEGER,
+        published_at TEXT DEFAULT (datetime('now')),
+        created_by INTEGER,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT,
+        FOREIGN KEY(created_by) REFERENCES users(id)
+      )`).run();
+    db.prepare('INSERT INTO schema_migrations (id) VALUES (?)').run('002_reading_zone');
+  }
 
   const peopleCount = db.prepare('SELECT COUNT(*) as count FROM people').get().count;
   if (ENABLE_DEMO_DATA && peopleCount === 0) {
@@ -828,6 +890,29 @@ function init() {
           const role = person.id === speakerId ? '\u4e3b\u8bb2' : '\u53c2\u4f1a';
           insertAttendee.run(meetingId, person.id, role);
         });
+      });
+    });
+    transaction();
+  }
+
+  const readingZoneCount = db.prepare('SELECT COUNT(*) as count FROM reading_zone_items').get().count;
+  if (ENABLE_DEMO_DATA && readingZoneCount === 0) {
+    const insertReading = db.prepare(
+      'INSERT INTO reading_zone_items (title, category, summary, content, cover_url, source_url, read_minutes, created_by) VALUES (?,?,?,?,?,?,?,?)'
+    );
+    const transaction = db.transaction(() => {
+      defaultReadingZoneItems.forEach((item) => {
+        const category = READING_CATEGORIES.includes(item.category) ? item.category : READING_CATEGORIES[0] || item.category;
+        insertReading.run(
+          item.title,
+          category,
+          item.summary || '',
+          item.content || '',
+          item.cover_url || '',
+          item.source_url || '',
+          Number.isFinite(item.read_minutes) ? item.read_minutes : null,
+          null
+        );
       });
     });
     transaction();

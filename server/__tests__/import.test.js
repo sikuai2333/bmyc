@@ -61,8 +61,8 @@ test('bootstrap admin and import datasets', async () => {
       focus: '跨部门协同与成果转化',
       bio: '负责统筹多维档案治理和成果孵化。',
       dimensions: [
-        { category: '政治思想', detail: '定期组织青年理论学习' },
-        { category: '工作成效', detail: '推动 3 个示范项目落地' }
+        { category: '思想政治', detail: '定期组织青年理论学习' },
+        { category: '业绩成果', detail: '推动 3 个示范项目落地' }
       ]
     },
     {
@@ -71,7 +71,7 @@ test('bootstrap admin and import datasets', async () => {
       department: '金岩高新·AI制造事业部',
       focus: '智能产线升级',
       bio: '链接制造生态伙伴，推进智能产线部署。',
-      dimensions: [{ category: '生活方式', detail: '积极参与企业工会活动' }]
+      dimensions: [{ category: '八小时外业余生活', detail: '积极参与企业工会活动' }]
     }
   ];
 
@@ -89,7 +89,8 @@ test('bootstrap admin and import datasets', async () => {
   assert.equal(peopleData.length, 2);
   const liTing = peopleData.find((person) => person.name === '李婷');
   assert.ok(liTing);
-  assert.equal(liTing.dimensions.length, 2);
+  assert.equal(liTing.dimensionCount, 6);
+  assert.equal(liTing.dimensionMonthCount, 1);
 
   const meetingsPayload = [
     {

@@ -1,0 +1,148 @@
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
+import type { LoginPayload, User } from '../types/auth'
+import { sampleUser } from '../data/sample'
+import { setAuthToken } from '../utils/api'
+import { login as loginService } from '../services/auth'
+import { sanitizeInput } from '../utils/sanitize'
+
+interface AuthContextValue {
+  user: User | null
+  token: string | null
+  isAuthenticated: boolean
+  login: (payload: LoginPayload) => Promise<void>
+  logout: () => void
+  updateUser: (nextUser: User) => void
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+
+const STORAGE_TOKEN_KEY = 'talent_dashboard_token'
+const STORAGE_USER_KEY = 'talent_dashboard_user'
+
+const demoAccounts: Array<{ account: string; password: string; user: User }> = [
+  { account: 'admin', password: 'admin@123', user: sampleUser },
+  {
+    account: 'display',
+    password: 'display@123',
+    user: { ...sampleUser, id: 2, name: '展示账号', role: 'display', permissions: ['people.view.all'] }
+  },
+  {
+    account: 'user',
+    password: 'user@123',
+    user: { ...sampleUser, id: 3, name: '普通用户', role: 'user', permissions: ['people.edit.self'] }
+  }
+]
+
+const DEMO_ENABLED = import.meta.env.VITE_ENABLE_DEMO === 'true'
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [storageMode, setStorageMode] = useState<'local' | 'session' | null>(null)
+
+  const resolveStorage = (mode: 'local' | 'session' | null) =>
+    mode === 'session' ? sessionStorage : localStorage
+
+  useEffect(() => {
+    const localToken = localStorage.getItem(STORAGE_TOKEN_KEY)
+    const sessionToken = sessionStorage.getItem(STORAGE_TOKEN_KEY)
+    const storedToken = localToken || sessionToken
+    const storedUser =
+      localStorage.getItem(STORAGE_USER_KEY) || sessionStorage.getItem(STORAGE_USER_KEY)
+
+    if (storedToken && storedToken === 'demo-token' && !DEMO_ENABLED) {
+      localStorage.removeItem(STORAGE_TOKEN_KEY)
+      sessionStorage.removeItem(STORAGE_TOKEN_KEY)
+      localStorage.removeItem(STORAGE_USER_KEY)
+      sessionStorage.removeItem(STORAGE_USER_KEY)
+      return
+    }
+
+    if (storedToken) {
+      setToken(storedToken)
+      setAuthToken(storedToken)
+      setStorageMode(localToken ? 'local' : 'session')
+    }
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch {
+        localStorage.removeItem(STORAGE_USER_KEY)
+        sessionStorage.removeItem(STORAGE_USER_KEY)
+      }
+    }
+  }, [])
+
+  const login = async (payload: LoginPayload) => {
+    const account = sanitizeInput(payload.account.trim())
+    const password = sanitizeInput(payload.password.trim())
+    const matched = DEMO_ENABLED
+      ? demoAccounts.find((item) => item.account === account && item.password === password)
+      : null
+
+    if (matched && DEMO_ENABLED) {
+      const mode = payload.remember ? 'local' : 'session'
+      const storage = resolveStorage(mode)
+      setStorageMode(mode)
+      setUser(matched.user)
+      setToken('demo-token')
+      storage.setItem(STORAGE_TOKEN_KEY, 'demo-token')
+      storage.setItem(STORAGE_USER_KEY, JSON.stringify(matched.user))
+      setAuthToken('demo-token')
+      return
+    }
+
+    // TODO: replace with real API call to /api/login when backend is wired.
+    const response = await loginService({ account, password })
+    const nextToken = response?.token as string
+    const nextUser = response?.user as User
+    const mode = payload.remember ? 'local' : 'session'
+    const storage = resolveStorage(mode)
+    setStorageMode(mode)
+    setToken(nextToken)
+    setUser(nextUser)
+    storage.setItem(STORAGE_TOKEN_KEY, nextToken)
+    storage.setItem(STORAGE_USER_KEY, JSON.stringify(nextUser))
+    setAuthToken(nextToken)
+  }
+
+  const updateUser = (nextUser: User) => {
+    setUser(nextUser)
+    const storage = resolveStorage(storageMode)
+    storage.setItem(STORAGE_USER_KEY, JSON.stringify(nextUser))
+  }
+
+  const logout = () => {
+    setUser(null)
+    setToken(null)
+    localStorage.removeItem(STORAGE_TOKEN_KEY)
+    localStorage.removeItem(STORAGE_USER_KEY)
+    sessionStorage.removeItem(STORAGE_TOKEN_KEY)
+    sessionStorage.removeItem(STORAGE_USER_KEY)
+    setAuthToken(null)
+    setStorageMode(null)
+  }
+
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      isAuthenticated: Boolean(user && token),
+      login,
+      logout,
+      updateUser
+    }),
+    [user, token, storageMode]
+  )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) {
+    throw new Error('useAuth must be used within AuthProvider')
+  }
+  return ctx
+}
