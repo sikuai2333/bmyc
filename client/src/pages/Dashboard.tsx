@@ -237,6 +237,26 @@ export default function Dashboard() {
     [meetings]
   )
 
+  const meetingMonthlyStats = useMemo(() => {
+    const map = new Map<string, number>()
+    meetings.forEach((meeting) => {
+      const month = meeting.meetingDate?.slice(0, 7)
+      if (!month) return
+      map.set(month, (map.get(month) || 0) + 1)
+    })
+    const months = Array.from(map.keys()).sort()
+    const recentMonths = months.slice(-6)
+    return recentMonths.map((month) => ({
+      month,
+      count: map.get(month) || 0
+    }))
+  }, [meetings])
+
+  const meetingMonthlyMax = useMemo(() => {
+    if (!meetingMonthlyStats.length) return 1
+    return Math.max(...meetingMonthlyStats.map((item) => item.count), 1)
+  }, [meetingMonthlyStats])
+
   const avgAttendees = useMemo(() => {
     const stats = meetings.reduce(
       (acc, meeting) => {
@@ -465,31 +485,18 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-variant dashboard-variant-c">
-          <div className="variant-c-grid">
+          <div className="variant-c-grid variant-c-grid--meetings">
             <div className="variant-note variant-note-main">
               <span className="variant-kicker">近期活动</span>
               <h3>会议活动总览</h3>
-              <p>聚焦最近一段时间的会议安排与协同动态。</p>
               <div className="variant-note-tags">
-                <span>近 7 天会议：{meetingsLast7Days} 场</span>
-                <span>待办会议：{upcomingMeetings.length} 场</span>
-                <span>累计会议：{meetings.length} 场</span>
+                <span>近 7 天：{meetingsLast7Days} 场</span>
+                <span>待办：{upcomingMeetings.length} 场</span>
+                <span>累计：{meetings.length} 场</span>
               </div>
             </div>
-            <div className="variant-note variant-note-metric">
-              <h4>下一场会议</h4>
-              {upcomingMeetings[0] ? (
-                <>
-                  <p className="variant-note-value">{upcomingMeetings[0].topic}</p>
-                  <p>{upcomingMeetings[0].meetingDate}</p>
-                  <p>{upcomingMeetings[0].location || '地点待定'}</p>
-                </>
-              ) : (
-                <p className="variant-empty">暂无待办会议</p>
-              )}
-            </div>
             <div className="variant-note variant-note-list">
-              <h4>最新会议</h4>
+              <h4>近期会议</h4>
               {activityMeetings.map((meeting) => (
                 <div key={meeting.id} className="variant-note-row">
                   <span>{meeting.topic}</span>
@@ -498,30 +505,18 @@ export default function Dashboard() {
               ))}
               {activityMeetings.length === 0 && <p className="variant-empty">暂无会议记录</p>}
             </div>
-            <div className="variant-note variant-note-list">
-              <h4>会议摘要</h4>
-              {activityMeetings
-                .filter((meeting) => meeting.summary)
-                .slice(0, 3)
-                .map((meeting) => (
-                  <div key={meeting.id} className="variant-note-row">
-                    <span>{meeting.summary}</span>
-                    <em>{meeting.category || '会议'}</em>
+            <div className="variant-note variant-note-chart">
+              <h4>每月会议数量</h4>
+              <div className="variant-note-bars">
+                {meetingMonthlyStats.map((item) => (
+                  <div key={item.month}>
+                    <i style={{ height: `${Math.round((item.count / meetingMonthlyMax) * 100)}%` }} />
+                    <span>{item.count}</span>
+                    <em>{item.month.slice(5)}</em>
                   </div>
                 ))}
-              {activityMeetings.filter((meeting) => meeting.summary).length === 0 && (
-                <p className="variant-empty">暂无会议摘要</p>
-              )}
-            </div>
-            <div className="variant-note variant-note-list">
-              <h4>参会概况</h4>
-              {activityMeetings.slice(0, 3).map((meeting) => (
-                <div key={meeting.id} className="variant-note-row">
-                  <span>{meeting.topic}</span>
-                  <em>{meeting.attendees?.length ? `${meeting.attendees.length} 人参会` : '待补充参会'}</em>
-                </div>
-              ))}
-              {activityMeetings.length === 0 && <p className="variant-empty">暂无参会信息</p>}
+                {meetingMonthlyStats.length === 0 && <p className="variant-empty">暂无会议数据</p>}
+              </div>
             </div>
           </div>
         </div>
