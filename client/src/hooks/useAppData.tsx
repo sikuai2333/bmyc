@@ -16,8 +16,10 @@ import { fetchDimensionInsights, fetchCompletionInsights } from '../services/ins
 import { fetchEvaluations } from '../services/evaluations'
 import { fetchGrowth } from '../services/growth'
 import { fetchCertificates } from '../services/certificates'
+import { fetchReadingItems } from '../services/readingZone'
 import { fetchUsers } from '../services/users'
 import type { Certificate, Evaluation, GrowthEvent, Meeting, Person } from '../types/archive'
+import type { ReadingItem } from '../types/reading'
 import type { Permission } from '../types/auth'
 import { hasAnyPermission, hasPermission } from '../utils/permissions'
 
@@ -46,6 +48,7 @@ interface AppDataContextValue {
   meetings: Meeting[]
   insights: InsightItem[]
   completionInsights: CompletionItem[]
+  readingItems: ReadingItem[]
   loading: boolean
   error: string
   selectedPersonId: number | null
@@ -146,6 +149,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [insights, setInsights] = useState<InsightItem[]>([])
   const [completionInsights, setCompletionInsights] = useState<CompletionItem[]>([])
+  const [readingItems, setReadingItems] = useState<ReadingItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null)
@@ -220,6 +224,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setSelectedMeetingId(null)
       setInsights([])
       setCompletionInsights([])
+      setReadingItems([])
       setEvaluations([])
       setGrowthEvents([])
       setCertificates([])
@@ -233,16 +238,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       try {
         const canViewDimensionInsights = hasPerm('dimensions.view.all')
-        const [peopleData, meetingData, insightData, completionData] = await Promise.all([
+        const [peopleData, meetingData, insightData, completionData, readingData] = await Promise.all([
           fetchPeople(),
           fetchMeetings(),
           canViewDimensionInsights ? fetchDimensionInsights() : Promise.resolve([]),
-          canViewDimensionInsights ? fetchCompletionInsights({ months: 6 }) : Promise.resolve([])
+          canViewDimensionInsights ? fetchCompletionInsights({ months: 6 }) : Promise.resolve([]),
+          fetchReadingItems().catch(() => [])
         ])
         setPeople(peopleData || [])
         setMeetings(meetingData || [])
         setInsights(insightData || [])
         setCompletionInsights(completionData || [])
+        setReadingItems(readingData || [])
 
         if (!selectedPersonId || !peopleData.some((item: Person) => item.id === selectedPersonId)) {
           const preferredId =
@@ -256,6 +263,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       } catch (err: any) {
         const message = err?.response?.data?.message || '加载数据失败'
         setError(message)
+        setReadingItems([])
       } finally {
         setLoading(false)
       }
@@ -456,6 +464,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       canViewEvaluations,
       canViewGrowth,
       canViewCertificates,
+      readingItems,
       canEditSelected,
       canEditDimensions,
       canEditGrowth,
@@ -469,6 +478,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       meetings,
       insights,
       completionInsights,
+      readingItems,
       loading,
       error,
       selectedPersonId,

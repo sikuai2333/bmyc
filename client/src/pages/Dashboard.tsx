@@ -3,12 +3,13 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AimOutlined,
+  ApartmentOutlined,
   BarChartOutlined,
-  CalendarOutlined,
+  ClockCircleOutlined,
   FireOutlined,
+  ReadOutlined,
   RocketOutlined,
-  StarOutlined,
-  TeamOutlined
+  ThunderboltOutlined
 } from '@ant-design/icons'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartCard } from '../components/ChartCard'
@@ -27,11 +28,21 @@ export default function Dashboard() {
     meetings,
     insights,
     completionInsights,
+    readingItems,
     loading,
     error,
     refreshAll,
     setSelectedPersonId,
     setSelectedMeetingId,
+    selectedPerson,
+    evaluations,
+    growthEvents,
+    certificates,
+    dimensionMonthlyRows,
+    dimensionMonth,
+    canViewEvaluations,
+    canViewGrowth,
+    canViewCertificates,
     hasPerm
   } = useAppData()
 
@@ -48,6 +59,42 @@ export default function Dashboard() {
       { label: '维度覆盖率', value: coverage, unit: '' }
     ]
   }, [people, meetings, insights])
+
+  const departmentCount = useMemo(() => {
+    const departments = new Set(
+      people
+        .map((person) => (person.department || '').trim())
+        .filter((department) => department)
+    )
+    return departments.size
+  }, [people])
+
+  const activePeopleCount = useMemo(
+    () => people.filter((person) => (person.dimensionMonthCount || 0) > 0).length,
+    [people]
+  )
+
+  const latestDimensionMonth = useMemo(() => {
+    const months = people
+      .map((person) => person.latestDimensionMonth)
+      .filter((month): month is string => Boolean(month))
+    if (!months.length) return '—'
+    return months.slice().sort((a, b) => b.localeCompare(a))[0]
+  }, [people])
+
+  const globalStats = [
+    { label: '部门覆盖', value: departmentCount, unit: '个' },
+    { label: '活跃画像', value: activePeopleCount, unit: '人' },
+    { label: '最新画像月', value: latestDimensionMonth, unit: '' },
+    { label: '金读推送', value: readingItems.length, unit: '条' }
+  ]
+
+  const globalStatIcons = [
+    <ApartmentOutlined key="departments" />,
+    <ThunderboltOutlined key="active" />,
+    <ClockCircleOutlined key="month" />,
+    <ReadOutlined key="reading" />
+  ]
 
   const metricStyles = [
     'metric-paper metric-paper--blue',
@@ -104,15 +151,77 @@ export default function Dashboard() {
     [meetings]
   )
 
-  const topPeople = useMemo(() => trendingPeople.slice(0, 3), [trendingPeople])
-  const topMeetings = useMemo(() => recentMeetings.slice(0, 3), [recentMeetings])
+  const topMeetings = useMemo(() => recentMeetings.slice(0, 4), [recentMeetings])
   const topDimensions = useMemo(() => dimensionCoverage.slice(0, 3), [dimensionCoverage])
-  const overviewIcons = [
-    <TeamOutlined key="people" />,
-    <BarChartOutlined key="dimensions" />,
-    <CalendarOutlined key="meetings" />,
-    <AimOutlined key="coverage" />
-  ]
+
+  const readingHighlights = useMemo(() => {
+    const sorted = readingItems
+      .slice()
+      .sort((a, b) => {
+        const aTime = new Date(a.published_at || a.created_at || 0).getTime()
+        const bTime = new Date(b.published_at || b.created_at || 0).getTime()
+        return bTime - aTime
+      })
+    return sorted.slice(0, 3)
+  }, [readingItems])
+
+  const meetingCategories = useMemo(() => {
+    const map = new Map<string, number>()
+    meetings.forEach((meeting) => {
+      const category = meeting.category || '未分类'
+      map.set(category, (map.get(category) || 0) + 1)
+    })
+    const total = meetings.length
+    return Array.from(map.entries())
+      .map(([category, count]) => ({
+        category,
+        count,
+        ratio: total ? Math.round((count / total) * 100) : 0
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [meetings])
+
+  const meetingsLast30Days = useMemo(() => {
+    const threshold = new Date()
+    threshold.setDate(threshold.getDate() - 30)
+    return meetings.filter((meeting) => new Date(meeting.meetingDate) >= threshold).length
+  }, [meetings])
+
+  const avgAttendees = useMemo(() => {
+    const stats = meetings.reduce(
+      (acc, meeting) => {
+        const count = meeting.attendees?.length
+        if (typeof count === 'number') {
+          acc.total += count
+          acc.count += 1
+        }
+        return acc
+      },
+      { total: 0, count: 0 }
+    )
+    if (!stats.count) return null
+    return Math.round(stats.total / stats.count)
+  }, [meetings])
+
+  const topMeetingCategory = meetingCategories[0]?.category || '—'
+
+  const currentDimensionRow = useMemo(() => {
+    if (!dimensionMonth) return null
+    return dimensionMonthlyRows.find((row) => row.month === dimensionMonth) || null
+  }, [dimensionMonthlyRows, dimensionMonth])
+
+  const dimensionFilledCount = useMemo(() => {
+    if (!currentDimensionRow) return 0
+    return currentDimensionRow.dimensions.filter((dimension) => dimension.detail && dimension.detail !== '无').length
+  }, [currentDimensionRow])
+
+  const dimensionProgress = DIMENSION_CATEGORIES.length
+    ? Math.round((dimensionFilledCount / DIMENSION_CATEGORIES.length) * 100)
+    : 0
+
+  const latestEvaluations = useMemo(() => evaluations.slice(0, 2), [evaluations])
+  const latestGrowth = useMemo(() => growthEvents.slice(0, 3), [growthEvents])
+  const latestCertificates = useMemo(() => certificates.slice(0, 2), [certificates])
 
   return (
     <div className="dashboard-surface space-y-6">
@@ -139,15 +248,15 @@ export default function Dashboard() {
         <div className="dashboard-variant dashboard-variant-a">
           <div className="variant-a-hero">
             <div className="variant-a-title">
-              <span className="variant-kicker">大屏速览</span>
-              <h3>数据指挥舱</h3>
-              <p>关键指标 · 重点人才 · 会议节奏</p>
+              <span className="variant-kicker">宏观视角</span>
+              <h3>运营总览面板</h3>
+              <p>部门分布 · 画像活跃 · 金读推送</p>
             </div>
             <div className="variant-a-chips">
-              {overview.map((metric, index) => (
+              {globalStats.map((metric, index) => (
                 <div className="variant-chip" key={metric.label}>
                   <span className={`variant-chip-icon variant-chip-icon-${index + 1}`}>
-                    {overviewIcons[index]}
+                    {globalStatIcons[index]}
                   </span>
                   <div>
                     <p className="variant-chip-label">{metric.label}</p>
@@ -160,28 +269,44 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-          <div className="variant-a-focus">
-            <h4>
-              <StarOutlined /> 重点关注
-            </h4>
-            <div className="variant-a-list">
-              {topPeople.map((person) => (
-                <button
-                  key={person.id}
-                  type="button"
-                  className="variant-a-item"
-                  onClick={() => {
-                    setSelectedPersonId(person.id)
-                    navigate('/archives')
-                  }}
-                >
-                  <span className="variant-a-name">{person.name}</span>
-                  <span className="variant-a-meta">
-                    {person.department || '—'} · {person.dimensionMonthCount || 0} 月
-                  </span>
-                </button>
-              ))}
-              {topPeople.length === 0 && <p className="variant-empty">暂无重点人员</p>}
+          <div className="variant-a-panels">
+            <div className="variant-a-focus">
+              <h4>
+                <BarChartOutlined /> 维度热度
+              </h4>
+              <div className="variant-a-list">
+                {topDimensions.map((row) => (
+                  <div key={row.category} className="variant-a-progress">
+                    <span>{row.category}</span>
+                    <div>
+                      <i style={{ width: `${row.ratio}%` }} />
+                    </div>
+                    <em>{row.count} 条</em>
+                  </div>
+                ))}
+                {topDimensions.length === 0 && <p className="variant-empty">暂无维度统计</p>}
+              </div>
+            </div>
+            <div className="variant-a-focus">
+              <h4>
+                <ReadOutlined /> 金读精选
+              </h4>
+              <div className="variant-a-list">
+                {readingHighlights.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="variant-a-item"
+                    onClick={() => navigate('/reading-zone')}
+                  >
+                    <span className="variant-a-name">{item.title}</span>
+                    <span className="variant-a-meta">
+                      {item.category || '未分类'} · {item.read_minutes ? `${item.read_minutes} 分钟` : '碎片阅读'}
+                    </span>
+                  </button>
+                ))}
+                {readingHighlights.length === 0 && <p className="variant-empty">暂无金读内容</p>}
+              </div>
             </div>
           </div>
         </div>
@@ -189,23 +314,31 @@ export default function Dashboard() {
         <div className="dashboard-variant dashboard-variant-b">
           <div className="variant-b-poster">
             <span className="variant-b-badge">
-              <FireOutlined /> 热门动态
+              <FireOutlined /> 会议协同
             </span>
-            <h3>月度趋势快照</h3>
-            <p>聚焦会议节奏与画像更新热度</p>
+            <h3>会议协同看板</h3>
+            <p>近 30 天会议节奏与参会结构</p>
             <div className="variant-b-stats">
               <div>
-                <span>入库英才</span>
-                <strong>{people.length}</strong>
+                <span>近 30 天会议</span>
+                <strong>{meetingsLast30Days}</strong>
               </div>
               <div>
-                <span>画像条目</span>
-                <strong>{overview[1]?.value}</strong>
+                <span>平均参会</span>
+                <strong>{avgAttendees ?? '—'}</strong>
               </div>
               <div>
-                <span>会议次数</span>
-                <strong>{meetings.length}</strong>
+                <span>主流分类</span>
+                <strong>{topMeetingCategory}</strong>
               </div>
+            </div>
+            <div className="variant-b-tags">
+              {meetingCategories.slice(0, 3).map((row) => (
+                <span key={row.category} className="variant-b-tag">
+                  {row.category}
+                </span>
+              ))}
+              {meetingCategories.length === 0 && <span className="variant-empty">暂无分类</span>}
             </div>
           </div>
           <div className="variant-b-side">
@@ -231,9 +364,9 @@ export default function Dashboard() {
             </div>
             <div className="variant-b-card">
               <h4>
-                <AimOutlined /> 维度热度
+                <AimOutlined /> 分类热度
               </h4>
-              {topDimensions.map((row) => (
+              {meetingCategories.slice(0, 4).map((row) => (
                 <div key={row.category} className="variant-b-progress">
                   <span>{row.category}</span>
                   <div>
@@ -241,7 +374,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
-              {topDimensions.length === 0 && <p className="variant-empty">暂无维度统计</p>}
+              {meetingCategories.length === 0 && <p className="variant-empty">暂无会议分类</p>}
             </div>
           </div>
         </div>
@@ -249,43 +382,76 @@ export default function Dashboard() {
         <div className="dashboard-variant dashboard-variant-c">
           <div className="variant-c-grid">
             <div className="variant-note variant-note-main">
-              <span className="variant-kicker">今日提示</span>
-              <h3>档案画像看板</h3>
-              <p>把关键指标写进工作节奏，让成长看得见。</p>
+              <span className="variant-kicker">个人画像</span>
+              <h3>{selectedPerson ? selectedPerson.name : '暂无选中人才'}</h3>
+              <p>
+                {selectedPerson
+                  ? `${selectedPerson.department || '未分配部门'} · ${selectedPerson.title || '职务待补充'}`
+                  : '请在档案清单中选择人员'}
+              </p>
+              <div className="variant-note-tags">
+                <span>{selectedPerson?.focus ? `关注方向：${selectedPerson.focus}` : '关注方向待补充'}</span>
+                <span>{selectedPerson?.latestDimensionMonth ? `最新画像：${selectedPerson.latestDimensionMonth}` : '暂无画像月份'}</span>
+              </div>
             </div>
             <div className="variant-note variant-note-metric">
-              <h4>英才规模</h4>
+              <h4>六维画像完成度</h4>
               <p className="variant-note-value">
-                {people.length} 人
+                {dimensionFilledCount}/{DIMENSION_CATEGORIES.length}
               </p>
-              <p>覆盖率：{overview[3]?.value}</p>
-            </div>
-            <div className="variant-note variant-note-metric">
-              <h4>画像更新</h4>
-              <p className="variant-note-value">
-                {overview[1]?.value} 条
-              </p>
-              <p>会议：{meetings.length} 场</p>
+              <div className="variant-note-progress">
+                <span>最新月份 {currentDimensionRow?.month || '—'}</span>
+                <div>
+                  <i style={{ width: `${dimensionProgress}%` }} />
+                </div>
+              </div>
             </div>
             <div className="variant-note variant-note-list">
-              <h4>本月关注</h4>
-              {topPeople.map((person) => (
-                <div key={person.id} className="variant-note-row">
-                  <span>{person.name}</span>
-                  <em>{person.dimensionMonthCount || 0} 月</em>
-                </div>
-              ))}
-              {topPeople.length === 0 && <p className="variant-empty">暂无重点人员</p>}
+              <h4>近期评价</h4>
+              {!canViewEvaluations && <p className="variant-empty">暂无权限查看评价</p>}
+              {canViewEvaluations &&
+                latestEvaluations.map((item) => (
+                  <div key={item.id} className="variant-note-row">
+                    <span>{item.type === 'quarterly' ? '季度评价' : item.type === 'annual' ? '年度评估' : '婚恋补充'}</span>
+                    <em>{item.period}</em>
+                  </div>
+                ))}
+              {canViewEvaluations && latestEvaluations.length === 0 && (
+                <p className="variant-empty">暂无评价记录</p>
+              )}
             </div>
             <div className="variant-note variant-note-list">
-              <h4>会议纪要</h4>
-              {topMeetings.map((meeting) => (
-                <div key={meeting.id} className="variant-note-row">
-                  <span>{meeting.topic}</span>
-                  <em>{meeting.meetingDate}</em>
-                </div>
-              ))}
-              {topMeetings.length === 0 && <p className="variant-empty">暂无会议记录</p>}
+              <h4>成长轨迹</h4>
+              {!canViewGrowth && <p className="variant-empty">暂无权限查看成长</p>}
+              {canViewGrowth &&
+                latestGrowth.map((item) => (
+                  <div key={item.id} className="variant-note-row">
+                    <span>{item.title}</span>
+                    <em>{item.event_date}</em>
+                  </div>
+                ))}
+              {canViewGrowth && latestGrowth.length === 0 && (
+                <p className="variant-empty">暂无成长记录</p>
+              )}
+            </div>
+            <div className="variant-note variant-note-list">
+              <h4>证书概览</h4>
+              {!canViewCertificates && <p className="variant-empty">暂无权限查看证书</p>}
+              {canViewCertificates && (
+                <>
+                  <div className="variant-note-row">
+                    <span>证书数量</span>
+                    <em>{certificates.length} 份</em>
+                  </div>
+                  {latestCertificates.map((item) => (
+                    <div key={item.id} className="variant-note-row">
+                      <span>{item.name}</span>
+                      <em>{item.issued_date || item.uploaded_at || '待补充日期'}</em>
+                    </div>
+                  ))}
+                  {latestCertificates.length === 0 && <p className="variant-empty">暂无证书记录</p>}
+                </>
+              )}
             </div>
           </div>
         </div>

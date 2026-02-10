@@ -1,0 +1,12 @@
+{
+  "interface_contract": true,
+  "tech_choice_rationale": true,
+  "risk_identified": true,
+  "verification_plan": true,
+  "notes": [
+    "接口输入输出：复用 useAppData 现有数据结构，阅读专区补充到同一上下文",
+    "技术选择：仅调整前端展示与样式，不新增后端能力",
+    "风险：阅读专区接口失败需降级处理，已准备容错",
+    "验证：执行前端测试与构建"
+  ]
+}

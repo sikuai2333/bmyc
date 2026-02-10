@@ -16,11 +16,21 @@ const mockAppData = {
     { category: '业务水平', count: 1 }
   ],
   completionInsights: [{ month: '2026-02', count: 3 }],
+  readingItems: [],
   loading: false,
   error: '',
   refreshAll: vi.fn(),
   setSelectedPersonId: vi.fn(),
   setSelectedMeetingId: vi.fn(),
+  selectedPerson: { id: 1, name: '李宁', department: '创新中心', title: '总监', focus: '画像管理' },
+  evaluations: [],
+  growthEvents: [],
+  certificates: [],
+  dimensionMonthlyRows: [],
+  dimensionMonth: '2026-02',
+  canViewEvaluations: true,
+  canViewGrowth: true,
+  canViewCertificates: true,
   hasPerm: () => true
 }
 
@@ -39,6 +49,6 @@ describe('Dashboard', () => {
     expect(screen.getByText('数据总览')).toBeInTheDocument()
     expect(screen.getByText('重点关注人才')).toBeInTheDocument()
     expect(screen.getByText('最新会议动态')).toBeInTheDocument()
-    expect(screen.getByText('李宁')).toBeInTheDocument()
+    expect(screen.getAllByText('李宁').length).toBeGreaterThan(0)
   })
 })

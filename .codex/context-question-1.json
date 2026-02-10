@@ -1,0 +1,40 @@
+{
+  "question": "首页可展示的字段与数据源有哪些？",
+  "evidence": [
+    {
+      "entity": "people",
+      "fields": ["name", "department", "title", "focus", "bio", "birth_date", "gender", "phone", "dimensionCount", "dimensionMonthCount", "latestDimensionMonth"],
+      "sources": ["app/server/routes/personnel.js", "app/client/src/types/archive.ts"]
+    },
+    {
+      "entity": "meetings",
+      "fields": ["topic", "meetingDate", "location", "category", "summary", "attendees"],
+      "sources": ["app/server/routes/meetings.js", "app/client/src/types/archive.ts"]
+    },
+    {
+      "entity": "dimensions_monthly",
+      "fields": ["category", "detail", "month"],
+      "sources": ["app/server/routes/dimensions.js", "app/server/routes/insights.js"]
+    },
+    {
+      "entity": "evaluations",
+      "fields": ["type", "period", "content", "created_at"],
+      "sources": ["app/server/routes/evaluations.js", "app/client/src/types/archive.ts"]
+    },
+    {
+      "entity": "growth_events",
+      "fields": ["event_date", "title", "description", "category"],
+      "sources": ["app/server/routes/growth.js", "app/client/src/types/archive.ts"]
+    },
+    {
+      "entity": "certificates",
+      "fields": ["name", "issued_date", "category", "description", "uploaded_at"],
+      "sources": ["app/server/routes/certificates.js", "app/client/src/types/archive.ts"]
+    },
+    {
+      "entity": "reading_zone_items",
+      "fields": ["title", "category", "summary", "cover_url", "source_url", "read_minutes", "published_at", "author_name"],
+      "sources": ["app/server/routes/reading-zone.js", "app/client/src/types/reading.ts"]
+    }
+  ]
+}

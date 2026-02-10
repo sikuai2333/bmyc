@@ -1,0 +1,34 @@
+{
+  "locations": [
+    "app/client/src/pages/Dashboard.tsx",
+    "app/client/src/styles/index.css",
+    "app/client/src/hooks/useAppData.tsx",
+    "app/server/routes/insights.js",
+    "app/server/routes/reading-zone.js",
+    "app/server/routes/meetings.js",
+    "app/server/routes/personnel.js"
+  ],
+  "current_state": {
+    "dashboard": "三套方案展示块与下方指标卡、图表、列表并存，方案之间存在大量重复指标与相似结构。",
+    "theme": "方案B使用高饱和紫/橙暮光渐变，风格偏娱乐化，不符合管理平台气质。"
+  },
+  "tech_stack": [
+    "React + Vite + TypeScript",
+    "Tailwind + 自定义样式（index.css）",
+    "Express + SQLite"
+  ],
+  "tests": [
+    "npm --prefix app/client run test -- --run",
+    "npm --prefix app run test",
+    "npm --prefix app run build"
+  ],
+  "conflicts_or_overlap": [
+    "三套方案重复展示“入库英才/会议数/画像条目”等核心指标，与页面下方固定卡片重复",
+    "方案B色彩与平台定位冲突"
+  ],
+  "observations": [
+    "Reading Zone 已有接口与数据表，可复用展示（reading_zone_items）",
+    "useAppData 已集中管理数据，适合加入阅读数据的聚合",
+    "code-index 工具不可用，已用 rg 检索替代并记录"
+  ]
+}

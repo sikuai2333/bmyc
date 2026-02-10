@@ -1,0 +1,18 @@
+{
+  "known": [
+    "Dashboard 当前使用 people / meetings / insights / completionInsights 数据源",
+    "Reading Zone 具备独立接口与数据表，可用于首页展示"
+  ],
+  "unknown": [
+    {
+      "question": "是否需要把阅读专区内容纳入首页方案展示？",
+      "priority": "高",
+      "decision": "纳入方案A作为“金读精选”，使用既有 reading-zone 接口"
+    },
+    {
+      "question": "是否调整下方固定指标卡的指标含义？",
+      "priority": "中",
+      "decision": "保持现有指标卡不动，将差异化放在三套方案中"
+    }
+  ]
+}
