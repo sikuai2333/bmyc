@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { LoginPayload, User } from '../types/auth'
-import { sampleUser } from '../data/sample'
 import { setAuthToken } from '../utils/api'
 import { login as loginService } from '../services/auth'
 import { sanitizeInput } from '../utils/sanitize'
@@ -20,17 +19,44 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 const STORAGE_TOKEN_KEY = 'talent_dashboard_token'
 const STORAGE_USER_KEY = 'talent_dashboard_user'
 
+const demoBaseUser: User = {
+  id: 1,
+  name: '张一鸣',
+  role: 'admin',
+  permissions: [
+    'people.view.all',
+    'people.edit.all',
+    'dimensions.view.all',
+    'dimensions.edit.all',
+    'evaluations.view',
+    'evaluations.edit',
+    'growth.view.all',
+    'growth.edit.all',
+    'meetings.view',
+    'meetings.edit',
+    'certificates.view',
+    'certificates.upload',
+    'certificates.delete',
+    'users.manage',
+    'permissions.manage',
+    'import.excel',
+    'export.excel',
+    'logs.view',
+    'sensitive.view'
+  ]
+}
+
 const demoAccounts: Array<{ account: string; password: string; user: User }> = [
-  { account: 'admin', password: 'admin@123', user: sampleUser },
+  { account: 'admin', password: 'admin@123', user: demoBaseUser },
   {
     account: 'display',
     password: 'display@123',
-    user: { ...sampleUser, id: 2, name: '展示账号', role: 'display', permissions: ['people.view.all'] }
+    user: { ...demoBaseUser, id: 2, name: '展示账号', role: 'display', permissions: ['people.view.all'] }
   },
   {
     account: 'user',
     password: 'user@123',
-    user: { ...sampleUser, id: 3, name: '普通用户', role: 'user', permissions: ['people.edit.self'] }
+    user: { ...demoBaseUser, id: 3, name: '普通用户', role: 'user', permissions: ['people.edit.self'] }
   }
 ]
 
