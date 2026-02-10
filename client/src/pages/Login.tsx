@@ -35,19 +35,19 @@ export default function Login() {
     ? [
         {
           key: 'super',
-          label: '瓒呯 路 admin / admin@123',
+          label: '超管 · admin / admin@123',
           account: 'admin',
           password: 'admin@123'
         },
         {
           key: 'display',
-          label: '灞曠ず 路 display / display@123',
+          label: '展示 · display / display@123',
           account: 'display',
           password: 'display@123'
         },
         {
           key: 'user',
-          label: '鏅€?路 user / user@123',
+          label: '普通 · user / user@123',
           account: 'user',
           password: 'user@123'
         }
