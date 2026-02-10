@@ -29,27 +29,30 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [roleKey, setRoleKey] = useState('')
   const [form, setForm] = useState({ account: '', password: '', remember: false })
+  const demoEnabled = import.meta.env.VITE_ENABLE_DEMO === 'true'
 
-  const roleOptions = [
-    {
-      key: 'super',
-      label: '超管 · admin / admin@123',
-      account: 'admin',
-      password: 'admin@123'
-    },
-    {
-      key: 'display',
-      label: '展示 · display / display@123',
-      account: 'display',
-      password: 'display@123'
-    },
-    {
-      key: 'user',
-      label: '普通 · user / user@123',
-      account: 'user',
-      password: 'user@123'
-    }
-  ]
+  const roleOptions = demoEnabled
+    ? [
+        {
+          key: 'super',
+          label: '瓒呯 路 admin / admin@123',
+          account: 'admin',
+          password: 'admin@123'
+        },
+        {
+          key: 'display',
+          label: '灞曠ず 路 display / display@123',
+          account: 'display',
+          password: 'display@123'
+        },
+        {
+          key: 'user',
+          label: '鏅€?路 user / user@123',
+          account: 'user',
+          password: 'user@123'
+        }
+      ]
+    : []
 
   const handleChange = (key: 'account' | 'password' | 'remember', value: string | boolean) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -133,23 +136,27 @@ export default function Login() {
           </div>
 
           <form className="login-form" onSubmit={onSubmit}>
-            <label className="input-field" htmlFor="role-select">
-              <span>账号类型</span>
-              <div className="input-group">
-                <select
-                  id="role-select"
-                  value={roleKey}
-                  onChange={(event) => handleRoleSelect(event.target.value)}
-                >
-                  <option value="">选择账号类型（自动填充账号/密码）</option>
-                  {roleOptions.map((option) => (
-                    <option key={option.key} value={option.key}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </label>
+            {demoEnabled ? (
+              <label className="input-field" htmlFor="role-select">
+                <span>账号类型</span>
+                <div className="input-group">
+                  <select
+                    id="role-select"
+                    value={roleKey}
+                    onChange={(event) => handleRoleSelect(event.target.value)}
+                  >
+                    <option value="">选择账号类型（自动填入账号/密码）</option>
+                    {roleOptions.map((option) => (
+                      <option key={option.key} value={option.key}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </label>
+            ) : (
+              <p className="login-subtitle">当前环境未启用演示账号，请使用管理员账号登录。</p>
+            )}
 
             <label className="input-field" htmlFor="login-account">
               <span>账号</span>

@@ -12,6 +12,78 @@
 ## npm test 输出
 
 ```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app/client run test -- --run`：失败（Login 页面语法错误导致构建失败）
+2. `npm --prefix app/client run test -- --run`：通过（修复语法后，存在既有控制台警告）
+3. `npm --prefix app/client run build`：通过（存在体积告警）
+
+## npm --prefix app/client run test -- --run 失败输出（摘录）
+
+```
+FAIL  src/test/Login.test.tsx
+Error: Transform failed with 1 error:
+.../client/src/pages/Login.tsx:55:8: ERROR: Expected ";" but found "]"
+```
+
+## npm --prefix app/client run test -- --run 输出
+
+```
+> client@0.0.0 test
+> vitest --run
+
+ RUN  v2.1.9  C:/Users/sikuai/Downloads/SOLO开发/百名英才档案管理/app/client
+
+ ✓ src/test/Login.test.tsx (1 test) 254ms
+ ✓ src/test/Admin.test.tsx (1 test) 137ms
+ ✓ src/test/NotFound.test.tsx (1 test) 224ms
+ ✓ src/test/NoAccess.test.tsx (1 test) 236ms
+ ✓ src/test/Meetings.test.tsx (1 test) 394ms
+   ✓ Meetings > renders meeting list and handles selection 392ms
+ ✓ src/test/Certificates.test.tsx (1 test) 686ms
+   ✓ Certificates > renders certificate list 684ms
+ ✓ src/test/Dashboard.test.tsx (1 test) 263ms
+ ✓ src/test/Growth.test.tsx (1 test) 1218ms
+   ✓ Growth > submits growth form 1216ms
+ ✓ src/test/Evaluations.test.tsx (1 test) 1487ms
+   ✓ Evaluations > submits evaluation form 1486ms
+ ✓ src/test/AppLayout.test.tsx (1 test) 208ms
+ ✓ src/test/ArchiveList.test.tsx (1 test) 280ms
+
+ Test Files  11 passed (11)
+      Tests  11 passed (11)
+```
+
+## npm --prefix app/client run build 输出
+
+```
+> client@0.0.0 build
+> vite build
+
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 3739 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                            0.68 kB │ gzip:   0.42 kB
+dist/assets/Login-bJcxpcB1.js              4.50 kB │ gzip:   1.75 kB
+dist/assets/Admin-BWcxV5V9.js            262.36 kB │ gzip:  81.32 kB
+dist/assets/Dashboard-B2n3l_tu.js        348.53 kB │ gzip: 104.52 kB
+dist/assets/index-B0NcA0r-.js            605.75 kB │ gzip: 203.28 kB
+✓ built in 15.04s
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```
 > bainyingcai-dashboard@1.0.0 test
 > npm run test:server
 
