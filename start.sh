@@ -53,6 +53,15 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 
+if command -v git >/dev/null 2>&1 && [ -d ".git" ]; then
+  GIT_BRANCH="${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
+  echo "Updating code from origin/${GIT_BRANCH}..."
+  git fetch origin
+  git pull origin "${GIT_BRANCH}"
+else
+  echo "Git not found or .git missing; skipping git pull."
+fi
+
 if [[ "${JWT_SECRET}" == "CHANGE_ME" ]]; then
   echo "JWT_SECRET is not set. Export JWT_SECRET or edit start.sh."
   exit 1
@@ -69,6 +78,10 @@ if ! command -v pm2 >/dev/null 2>&1; then
   echo "pm2 not found. Installing globally..."
   npm i -g pm2
 fi
+
+echo "Cleaning caches..."
+rm -rf client/dist
+rm -rf client/node_modules/.vite
 
 if [ -f "package.json" ]; then
   echo "Installing backend deps..."
