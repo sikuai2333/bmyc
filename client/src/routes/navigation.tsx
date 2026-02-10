@@ -4,6 +4,7 @@ import {
   FileTextOutlined,
   RiseOutlined,
   CalendarOutlined,
+  ReadOutlined,
   SettingOutlined,
   SafetyCertificateOutlined
 } from '@ant-design/icons'
@@ -39,6 +40,7 @@ export const NAV_ITEMS: NavItem[] = [
     permissions: ['certificates.view']
   },
   { label: '会议活动', path: '/meetings', icon: <CalendarOutlined /> },
+  { label: '金读专区', path: '/reading-zone', icon: <ReadOutlined /> },
   {
     label: '管理后台',
     path: '/admin',
@@ -51,6 +53,7 @@ export const MOBILE_TABS: NavItem[] = [
   { label: '总览', path: '/', icon: <DashboardOutlined /> },
   { label: '档案', path: '/archives', icon: <TeamOutlined /> },
   { label: '会议', path: '/meetings', icon: <CalendarOutlined /> },
+  { label: '金读', path: '/reading-zone', icon: <ReadOutlined /> },
   {
     label: '更多',
     path: '/admin',

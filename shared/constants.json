@@ -20,5 +20,10 @@
     { "value": "annual", "label": "年度综合评估" },
     { "value": "marriage", "label": "婚恋情况补充" }
   ],
+  "readingCategories": [
+    "电子书籍",
+    "行业前沿资讯",
+    "精品课程"
+  ],
   "defaultIcon": "⭐"
 }

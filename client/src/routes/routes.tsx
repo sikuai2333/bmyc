@@ -9,6 +9,7 @@ const Evaluations = lazy(() => import('../pages/Evaluations'))
 const Growth = lazy(() => import('../pages/Growth'))
 const Certificates = lazy(() => import('../pages/Certificates'))
 const Meetings = lazy(() => import('../pages/Meetings'))
+const ReadingZone = lazy(() => import('../pages/ReadingZone'))
 const Admin = lazy(() => import('../pages/Admin'))
 const Login = lazy(() => import('../pages/Login'))
 const NoAccess = lazy(() => import('../pages/NoAccess'))
@@ -51,6 +52,7 @@ export const routes: RouteObject[] = [
           </RequirePermission>
         )
       },
+      { path: 'reading-zone', element: <ReadingZone /> },
       { path: 'meetings', element: <Meetings /> },
       {
         path: 'admin',

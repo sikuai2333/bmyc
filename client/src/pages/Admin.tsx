@@ -14,7 +14,7 @@
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons'
 import { useEffect, useMemo, useState } from 'react'
 import type { ColumnsType } from 'antd/es/table'
-import { DEFAULT_ICON, MEETING_CATEGORY_TAGS } from '../constants'
+import { DEFAULT_ICON, MEETING_CATEGORY_TAGS, READING_CATEGORIES } from '../constants'
 import { SectionHeader } from '../components/SectionHeader'
 import { useAppData } from '../hooks/useAppData'
 import {
@@ -27,13 +27,27 @@ import {
 import { createPerson, deletePerson } from '../services/people'
 import { exportPeople, importExcel } from '../services/importExport'
 import { createMeeting, deleteMeeting } from '../services/meetings'
+import {
+  fetchReadingItems,
+  createReadingItem,
+  updateReadingItem,
+  deleteReadingItem
+} from '../services/readingZone'
 import { generateNumericPassword } from '../utils/password'
+import { formatDate } from '../utils/format'
 import type { Person, Meeting } from '../types/archive'
+import type { ReadingItem } from '../types/reading'
 import type { Permission } from '../types/auth'
 
 interface PermissionItem {
   key: Permission
   label: string
+}
+
+const READING_CATEGORY_COLORS: Record<string, string> = {
+  电子书籍: 'blue',
+  行业前沿资讯: 'cyan',
+  精品课程: 'gold'
 }
 
 // Use AntD Tabs + Forms to reduce bespoke UI code and keep maintenance cost low.
@@ -87,11 +101,28 @@ export default function Admin() {
   const [importFile, setImportFile] = useState<File | null>(null)
   const [importing, setImporting] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [readingItems, setReadingItems] = useState<ReadingItem[]>([])
+  const [readingLoading, setReadingLoading] = useState(false)
+  const [readingEditing, setReadingEditing] = useState<ReadingItem | null>(null)
 
   const [personForm] = Form.useForm()
   const [systemForm] = Form.useForm()
   const [resetForm] = Form.useForm()
   const [meetingForm] = Form.useForm()
+  const [readingForm] = Form.useForm()
+
+  const loadReadingItems = async () => {
+    try {
+      setReadingLoading(true)
+      const data = await fetchReadingItems()
+      setReadingItems(data || [])
+    } catch (err: any) {
+      setReadingItems([])
+      message.error(err?.response?.data?.message || '加载金读专区失败')
+    } finally {
+      setReadingLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!selectedPerson && people.length) {
@@ -124,6 +155,11 @@ export default function Admin() {
     }
     loadLogs()
   }, [activeTab, hasPerm])
+
+  useEffect(() => {
+    if (activeTab !== 'reading' || !canManageUsers) return
+    loadReadingItems()
+  }, [activeTab, canManageUsers])
 
   useEffect(() => {
     if (!permissionTargetId && users.length) {
@@ -375,6 +411,64 @@ export default function Admin() {
     }
   }
 
+  const resetReadingForm = () => {
+    setReadingEditing(null)
+    readingForm.resetFields()
+  }
+
+  const handleReadingSubmit = async (values: any) => {
+    if (!values.title?.trim() || !values.category) {
+      message.warning('请填写标题与分类')
+      return
+    }
+    const payload = {
+      title: values.title.trim(),
+      category: values.category,
+      summary: values.summary?.trim() || '',
+      content: values.content?.trim() || '',
+      coverUrl: values.coverUrl?.trim() || '',
+      sourceUrl: values.sourceUrl?.trim() || '',
+      readMinutes: values.readMinutes || ''
+    }
+    try {
+      if (readingEditing) {
+        await updateReadingItem(readingEditing.id, payload)
+        message.success('内容已更新')
+      } else {
+        await createReadingItem(payload)
+        message.success('内容已发布')
+      }
+      resetReadingForm()
+      loadReadingItems()
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || '发布失败')
+    }
+  }
+
+  const handleEditReading = (item: ReadingItem) => {
+    setReadingEditing(item)
+    readingForm.setFieldsValue({
+      title: item.title,
+      category: item.category,
+      summary: item.summary || '',
+      content: item.content || '',
+      coverUrl: item.cover_url || '',
+      sourceUrl: item.source_url || '',
+      readMinutes: item.read_minutes || ''
+    })
+  }
+
+  const handleDeleteReading = async (id: number) => {
+    if (!window.confirm('确认删除该内容？')) return
+    try {
+      await deleteReadingItem(id)
+      message.success('内容已删除')
+      loadReadingItems()
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || '删除失败')
+    }
+  }
+
   const peopleColumns: ColumnsType<Person> = [
     { title: '姓名', dataIndex: 'name', key: 'name' },
     { title: '部门', dataIndex: 'department', key: 'department' },
@@ -614,6 +708,101 @@ export default function Admin() {
                 </div>
               ))}
               {meetingList.length === 0 && <p className="text-sm text-slate-500">暂无会议记录。</p>}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'reading',
+      label: '金读专区',
+      disabled: !canManageUsers,
+      children: (
+        <div className="space-y-6">
+          <div className="card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-slate-800">发布内容</h3>
+                <p className="text-xs text-slate-500">推送电子书籍、行业前沿资讯、精品课程</p>
+              </div>
+              {readingEditing ? (
+                <Button onClick={resetReadingForm}>取消编辑</Button>
+              ) : null}
+            </div>
+            <Form
+              form={readingForm}
+              layout="vertical"
+              className="mt-4"
+              onFinish={handleReadingSubmit}
+              initialValues={{ category: READING_CATEGORIES?.[0] || '' }}
+            >
+              <Form.Item label="内容标题" name="title" rules={[{ required: true, message: '请输入标题' }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item label="内容分类" name="category" rules={[{ required: true, message: '请选择分类' }]}>
+                <Select options={READING_CATEGORIES.map((item) => ({ value: item, label: item }))} />
+              </Form.Item>
+              <Form.Item label="摘要" name="summary">
+                <Input.TextArea rows={2} placeholder="建议 40-80 字的速读摘要" />
+              </Form.Item>
+              <Form.Item label="正文内容" name="content">
+                <Input.TextArea rows={4} placeholder="支持分段输入，便于碎片化阅读" />
+              </Form.Item>
+              <Form.Item label="封面图链接" name="coverUrl">
+                <Input placeholder="https://..." />
+              </Form.Item>
+              <Form.Item label="外部链接" name="sourceUrl">
+                <Input placeholder="https://..." />
+              </Form.Item>
+              <Form.Item label="阅读时长（分钟）" name="readMinutes">
+                <Input type="number" min={1} />
+              </Form.Item>
+              <Button type="primary" htmlType="submit">
+                {readingEditing ? '保存修改' : '发布内容'}
+              </Button>
+            </Form>
+          </div>
+
+          <div className="card p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-slate-800">内容列表</h3>
+              <Button size="small" onClick={loadReadingItems} loading={readingLoading}>
+                刷新
+              </Button>
+            </div>
+            <div className="mt-4 space-y-3 striped-list">
+              {readingItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-start justify-between gap-3 rounded-md border border-slate-100 p-4"
+                >
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Tag color={READING_CATEGORY_COLORS[item.category] || 'blue'}>
+                        {item.category || '内容'}
+                      </Tag>
+                      <span className="text-xs text-slate-400">
+                        {formatDate(item.published_at || item.created_at || '')}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm font-semibold text-slate-800">{item.title}</p>
+                    <p className="text-xs text-slate-500">
+                      {item.summary || item.content || '暂无摘要'}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button size="small" onClick={() => handleEditReading(item)}>
+                      编辑
+                    </Button>
+                    <Button size="small" danger onClick={() => handleDeleteReading(item.id)}>
+                      删除
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {!readingLoading && readingItems.length === 0 && (
+                <p className="text-sm text-slate-500">暂无内容记录。</p>
+              )}
             </div>
           </div>
         </div>

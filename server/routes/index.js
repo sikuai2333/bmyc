@@ -11,6 +11,7 @@ const certificateRoutes = require('./certificates');
 const importRoutes = require('./import');
 const exportRoutes = require('./export');
 const logRoutes = require('./logs');
+const readingZoneRoutes = require('./reading-zone');
 
 function registerRoutes(app) {
   app.use(authRoutes);
@@ -26,6 +27,7 @@ function registerRoutes(app) {
   app.use(importRoutes);
   app.use(exportRoutes);
   app.use(logRoutes);
+  app.use(readingZoneRoutes);
 }
 
 module.exports = {
