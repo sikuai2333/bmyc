@@ -47,6 +47,29 @@
     pointer-events: none;
   }
 
+  .topbar-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: var(--topbar-brand-bg, transparent);
+    border: 1px solid var(--topbar-brand-border, transparent);
+  }
+
+  .topbar-brand-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--topbar-brand-title, #0f172a);
+  }
+
+  .topbar-brand-subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: var(--topbar-brand-subtitle, #475569);
+  }
+
   .dashboard-surface {
     position: relative;
     padding: 10px;
@@ -947,6 +970,13 @@ html[data-theme='dark'] .topbar-title-pill {
   box-shadow: 0 8px 18px rgba(56, 189, 248, 0.35);
 }
 
+html[data-theme='dark'] .topbar-brand {
+  --topbar-brand-bg: rgba(15, 23, 42, 0.35);
+  --topbar-brand-border: rgba(148, 163, 184, 0.2);
+  --topbar-brand-title: #e2e8f0;
+  --topbar-brand-subtitle: #94a3b8;
+}
+
 html[data-visual='a'] {
   --topbar-pill-bg: linear-gradient(120deg, #1d4ed8 0%, #0ea5e9 55%, #22d3ee 100%);
   --topbar-pill-shadow: 0 8px 18px rgba(14, 165, 233, 0.28);
@@ -967,6 +997,10 @@ html[data-visual='a'] {
   --dashboard-surface-bg: linear-gradient(135deg, rgba(219, 234, 254, 0.35), rgba(240, 249, 255, 0.6));
   --dashboard-surface-overlay: radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.12), transparent 60%),
     radial-gradient(circle at 85% 20%, rgba(14, 165, 233, 0.12), transparent 55%);
+  --topbar-brand-bg: rgba(255, 255, 255, 0.65);
+  --topbar-brand-border: rgba(148, 163, 184, 0.25);
+  --topbar-brand-title: #0f172a;
+  --topbar-brand-subtitle: #475569;
 }
 
 html[data-visual='b'] {
@@ -984,6 +1018,10 @@ html[data-visual='b'] {
   --dashboard-surface-bg: linear-gradient(130deg, rgba(236, 253, 245, 0.55), rgba(226, 232, 240, 0.6));
   --dashboard-surface-overlay: radial-gradient(circle at 30% 0%, rgba(34, 197, 94, 0.12), transparent 60%),
     radial-gradient(circle at 80% 30%, rgba(15, 23, 42, 0.08), transparent 60%);
+  --topbar-brand-bg: rgba(248, 250, 252, 0.7);
+  --topbar-brand-border: rgba(34, 197, 94, 0.18);
+  --topbar-brand-title: #0f172a;
+  --topbar-brand-subtitle: #475569;
 }
 
 html[data-visual='b'] .metric-paper {
@@ -1036,6 +1074,10 @@ html[data-visual='c'] {
     transparent 1px,
     transparent 10px
   );
+  --topbar-brand-bg: rgba(255, 255, 255, 0.75);
+  --topbar-brand-border: rgba(148, 163, 184, 0.35);
+  --topbar-brand-title: #0f172a;
+  --topbar-brand-subtitle: #64748b;
 }
 
 html[data-visual='c'] .topbar-title-pill {

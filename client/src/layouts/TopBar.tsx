@@ -128,11 +128,9 @@ export function TopBar({
           >
             {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </button>
-          <div className="space-y-1">
-            <h1 className="text-base font-semibold text-slate-800">
-              <span className="topbar-title-pill">金读岩创・英才行</span>
-            </h1>
-            <p className="text-xs text-slate-500">年轻干部管理平台</p>
+          <div className="topbar-brand">
+            <h1 className="topbar-brand-title">金读岩创・英才行</h1>
+            <p className="topbar-brand-subtitle">年轻干部管理平台</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
