@@ -96,7 +96,7 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="dashboard-surface space-y-6">
       <SectionHeader
         title="数据总览"
         subtitle="核心指标与运行概况"

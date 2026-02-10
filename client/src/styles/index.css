@@ -31,6 +31,44 @@
     @apply shadow-card-hover;
   }
 
+  .topbar-surface {
+    position: relative;
+    background: var(--topbar-surface-bg, #ffffff);
+    border-color: var(--topbar-surface-border, #e2e8f0);
+    overflow: hidden;
+  }
+
+  .topbar-surface::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--topbar-surface-overlay, none);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .dashboard-surface {
+    position: relative;
+    padding: 10px;
+    border-radius: 24px;
+    background: var(--dashboard-surface-bg, transparent);
+  }
+
+  .dashboard-surface::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--dashboard-surface-overlay, transparent);
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  .dashboard-surface > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .topbar-title-pill {
     @apply relative inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-white;
     background: var(--topbar-pill-bg, linear-gradient(120deg, #1d4ed8 0%, #0ea5e9 55%, #22d3ee 100%));
@@ -253,6 +291,10 @@ html[data-theme='dark'] .topbar-title-pill {
 html[data-visual='a'] {
   --topbar-pill-bg: linear-gradient(120deg, #1d4ed8 0%, #0ea5e9 55%, #22d3ee 100%);
   --topbar-pill-shadow: 0 8px 18px rgba(14, 165, 233, 0.28);
+  --topbar-surface-bg: linear-gradient(120deg, rgba(255, 255, 255, 0.98), rgba(226, 232, 240, 0.85));
+  --topbar-surface-overlay: radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.18), transparent 60%),
+    radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.2), transparent 55%);
+  --topbar-surface-border: rgba(59, 130, 246, 0.2);
   --metric-paper-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92)),
     repeating-linear-gradient(
       90deg,
@@ -263,16 +305,26 @@ html[data-visual='a'] {
     );
   --metric-glow-opacity: 0.6;
   --metric-edge-opacity: 0.35;
+  --dashboard-surface-bg: linear-gradient(135deg, rgba(219, 234, 254, 0.35), rgba(240, 249, 255, 0.6));
+  --dashboard-surface-overlay: radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.12), transparent 60%),
+    radial-gradient(circle at 85% 20%, rgba(14, 165, 233, 0.12), transparent 55%);
 }
 
 html[data-visual='b'] {
   --topbar-pill-bg: linear-gradient(120deg, #312e81 0%, #7c3aed 45%, #f97316 100%);
   --topbar-pill-shadow: 0 12px 24px rgba(99, 102, 241, 0.35);
+  --topbar-surface-bg: linear-gradient(120deg, rgba(255, 241, 242, 0.98), rgba(250, 245, 255, 0.92));
+  --topbar-surface-overlay: radial-gradient(circle at 8% 0%, rgba(244, 63, 94, 0.2), transparent 55%),
+    radial-gradient(circle at 75% 0%, rgba(124, 58, 237, 0.2), transparent 60%);
+  --topbar-surface-border: rgba(236, 72, 153, 0.25);
   --metric-paper-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.9)),
     radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12), transparent 55%),
     radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.12), transparent 50%);
   --metric-glow-opacity: 0.75;
   --metric-edge-opacity: 0.45;
+  --dashboard-surface-bg: linear-gradient(130deg, rgba(255, 237, 213, 0.55), rgba(224, 231, 255, 0.55));
+  --dashboard-surface-overlay: radial-gradient(circle at 30% 0%, rgba(249, 115, 22, 0.15), transparent 60%),
+    radial-gradient(circle at 80% 30%, rgba(168, 85, 247, 0.15), transparent 60%);
 }
 
 html[data-visual='b'] .metric-paper {
@@ -304,10 +356,27 @@ html[data-visual='c'] {
   --topbar-pill-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   --topbar-pill-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35),
     0 6px 12px rgba(148, 163, 184, 0.25);
+  --topbar-surface-bg: linear-gradient(120deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.98));
+  --topbar-surface-overlay: repeating-linear-gradient(
+    120deg,
+    rgba(148, 163, 184, 0.12),
+    rgba(148, 163, 184, 0.12) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+  --topbar-surface-border: rgba(148, 163, 184, 0.4);
   --metric-paper-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%),
     linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
   --metric-glow-opacity: 0.4;
   --metric-edge-opacity: 0.25;
+  --dashboard-surface-bg: linear-gradient(135deg, rgba(248, 250, 252, 0.85), rgba(226, 232, 240, 0.85));
+  --dashboard-surface-overlay: repeating-linear-gradient(
+    0deg,
+    rgba(148, 163, 184, 0.06),
+    rgba(148, 163, 184, 0.06) 1px,
+    transparent 1px,
+    transparent 10px
+  );
 }
 
 html[data-visual='c'] .topbar-title-pill {
