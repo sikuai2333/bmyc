@@ -38,6 +38,7 @@ CLIENT_ORIGIN="http://${API_HOST}:${WEB_PORT}"
 JWT_SECRET="${JWT_SECRET:-CHANGE_ME}"
 ENABLE_DEMO_DATA="${ENABLE_DEMO_DATA:-true}"
 ENABLE_DEMO_DATA="${ENABLE_DEMO_DATA,,}"
+VITE_ENABLE_DEMO="${VITE_ENABLE_DEMO:-${ENABLE_DEMO_DATA}}"
 ADMIN_NAME="${ADMIN_NAME:-}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"
@@ -99,7 +100,7 @@ echo "Installing frontend deps..."
 npm --prefix client install
 
 echo "Building frontend..."
-VITE_API_BASE="${API_BASE}" npm --prefix client run build
+VITE_API_BASE="${API_BASE}" VITE_ENABLE_DEMO="${VITE_ENABLE_DEMO}" npm --prefix client run build
 
 echo "Preparing data directory..."
 mkdir -p "${DB_DIR}/uploads"

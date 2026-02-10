@@ -398,6 +398,31 @@ dist/assets/index-COQALoRf.js            605.72 kB │ gzip: 203.27 kB
 1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
 2. `npm --prefix app/client run build`：通过（存在体积告警）
 
+## npm --prefix app/client run test -- --run 输出（摘要）
+
+```
+Test Files  11 passed (11)
+Tests       11 passed (11)
+```
+
+## npm --prefix app/client run build 输出（摘要）
+
+```
+✓ built in 15.52s
+(!) Some chunks are larger than 500 kB after minification.
+```
+
+---
+
+- 日期: 2026-02-10
+- 执行者: Codex
+- 工作目录: c:\Users\sikuai\Downloads\SOLO开发\百名英才档案管理\app
+
+## 执行命令与结果
+
+1. `npm --prefix app/client run test -- --run`：通过（存在既有控制台警告）
+2. `npm --prefix app/client run build`：通过（存在体积告警）
+
 ## npm --prefix app/client run test -- --run 输出
 
 ```

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { LoginPayload, User } from '../types/auth'
-import { setAuthToken } from '../utils/api'
+import { API_BASE, setAuthToken } from '../utils/api'
 import { login as loginService } from '../services/auth'
 import { sanitizeInput } from '../utils/sanitize'
 
@@ -61,6 +61,7 @@ const demoAccounts: Array<{ account: string; password: string; user: User }> = [
 ]
 
 const DEMO_ENABLED = import.meta.env.VITE_ENABLE_DEMO === 'true'
+const DEMO_LOCAL_ONLY = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1')
 
 const readStoredAuth = () => {
   if (typeof window === 'undefined') {
@@ -109,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (token && token === 'demo-token' && !DEMO_ENABLED) {
+    if (token && token === 'demo-token' && (!DEMO_ENABLED || !DEMO_LOCAL_ONLY)) {
       localStorage.removeItem(STORAGE_TOKEN_KEY)
       sessionStorage.removeItem(STORAGE_TOKEN_KEY)
       localStorage.removeItem(STORAGE_USER_KEY)
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (payload: LoginPayload) => {
     const account = sanitizeInput(payload.account.trim())
     const password = sanitizeInput(payload.password.trim())
-    const matched = DEMO_ENABLED
+    const matched = DEMO_ENABLED && DEMO_LOCAL_ONLY
       ? demoAccounts.find((item) => item.account === account && item.password === password)
       : null
 
