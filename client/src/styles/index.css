@@ -31,6 +31,97 @@
     @apply shadow-card-hover;
   }
 
+  .topbar-title-pill {
+    @apply relative inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-white;
+    background: linear-gradient(120deg, #1d4ed8 0%, #0ea5e9 55%, #22d3ee 100%);
+    box-shadow: 0 8px 18px rgba(14, 165, 233, 0.28);
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .topbar-title-pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35), transparent 60%);
+    opacity: 0.7;
+    z-index: -1;
+  }
+
+  .topbar-title-pill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.2) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+    opacity: 0.2;
+    z-index: -1;
+  }
+
+  .metric-paper {
+    position: relative;
+    overflow: hidden;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92)),
+      repeating-linear-gradient(
+        90deg,
+        rgba(15, 23, 42, 0.03),
+        rgba(15, 23, 42, 0.03) 1px,
+        transparent 1px,
+        transparent 6px
+      );
+    background-blend-mode: normal;
+  }
+
+  .metric-paper::before {
+    content: '';
+    position: absolute;
+    top: -48px;
+    right: -48px;
+    width: 180px;
+    height: 180px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, var(--paper-accent), transparent 70%);
+    opacity: 0.6;
+  }
+
+  .metric-paper::after {
+    content: '';
+    position: absolute;
+    bottom: -60px;
+    left: -40px;
+    width: 200px;
+    height: 200px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, var(--paper-edge), transparent 70%);
+    opacity: 0.35;
+    transform: rotate(-8deg);
+  }
+
+  .metric-paper--blue {
+    --paper-accent: rgba(59, 130, 246, 0.25);
+    --paper-edge: rgba(37, 99, 235, 0.18);
+  }
+
+  .metric-paper--teal {
+    --paper-accent: rgba(14, 165, 233, 0.22);
+    --paper-edge: rgba(8, 145, 178, 0.18);
+  }
+
+  .metric-paper--amber {
+    --paper-accent: rgba(245, 158, 11, 0.22);
+    --paper-edge: rgba(217, 119, 6, 0.2);
+  }
+
+  .metric-paper--violet {
+    --paper-accent: rgba(139, 92, 246, 0.2);
+    --paper-edge: rgba(109, 40, 217, 0.18);
+  }
+
   .section-title {
     @apply text-lg font-semibold text-slate-800;
   }
@@ -138,6 +229,22 @@ html[data-theme='dark'] .card {
   background-color: #111827;
   border-color: #1f2937;
   box-shadow: none;
+}
+
+html[data-theme='dark'] .metric-paper {
+  background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.92));
+}
+
+html[data-theme='dark'] .metric-paper::before {
+  opacity: 0.35;
+}
+
+html[data-theme='dark'] .metric-paper::after {
+  opacity: 0.25;
+}
+
+html[data-theme='dark'] .topbar-title-pill {
+  box-shadow: 0 8px 18px rgba(56, 189, 248, 0.35);
 }
 
 html[data-theme='dark'] .table-header {

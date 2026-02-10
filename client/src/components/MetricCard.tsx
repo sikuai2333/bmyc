@@ -1,8 +1,8 @@
 import type { Metric } from '../types/dashboard'
 
-export function MetricCard({ metric }: { metric: Metric }) {
+export function MetricCard({ metric, className = '' }: { metric: Metric; className?: string }) {
   return (
-    <div className="card card-hover p-5">
+    <div className={`card card-hover p-5 ${className}`.trim()}>
       <p className="text-sm text-slate-500">{metric.label}</p>
       <div className="mt-3 flex items-end justify-between">
         <div className="flex items-baseline gap-2">

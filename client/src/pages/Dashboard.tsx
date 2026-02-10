@@ -40,6 +40,13 @@ export default function Dashboard() {
     ]
   }, [people, meetings, insights])
 
+  const metricStyles = [
+    'metric-paper metric-paper--blue',
+    'metric-paper metric-paper--teal',
+    'metric-paper metric-paper--amber',
+    'metric-paper metric-paper--violet'
+  ]
+
   const trendData = useMemo(() => {
     const meetingMap = new Map<string, number>()
     meetings.forEach((meeting) => {
@@ -110,8 +117,12 @@ export default function Dashboard() {
       ) : null}
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {overview.map((metric) => (
-          <MetricCard key={metric.label} metric={metric} />
+        {overview.map((metric, index) => (
+          <MetricCard
+            key={metric.label}
+            metric={metric}
+            className={metricStyles[index % metricStyles.length]}
+          />
         ))}
       </div>
 
