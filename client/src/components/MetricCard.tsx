@@ -3,7 +3,7 @@ import type { Metric } from '../types/dashboard'
 export function MetricCard({ metric, className = '' }: { metric: Metric; className?: string }) {
   return (
     <div className={`card card-hover p-5 ${className}`.trim()}>
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{metric.label}</p>
+      <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{metric.label}</p>
       <div className="mt-2 flex items-end justify-between">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-semibold text-slate-900">{metric.value}</span>
